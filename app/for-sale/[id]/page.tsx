@@ -451,9 +451,9 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
               e.stopPropagation();
               setSelectedImageIndex(null);
             }}
-            className="absolute top-4 right-4 text-white hover:text-primary-400 transition z-10 bg-black/50 rounded-full p-2"
+            className="absolute top-2 right-2 sm:top-4 sm:right-4 text-white hover:text-primary-400 transition z-10 bg-black/50 rounded-full p-2"
           >
-            <X size={32} />
+            <X size={24} className="sm:w-8 sm:h-8" />
           </button>
           
           <button
@@ -461,9 +461,9 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
               e.stopPropagation();
               prevImage();
             }}
-            className="absolute left-4 text-white hover:text-primary-400 transition z-10 bg-black/50 rounded-full p-2"
+            className="absolute left-2 sm:left-4 text-white hover:text-primary-400 transition z-10 bg-black/50 rounded-full p-2"
           >
-            <ChevronLeft size={40} />
+            <ChevronLeft size={32} className="sm:w-10 sm:h-10" />
           </button>
           
           <div className="relative w-full h-full max-h-[90vh] flex items-center justify-center">
@@ -482,9 +482,9 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
               e.stopPropagation();
               nextImage();
             }}
-            className="absolute right-4 text-white hover:text-primary-400 transition z-10 bg-black/50 rounded-full p-2"
+            className="absolute right-2 sm:right-4 text-white hover:text-primary-400 transition z-10 bg-black/50 rounded-full p-2"
           >
-            <ChevronRight size={40} />
+            <ChevronRight size={32} className="sm:w-10 sm:h-10" />
           </button>
           
           <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm font-montserrat bg-black/50 px-4 py-2 rounded-lg">
@@ -515,7 +515,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
           >
             {/* Main Image */}
             <div 
-              className="relative h-[500px] rounded-xl overflow-hidden cursor-pointer"
+              className="relative h-[300px] sm:h-[400px] md:h-[500px] rounded-xl overflow-hidden cursor-pointer"
               onClick={() => property.gallery ? setSelectedImageIndex(0) : null}
             >
               <Image
@@ -533,11 +533,11 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
             
             {/* Image Gallery Thumbnails */}
             {property.gallery && property.gallery.length > 1 && (
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                 {property.gallery.map((img: string, index: number) => (
                   <div
                     key={index}
-                    className={`relative h-20 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition border-2 ${
+                    className={`relative h-16 sm:h-20 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition border-2 ${
                       index === 0 ? 'border-primary-500' : 'border-transparent hover:border-primary-500'
                     }`}
                     onClick={() => setSelectedImageIndex(index)}
@@ -557,7 +557,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
-            className="bg-white rounded-xl shadow-lg p-8"
+            className="bg-white rounded-xl shadow-lg p-4 sm:p-6 md:p-8"
           >
             <div className="mb-6">
               <h1 className="text-3xl font-bold text-dark-900 mb-4">{property.title}</h1>
@@ -565,10 +565,10 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
                 <MapPin size={20} className="mr-2 text-primary-600" />
                 <span>{property.location}</span>
               </div>
-              <div className="text-4xl font-bold text-primary-700 mb-6">{property.price}</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary-700 mb-6">{property.price}</div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               <div className="flex items-center gap-2">
                 <Square size={20} className="text-primary-600" />
                 <span className="text-dark-600">{property.size}</span>

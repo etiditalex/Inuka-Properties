@@ -80,18 +80,19 @@ const Header = () => {
       <div className="bg-primary-700 text-white py-2 hidden md:block">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center text-sm">
-            <div className="flex items-center gap-6">
-              <a href="tel:+254711082084" className="flex items-center gap-2 hover:text-primary-200 transition">
+            <div className="flex items-center gap-3 lg:gap-6 flex-wrap">
+              <a href="tel:+254711082084" className="flex items-center gap-2 hover:text-primary-200 transition text-xs lg:text-sm">
                 <Phone size={16} />
-                <span>0711 082084</span>
+                <span className="whitespace-nowrap">0711 082084</span>
               </a>
-              <a href="mailto:info@inukaproperties.co.ke" className="flex items-center gap-2 hover:text-primary-200 transition">
+              <a href="mailto:info@inukaproperties.co.ke" className="flex items-center gap-2 hover:text-primary-200 transition text-xs lg:text-sm">
                 <Mail size={16} />
-                <span>info@inukaproperties.co.ke</span>
+                <span className="hidden sm:inline">info@inukaproperties.co.ke</span>
+                <span className="sm:hidden">Email</span>
               </a>
             </div>
-            <div className="text-primary-200">
-              Celebrating 10 Years of Excellence
+            <div className="text-primary-200 text-xs lg:text-sm whitespace-nowrap">
+              Celebrating 10 Years
             </div>
           </div>
         </div>
@@ -104,7 +105,7 @@ const Header = () => {
           <Link href="/" className="flex items-center">
             <div className="relative w-16 h-16 md:w-20 md:h-20">
               <Image
-                src="https://res.cloudinary.com/dyfnobo9r/image/upload/v1767244056/Inuka_logo_fbsyst.jpg"
+                src="https://res.cloudinary.com/dyfnobo9r/image/upload/v1767347012/Iinuka_properties_logo_xq372f.jpg"
                 alt="Inuka Afrika Properties Logo"
                 fill
                 className="object-contain"

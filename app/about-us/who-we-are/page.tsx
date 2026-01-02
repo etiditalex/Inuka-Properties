@@ -218,7 +218,7 @@ export default function WhoWeArePage() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.2 }}
-              className="relative h-[600px] rounded-xl overflow-hidden"
+              className="relative h-[400px] md:h-[500px] lg:h-[600px] rounded-xl overflow-hidden"
             >
               <Image
                 src="https://res.cloudinary.com/dyfnobo9r/image/upload/v1757597072/Bofa_Platinum_Estate_10_evunyt.jpg"

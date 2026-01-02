@@ -286,7 +286,7 @@ function WhyInukaSection() {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 font-montserrat">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 font-montserrat">
             Why Inuka Properties
           </h2>
         </motion.div>
@@ -430,7 +430,7 @@ function CounterItem({
         initial={{ scale: 0.5 }}
         animate={isVisible ? { scale: 1 } : { scale: 0.5 }}
         transition={{ duration: 0.5 }}
-        className="text-5xl md:text-6xl lg:text-7xl font-bold text-primary-400 font-montserrat"
+        className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-primary-400 font-montserrat"
       >
         {count}
         {suffix}
@@ -518,7 +518,7 @@ export default function HomePage() {
               transition={{ duration: 0.8 }}
               className="text-center"
             >
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 font-montserrat drop-shadow-lg whitespace-nowrap">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 font-montserrat drop-shadow-lg">
                 Coastal Gate To{" "}
                 <span className="text-primary-300">Real Estate</span>
               </h1>
@@ -547,7 +547,7 @@ export default function HomePage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-dark-900 mb-6 font-montserrat text-left">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-dark-900 mb-6 font-montserrat text-left">
               Join the Family
             </h2>
             <p className="text-base md:text-lg font-normal text-dark-600 leading-relaxed font-montserrat text-left max-w-4xl">
@@ -580,7 +580,7 @@ export default function HomePage() {
             <p className="text-xl mb-8 text-primary-100 max-w-2xl mx-auto font-montserrat">
               Join hundreds of satisfied clients who have found their dream properties with us
             </p>
-            <div className="grid grid-cols-2 gap-4 max-w-2xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
               <Link
                 href="/for-sale"
                 className="bg-white text-primary-700 px-8 py-4 rounded-lg font-semibold hover:bg-primary-50 transition shadow-lg text-center w-full font-montserrat"

@@ -216,7 +216,7 @@ export default function ContactUsPage() {
               initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="bg-white rounded-xl shadow-lg p-8"
+              className="bg-white rounded-xl shadow-lg p-4 sm:p-6 md:p-8"
             >
               {submitted ? (
                 <div className="text-center py-8">

@@ -15,7 +15,7 @@ const Footer = () => {
             <div className="flex items-center gap-3 mb-4">
               <div className="relative w-16 h-16">
                 <Image
-                  src="https://res.cloudinary.com/dyfnobo9r/image/upload/v1767244056/Inuka_logo_fbsyst.jpg"
+                  src="https://res.cloudinary.com/dyfnobo9r/image/upload/v1767347012/Iinuka_properties_logo_xq372f.jpg"
                   alt="Inuka Afrika Properties Logo"
                   fill
                   className="object-contain"

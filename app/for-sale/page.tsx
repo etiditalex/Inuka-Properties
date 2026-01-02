@@ -309,13 +309,13 @@ export default function ForSalePage() {
 
                       {/* Price */}
                       <div className="mb-4">
-                        <div className="text-3xl md:text-4xl font-bold text-dark-900 font-montserrat">
+                        <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-dark-900 font-montserrat">
                           {property.price}
                         </div>
                       </div>
 
                       {/* Title */}
-                      <h3 className="text-2xl md:text-3xl font-bold text-dark-900 mb-4 font-montserrat">
+                      <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-dark-900 mb-4 font-montserrat">
                         {property.title}
                       </h3>
 
