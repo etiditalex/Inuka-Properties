@@ -7,12 +7,13 @@ import Link from "next/link";
 import Image from "next/image";
 
 type PropertyType = "all" | "residential" | "commercial" | "beach" | "farm" | "affordable";
+type ActualPropertyType = Exclude<PropertyType, "all">;
 
 interface Property {
   id: number;
   title: string;
   location: string;
-  type: PropertyType;
+  type: ActualPropertyType;
   price: string;
   size: string;
   bedrooms?: number;
@@ -105,7 +106,7 @@ const properties: Property[] = [
   },
 ];
 
-const propertyTypeIcons = {
+const propertyTypeIcons: Record<ActualPropertyType, typeof Home> = {
   residential: Home,
   commercial: Building2,
   beach: Waves,

@@ -422,7 +422,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
                   {Object.entries(property.pricing).map(([size, price]) => (
                     <div key={size} className="border-2 border-primary-200 rounded-lg p-4 hover:border-primary-400 transition">
                       <div className="text-lg font-semibold text-dark-900 mb-2">{size} Plot</div>
-                      <div className="text-2xl font-bold text-primary-600">{price}</div>
+                      <div className="text-2xl font-bold text-primary-600">{price as string}</div>
                       {size === "1/8 Acre" && property.id === 2 && (
                         <div className="mt-2 text-sm text-dark-600">
                           <div>• Prime Location</div>
@@ -532,7 +532,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
                   {Object.entries(property.quickInfo).map(([label, value]) => (
                     <div key={label} className="border-l-4 border-primary-600 pl-4">
                       <div className="text-sm font-semibold text-primary-600 mb-1">{label}:</div>
-                      <div className="text-dark-700">{value}</div>
+                      <div className="text-dark-700">{value as string}</div>
                     </div>
                   ))}
                 </div>
@@ -542,7 +542,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
             <div className="bg-white rounded-xl shadow-lg p-8">
               <h2 className="text-2xl font-bold text-dark-900 mb-4">Project Features</h2>
               <ul className="grid md:grid-cols-2 gap-3">
-                {property.features.map((feature, index) => (
+                {property.features.map((feature: string, index: number) => (
                   <li key={index} className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-primary-600 rounded-full"></div>
                     <span className="text-dark-700">{feature}</span>
