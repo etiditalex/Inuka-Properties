@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, MapPin, Home, Building2, Waves, Sprout, TrendingUp, Bed, Square, ChevronLeft, ChevronRight, DollarSign, Heart, FileText, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import StructuredData from "@/components/StructuredData";
 
 interface Property {
   id: number;
@@ -441,6 +442,203 @@ function CounterItem({
 }
 
 export default function HomePage() {
+  // Structured Data for Homepage - Location-based SEO
+  const homepageStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "RealEstateAgent",
+    "name": "Inuka Afrika Properties Limited",
+    "url": "https://www.inukaproperties.co.ke",
+    "description": "Real estate properties for sale in Kilifi County, Kenya. Properties available in Mariakani, Mtwapa, Kikambala, Bofa, Chumani, Tezo, Msabaha, Mtondia, and Malindi.",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Links Road Opposite Kigothos Hotel",
+      "addressLocality": "Nyali",
+      "addressRegion": "Mombasa",
+      "postalCode": "80100",
+      "addressCountry": "KE"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": "-4.048",
+      "longitude": "39.709"
+    },
+    "areaServed": [
+      "Kilifi", "Mariakani", "Mtwapa", "Kikambala", "Bofa", 
+      "Chumani", "Tezo", "Msabaha", "Mtondia", "Malindi", "Nyali"
+    ],
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Real Estate Properties",
+      "itemListElement": [
+        {
+          "@type": "OfferCatalog",
+          "name": "Properties in Mariakani",
+          "itemListElement": [
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Product",
+                "name": "Properties in Mariakani, Kilifi County"
+              }
+            }
+          ]
+        },
+        {
+          "@type": "OfferCatalog",
+          "name": "Properties in Mtwapa",
+          "itemListElement": [
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Product",
+                "name": "Properties in Mtwapa, Kilifi County"
+              }
+            }
+          ]
+        },
+        {
+          "@type": "OfferCatalog",
+          "name": "Properties in Kikambala",
+          "itemListElement": [
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Product",
+                "name": "Properties in Kikambala, Kilifi County"
+              }
+            }
+          ]
+        },
+        {
+          "@type": "OfferCatalog",
+          "name": "Properties in Bofa",
+          "itemListElement": [
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Product",
+                "name": "Properties in Bofa, Kilifi County"
+              }
+            }
+          ]
+        },
+        {
+          "@type": "OfferCatalog",
+          "name": "Properties in Chumani",
+          "itemListElement": [
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Product",
+                "name": "Properties in Chumani, Kilifi County"
+              }
+            }
+          ]
+        },
+        {
+          "@type": "OfferCatalog",
+          "name": "Properties in Tezo",
+          "itemListElement": [
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Product",
+                "name": "Properties in Tezo, Kilifi County"
+              }
+            }
+          ]
+        },
+        {
+          "@type": "OfferCatalog",
+          "name": "Properties in Msabaha",
+          "itemListElement": [
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Product",
+                "name": "Properties in Msabaha, Kilifi County"
+              }
+            }
+          ]
+        },
+        {
+          "@type": "OfferCatalog",
+          "name": "Properties in Mtondia",
+          "itemListElement": [
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Product",
+                "name": "Properties in Mtondia, Kilifi County"
+              }
+            }
+          ]
+        },
+        {
+          "@type": "OfferCatalog",
+          "name": "Properties in Malindi",
+          "itemListElement": [
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Product",
+                "name": "Properties in Malindi, Kilifi County"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  };
+
+  // FAQ Structured Data for AI Overview
+  const faqStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Where are Inuka Afrika Properties located?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Inuka Afrika Properties Limited has properties in Kilifi County, Kenya, specifically in Mariakani, Mtwapa, Kikambala, Bofa, Chumani, Tezo, Msabaha, Mtondia, and Malindi. Our head office is located in Nyali, Mombasa at Links Road Opposite Kigothos Hotel."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What types of properties does Inuka Afrika Properties offer?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Inuka Afrika Properties offers residential plots, commercial properties, beach properties, and affordable housing solutions in Kilifi County. We also provide property management, title issuance, and feasibility study services."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How long has Inuka Afrika Properties been in business?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Inuka Afrika Properties Limited was founded in 2016 and has been operating for over 10 years, serving clients across the coastal region of Kenya with excellence in real estate solutions."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is the contact information for Inuka Afrika Properties?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "You can contact Inuka Afrika Properties Limited at phone number 0711 082084 or email info@inukaproperties.co.ke. Our office is located at Links Road Opposite Kigothos Hotel, P.O. BOX 525-80100, Nyali, Mombasa, Kenya."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do you offer payment plans for properties?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, Inuka Afrika Properties offers flexible payment plans for most properties. Payment terms typically include a deposit followed by monthly installments over 12 months, with some properties offering zero-interest payment plans."
+        }
+      }
+    ]
+  };
+
   const services = [
     {
       icon: Home,
@@ -494,6 +692,8 @@ export default function HomePage() {
 
   return (
     <div className="pt-24">
+      <StructuredData data={homepageStructuredData} />
+      <StructuredData data={faqStructuredData} />
       {/* Hero Section */}
       <section className="relative min-h-[90vh] flex items-center overflow-hidden">
         {/* Background Image */}
