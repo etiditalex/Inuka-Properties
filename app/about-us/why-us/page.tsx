@@ -23,6 +23,24 @@ interface Property {
 
 const properties: Property[] = [
   {
+    id: 11,
+    title: "Mwanda Phase 3",
+    location: "Mariakani, Kilifi County",
+    type: "residential",
+    price: "KES 325,000",
+    size: "1/8 Acre",
+    image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767330607/Mwanda_Phase_3_3_ejntad.jpg",
+  },
+  {
+    id: 10,
+    title: "Kibao Kiche Haven",
+    location: "Mariakani, Kilifi County",
+    type: "residential",
+    price: "KES 399,000",
+    size: "50x100 (1/8 Acre)",
+    image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767330214/Kibao_kiche_haven_3_syxxkx.jpg",
+  },
+  {
     id: 1,
     title: "Bofa Platinum",
     location: "Bofa, Kilifi County",

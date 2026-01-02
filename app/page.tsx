@@ -20,6 +20,26 @@ interface Property {
 
 const featuredProperties: Property[] = [
   {
+    id: 11,
+    title: "Mwanda Phase 3",
+    location: "Mariakani, Kilifi County",
+    type: "Residential",
+    price: "KES 325,000",
+    size: "1/8 Acre",
+    image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767330607/Mwanda_Phase_3_3_ejntad.jpg",
+    featured: true,
+  },
+  {
+    id: 10,
+    title: "Kibao Kiche Haven",
+    location: "Mariakani, Kilifi County",
+    type: "Residential",
+    price: "KES 399,000",
+    size: "50x100 (1/8 Acre)",
+    image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767330214/Kibao_kiche_haven_3_syxxkx.jpg",
+    featured: true,
+  },
+  {
     id: 1,
     title: "Bofa Platinum",
     location: "Bofa, Kilifi County",
@@ -37,24 +57,6 @@ const featuredProperties: Property[] = [
     price: "KES 595,000",
     size: "1/8 Acre",
     image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767285403/chumani_phase_6_y4smsw.jpg",
-  },
-  {
-    id: 3,
-    title: "Kikambala Phase 2",
-    location: "Kikambala, Kilifi County",
-    type: "Residential",
-    price: "KES 1,250,000",
-    size: "1/8 Acre",
-    image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767285860/Kikambala_Phase_2_cw64y8.jpg",
-  },
-  {
-    id: 4,
-    title: "Chumani Phase 3",
-    location: "Chumani, Kilifi County",
-    type: "Residential",
-    price: "KES 550,000",
-    size: "1/8 Acre",
-    image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767286100/chumani_phase_3_2_muym3y.jpg",
   },
 ];
 

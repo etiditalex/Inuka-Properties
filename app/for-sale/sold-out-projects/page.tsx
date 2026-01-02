@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Bed, Square, Filter, Search, CheckCircle, ArrowRight } from "lucide-react";
+import { MapPin, Bed, Square, Filter, Search, CheckCircle, ArrowRight, Home, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -135,18 +135,107 @@ export default function SoldOutProjectsPage() {
   return (
     <div className="pt-24 pb-20">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-primary-600 to-primary-800 text-white py-16">
+      <section className="bg-white py-12 md:py-16">
         <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center"
-          >
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 font-serif">Sold Out Projects</h1>
-            <p className="text-xl text-primary-100 max-w-2xl mx-auto">
-              Explore our successfully completed and sold projects
-            </p>
-          </motion.div>
+          <div className="grid lg:grid-cols-2 gap-8 items-center">
+            {/* Left Side - Content */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              {/* Breadcrumb */}
+              <div className="flex items-center gap-2 mb-6 text-dark-600">
+                <Link href="/" className="flex items-center hover:text-primary-600 transition">
+                  <Home size={18} className="stroke-2" />
+                </Link>
+                <ChevronRight size={16} className="text-dark-400" />
+                <Link href="/for-sale" className="text-dark-600 hover:text-primary-600 transition font-montserrat">
+                  For Sale
+                </Link>
+                <ChevronRight size={16} className="text-dark-400" />
+                <span className="text-dark-900 font-montserrat">Sold Out Projects</span>
+              </div>
+
+              {/* Main Heading */}
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-dark-900 mb-4 font-montserrat">
+                Sold Out Projects
+              </h1>
+
+              {/* Subheading */}
+              <p className="text-lg md:text-xl text-dark-600 font-montserrat">
+                Explore our successfully completed and sold projects
+              </p>
+            </motion.div>
+
+            {/* Right Side - City Skyline Graphic */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="hidden lg:block relative h-64 md:h-80"
+            >
+              <svg
+                viewBox="0 0 400 300"
+                className="w-full h-full"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                {/* City Skyline Buildings */}
+                <g stroke="#e5e7eb" strokeWidth="1.5" fill="none">
+                  {/* Building 1 */}
+                  <rect x="20" y="180" width="60" height="100" />
+                  <rect x="25" y="190" width="8" height="8" />
+                  <rect x="37" y="190" width="8" height="8" />
+                  <rect x="49" y="190" width="8" height="8" />
+                  <rect x="61" y="190" width="8" height="8" />
+                  <rect x="25" y="205" width="8" height="8" />
+                  <rect x="37" y="205" width="8" height="8" />
+                  <rect x="49" y="205" width="8" height="8" />
+                  <rect x="61" y="205" width="8" height="8" />
+                  
+                  {/* Building 2 */}
+                  <rect x="100" y="150" width="70" height="130" />
+                  <rect x="108" y="160" width="10" height="10" />
+                  <rect x="123" y="160" width="10" height="10" />
+                  <rect x="138" y="160" width="10" height="10" />
+                  <rect x="153" y="160" width="10" height="10" />
+                  <rect x="108" y="178" width="10" height="10" />
+                  <rect x="123" y="178" width="10" height="10" />
+                  <rect x="138" y="178" width="10" height="10" />
+                  <rect x="153" y="178" width="10" height="10" />
+                  <rect x="108" y="196" width="10" height="10" />
+                  <rect x="123" y="196" width="10" height="10" />
+                  <rect x="138" y="196" width="10" height="10" />
+                  
+                  {/* Building 3 */}
+                  <rect x="190" y="120" width="80" height="160" />
+                  <rect x="200" y="135" width="12" height="12" />
+                  <rect x="218" y="135" width="12" height="12" />
+                  <rect x="236" y="135" width="12" height="12" />
+                  <rect x="254" y="135" width="12" height="12" />
+                  <rect x="200" y="155" width="12" height="12" />
+                  <rect x="218" y="155" width="12" height="12" />
+                  <rect x="236" y="155" width="12" height="12" />
+                  <rect x="254" y="155" width="12" height="12" />
+                  <rect x="200" y="175" width="12" height="12" />
+                  <rect x="218" y="175" width="12" height="12" />
+                  <rect x="236" y="175" width="12" height="12" />
+                  
+                  {/* Building 4 */}
+                  <rect x="290" y="160" width="65" height="120" />
+                  <rect x="298" y="170" width="9" height="9" />
+                  <rect x="312" y="170" width="9" height="9" />
+                  <rect x="326" y="170" width="9" height="9" />
+                  <rect x="340" y="170" width="9" height="9" />
+                  <rect x="298" y="186" width="9" height="9" />
+                  <rect x="312" y="186" width="9" height="9" />
+                  <rect x="326" y="186" width="9" height="9" />
+                  <rect x="340" y="186" width="9" height="9" />
+                </g>
+              </svg>
+            </motion.div>
+          </div>
         </div>
       </section>
 

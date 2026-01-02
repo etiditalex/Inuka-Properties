@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { notFound } from "next/navigation";
 import { motion } from "framer-motion";
-import { MapPin, Bed, Square, Phone, Mail, ArrowLeft } from "lucide-react";
+import { MapPin, Bed, Square, Phone, Mail, ArrowLeft, ChevronLeft, ChevronRight, X } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -10,6 +11,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
   // In a real application, this would fetch property data based on the ID
   // For now, we'll use a sample property
   const propertyId = parseInt(params.id);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   
   // Property data based on ID
   const properties: Record<number, any> = {
@@ -244,6 +246,98 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
         "Electricity": "Available",
       },
     },
+    10: {
+      id: 10,
+      title: "Kibao Kiche Haven",
+      location: "Mariakani, Kilifi County",
+      type: "residential",
+      price: "KES 399,000",
+      size: "50x100 (1/8 Acre)",
+      image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767330214/Kibao_kiche_haven_3_syxxkx.jpg",
+      gallery: [
+        "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767330214/Kibao_kiche_haven_3_syxxkx.jpg",
+        "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767330214/Kibao_kiche_haven_2_molls8.jpg",
+        "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767330214/Kibao_kiche_haven_1_coz7kg.jpg",
+      ],
+      description: "KIBAO KICHE HAVEN - MARIAKANI. Prime location just 500m from Mariakani-Mavueni & Mkapuni bypasses, offering exceptional accessibility and strategic positioning for future development. This affordable development provides 50x100 plots at KES 399,000, with flexible payment terms that make ownership accessible. With a KES 100,000 deposit and zero-interest balance payable in 12 months, this is an ideal opportunity for residential, commercial, or long-term investment. Site visits are available every Wednesday and Saturday.",
+      features: [
+        "Prime Location - 500m from Mariakani-Mavueni & Mkapuni bypasses",
+        "Affordable Pricing - 50x100 plot at KES 399,000",
+        "Flexible Payment Terms - KES 100,000 deposit, zero-interest balance in 12 months",
+        "High Growth Potential - Strategic location for future development",
+        "Clear Payment Plan - Balance in 12 installments, no interest",
+        "Ideal for residential, commercial, or long-term investment",
+        "Site visits every Wednesday and Saturday",
+      ],
+      pricing: {
+        "50x100 (1/8 Acre)": "KES 399,000",
+      },
+      paymentPlan: {
+        "Total Price": "KES 399,000",
+        "Deposit": "KES 100,000",
+        "Remaining Balance": "KES 299,000",
+        "Monthly Installments": "12 months",
+        "Monthly Payment": "KES 24,917",
+        "Interest": "Zero Interest",
+      },
+      quickInfo: {
+        "Location": "Mariakani, Kilifi County",
+        "Distance to Bypasses": "500m from Mariakani-Mavueni & Mkapuni bypasses",
+        "Plot Size": "50x100 (1/8 Acre)",
+        "Property Type": "Residential/Commercial",
+        "Total Price": "KES 399,000",
+        "Deposit": "KES 100,000",
+        "Payment Plan": "Deposit + 12 Monthly Installments (Zero Interest)",
+        "Site Visits": "Every Wednesday and Saturday",
+        "Investment Potential": "High Growth Potential",
+      },
+    },
+    11: {
+      id: 11,
+      title: "Mwanda Phase 3",
+      location: "Mariakani, Kilifi County",
+      type: "residential",
+      price: "KES 325,000",
+      size: "1/8 Acre",
+      image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767330607/Mwanda_Phase_3_3_ejntad.jpg",
+      gallery: [
+        "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767330607/Mwanda_Phase_3_3_ejntad.jpg",
+        "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767330608/Mwanda_Phase_3_1_vpab3y.jpg",
+        "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767330607/Mwanda_Phase_3_4_bi5ptt.jpg",
+        "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767330608/Mwanda_Phase_3_2_ifxzbr.jpg",
+      ],
+      description: "Mwanda Phase 3 Now Selling. Prime residential plots located just 1km off the Mariakani-Kaloleni Bypass, offering excellent accessibility and strategic positioning. This development features water and electricity already on-site, making it ready to build immediately. Perfect for both home construction and investment purposes, with affordable pricing at KES 325,000 and flexible payment terms including a KES 100,000 deposit and balance payable over 12 months.",
+      features: [
+        "Prime Location - Just 1km off Mariakani-Kaloleni Bypass",
+        "Water & Electricity on-site - Ready for immediate development",
+        "Ready to Build - All utilities in place",
+        "Perfect for Home or Investment - Versatile development options",
+        "Affordable Pricing - KES 325,000 per plot",
+        "Flexible Payment Terms - KES 100,000 deposit, balance over 12 months",
+        "Strategic Location - Excellent accessibility and growth potential",
+      ],
+      pricing: {
+        "1/8 Acre": "KES 325,000",
+      },
+      paymentPlan: {
+        "Total Price": "KES 325,000",
+        "Deposit": "KES 100,000",
+        "Remaining Balance": "KES 225,000",
+        "Monthly Installments": "12 months",
+        "Monthly Payment": "KES 18,750",
+      },
+      quickInfo: {
+        "Location": "Mariakani, Kilifi County",
+        "Distance to Bypass": "1km off Mariakani-Kaloleni Bypass",
+        "Plot Size": "1/8 Acre",
+        "Property Type": "Residential Development",
+        "Total Price": "KES 325,000",
+        "Deposit": "KES 100,000",
+        "Payment Plan": "Deposit + 12 Monthly Installments",
+        "Utilities": "Water & Electricity on-site",
+        "Development Status": "Ready to Build",
+      },
+    },
     8: {
       id: 8,
       title: "Bofa Phase 21",
@@ -331,8 +425,79 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
     notFound();
   }
 
+  // Image Gallery Modal
+  const ImageGalleryModal = () => {
+    if (selectedImageIndex === null || !property.gallery) return null;
+    
+    const currentImage = property.gallery[selectedImageIndex];
+    const totalImages = property.gallery.length;
+    
+    const nextImage = () => {
+      setSelectedImageIndex((prev) => (prev !== null && prev < totalImages - 1 ? prev + 1 : 0));
+    };
+    
+    const prevImage = () => {
+      setSelectedImageIndex((prev) => (prev !== null && prev > 0 ? prev - 1 : totalImages - 1));
+    };
+    
+    return (
+      <div 
+        className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+        onClick={() => setSelectedImageIndex(null)}
+      >
+        <div className="relative max-w-6xl w-full h-full flex items-center justify-center">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedImageIndex(null);
+            }}
+            className="absolute top-4 right-4 text-white hover:text-primary-400 transition z-10 bg-black/50 rounded-full p-2"
+          >
+            <X size={32} />
+          </button>
+          
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              prevImage();
+            }}
+            className="absolute left-4 text-white hover:text-primary-400 transition z-10 bg-black/50 rounded-full p-2"
+          >
+            <ChevronLeft size={40} />
+          </button>
+          
+          <div className="relative w-full h-full max-h-[90vh] flex items-center justify-center">
+            <Image
+              src={currentImage}
+              alt={`${property.title} - Image ${selectedImageIndex + 1}`}
+              width={1200}
+              height={800}
+              className="object-contain max-w-full max-h-full"
+              quality={90}
+            />
+          </div>
+          
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              nextImage();
+            }}
+            className="absolute right-4 text-white hover:text-primary-400 transition z-10 bg-black/50 rounded-full p-2"
+          >
+            <ChevronRight size={40} />
+          </button>
+          
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm font-montserrat bg-black/50 px-4 py-2 rounded-lg">
+            Image {selectedImageIndex + 1} of {totalImages}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="pt-24 pb-20">
+      <ImageGalleryModal />
       <section className="container mx-auto px-4 py-8">
         <Link
           href="/for-sale"
@@ -346,14 +511,47 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
-            className="relative h-[500px] rounded-xl overflow-hidden"
+            className="space-y-4"
           >
-            <Image
-              src={property.image}
-              alt={property.title}
-              fill
-              className="object-cover"
-            />
+            {/* Main Image */}
+            <div 
+              className="relative h-[500px] rounded-xl overflow-hidden cursor-pointer"
+              onClick={() => property.gallery ? setSelectedImageIndex(0) : null}
+            >
+              <Image
+                src={property.image}
+                alt={property.title}
+                fill
+                className="object-cover"
+              />
+              {property.gallery && property.gallery.length > 1 && (
+                <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-lg text-sm font-montserrat">
+                  {property.gallery.length} Images - Click to view gallery
+                </div>
+              )}
+            </div>
+            
+            {/* Image Gallery Thumbnails */}
+            {property.gallery && property.gallery.length > 1 && (
+              <div className="grid grid-cols-4 gap-2">
+                {property.gallery.map((img: string, index: number) => (
+                  <div
+                    key={index}
+                    className={`relative h-20 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition border-2 ${
+                      index === 0 ? 'border-primary-500' : 'border-transparent hover:border-primary-500'
+                    }`}
+                    onClick={() => setSelectedImageIndex(index)}
+                  >
+                    <Image
+                      src={img}
+                      alt={`${property.title} - Image ${index + 1}`}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </motion.div>
 
           <motion.div
@@ -491,6 +689,22 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
                           <div>• Water & Electricity</div>
                           <div>• Well Demarcated</div>
                           <div>• Perimeter Fence</div>
+                        </div>
+                      )}
+                      {size === "50x100 (1/8 Acre)" && property.id === 10 && (
+                        <div className="mt-2 text-sm text-dark-600">
+                          <div>• Prime Location - 500m from Bypasses</div>
+                          <div>• Affordable Pricing</div>
+                          <div>• Zero Interest Payment Plan</div>
+                          <div>• High Growth Potential</div>
+                        </div>
+                      )}
+                      {size === "1/8 Acre" && property.id === 11 && (
+                        <div className="mt-2 text-sm text-dark-600">
+                          <div>• Prime Location - 1km off Bypass</div>
+                          <div>• Water & Electricity on-site</div>
+                          <div>• Ready to Build</div>
+                          <div>• Perfect for Home or Investment</div>
                         </div>
                       )}
                     </div>

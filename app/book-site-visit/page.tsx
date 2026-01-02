@@ -39,6 +39,8 @@ export default function BookSiteVisitPage() {
   };
 
   const properties = [
+    "Mwanda Phase 3",
+    "Kibao Kiche Haven",
     "Bofa Platinum",
     "Chumani Phase 6",
     "Kikambala Phase 2",
