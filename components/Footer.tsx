@@ -4,7 +4,7 @@ import Image from "next/image";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
-  const yearsInBusiness = currentYear - 2014; // Assuming founded in 2014
+  const yearsInBusiness = 10; // Celebrating 10 years
 
   return (
     <footer className="bg-dark-800 text-white">
@@ -12,7 +12,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
           <div>
-            <div className="flex items-center gap-3 mb-4">
+            <div className="mb-4">
               <div className="relative w-16 h-16">
                 <Image
                   src="https://res.cloudinary.com/dyfnobo9r/image/upload/v1767347012/Iinuka_properties_logo_xq372f.jpg"
@@ -20,10 +20,6 @@ const Footer = () => {
                   fill
                   className="object-contain"
                 />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold font-serif">Inuka Afrika</h3>
-                <p className="text-sm text-dark-300">Properties Limited</p>
               </div>
             </div>
             <p className="text-dark-300 text-sm mb-4">
