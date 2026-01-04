@@ -38,6 +38,7 @@ const Header = () => {
       dropdown: [
         { name: "Who We Are", href: "/about-us/who-we-are" },
         { name: "Why Us", href: "/about-us/why-us" },
+        { name: "Board Of Directors", href: "/about-us/board-of-directors" },
         { name: "Our Team", href: "/about-us/our-team" },
         { name: "CSR", href: "/about-us/csr" },
         { name: "Our Partners", href: "/about-us/our-partners" },
