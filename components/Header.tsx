@@ -6,11 +6,13 @@ import { usePathname } from "next/navigation";
 import { Menu, X, ChevronDown, Phone, Mail } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import BookSiteVisitModal from "./BookSiteVisitModal";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isBookVisitModalOpen, setIsBookVisitModalOpen] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -129,7 +131,7 @@ const Header = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center gap-8">
+          <div className="hidden lg:flex items-center gap-6">
             {navItems.map((item) => (
               <div key={item.name} className="relative group">
                 {item.dropdown ? (
@@ -188,6 +190,13 @@ const Header = () => {
                 )}
               </div>
             ))}
+            {/* Book Site Visit Button */}
+            <button
+              onClick={() => setIsBookVisitModalOpen(true)}
+              className="bg-red-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-red-700 transition shadow-md hover:shadow-lg"
+            >
+              Book Site Visit
+            </button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -268,10 +277,26 @@ const Header = () => {
                   )}
                 </div>
               ))}
+              {/* Book Site Visit Button - Mobile */}
+              <button
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  setIsBookVisitModalOpen(true);
+                }}
+                className="block w-full text-center py-3 px-4 rounded-lg font-semibold transition bg-red-600 text-white hover:bg-red-700"
+              >
+                Book Site Visit
+              </button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Book Site Visit Modal */}
+      <BookSiteVisitModal
+        isOpen={isBookVisitModalOpen}
+        onClose={() => setIsBookVisitModalOpen(false)}
+      />
     </header>
   );
 };
