@@ -56,12 +56,11 @@ html {
     transform: translateX(0);
   }
   100% {
-    transform: translateX(-33.333%);
+    transform: translateX(-25%);
   }
 }
 
 .animate-partners-carousel {
-  animation: partners-carousel 25s linear infinite;
+  animation: partners-carousel 30s linear infinite;
   will-change: transform;
 }
-

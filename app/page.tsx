@@ -347,7 +347,8 @@ function PartnersCarouselSection() {
   ];
 
   // Duplicate partners array for seamless infinite scroll
-  const duplicatedPartners = [...partners, ...partners, ...partners];
+  // We need enough duplicates to ensure smooth looping
+  const duplicatedPartners = [...partners, ...partners, ...partners, ...partners];
 
   return (
     <section className="py-20 bg-dark-50">
