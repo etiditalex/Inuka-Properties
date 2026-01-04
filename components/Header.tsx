@@ -92,8 +92,21 @@ const Header = () => {
                 <span className="sm:hidden">Email</span>
               </a>
             </div>
-            <div className="text-primary-200 text-xs lg:text-sm whitespace-nowrap">
-              Celebrating 10 Years
+            <div className="text-primary-200 text-xs lg:text-sm overflow-hidden relative flex-1 max-w-[200px]">
+              <div className="flex animate-marquee whitespace-nowrap">
+                <span className="inline-block px-2">Celebrating 10 Years</span>
+                <span className="inline-block px-2">•</span>
+                <span className="inline-block px-2">Celebrating 10 Years</span>
+                <span className="inline-block px-2">•</span>
+                <span className="inline-block px-2">Celebrating 10 Years</span>
+                <span className="inline-block px-2">•</span>
+                <span className="inline-block px-2">Celebrating 10 Years</span>
+                <span className="inline-block px-2">•</span>
+                <span className="inline-block px-2">Celebrating 10 Years</span>
+                <span className="inline-block px-2">•</span>
+                <span className="inline-block px-2">Celebrating 10 Years</span>
+                <span className="inline-block px-2">•</span>
+              </div>
             </div>
           </div>
         </div>

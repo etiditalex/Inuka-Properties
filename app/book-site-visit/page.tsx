@@ -78,8 +78,8 @@ export default function BookSiteVisitPage() {
           >
             {submitted ? (
               <div className="text-center py-12">
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <CheckCircle size={48} className="text-green-600" />
+                <div className="w-20 h-20 bg-cyan-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle size={48} className="text-cyan-600" />
                 </div>
                 <h2 className="text-3xl font-bold text-dark-900 mb-4">Booking Confirmed!</h2>
                 <p className="text-dark-600 text-lg mb-6">

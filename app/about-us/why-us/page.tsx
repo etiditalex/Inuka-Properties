@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Home, Building2, Waves, Sprout, TrendingUp, Award, Shield, Users, CheckCircle2, FileText, DollarSign, Clock, Leaf, Heart, Mail, Phone, Globe, ChevronRight } from "lucide-react";
+import { Search, Home, Building2, Waves, Sprout, TrendingUp, Award, Shield, Users, CheckCircle2, FileText, DollarSign, Clock, Leaf, Heart, Mail, Phone, Globe, ChevronRight, MapPin } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -177,7 +177,7 @@ export default function WhyUsPage() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-12">
-            {/* Reasons Section */}
+            {/* Core Values Section */}
             <section>
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
@@ -185,52 +185,170 @@ export default function WhyUsPage() {
                 viewport={{ once: true }}
                 className="bg-white rounded-xl shadow-lg p-8 md:p-10"
               >
-                <h2 className="text-2xl md:text-3xl font-bold text-dark-900 mb-8 font-montserrat">
-                  Here are reasons why you should consider investing with Inuka Afrika Properties Limited this year:
+                <h2 className="text-3xl md:text-4xl font-bold text-cyan-500 mb-8 font-montserrat">
+                  Core Values
                 </h2>
                 
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-lg md:text-xl font-bold text-dark-900 mb-2 font-montserrat">
-                      Reputation:
-                    </h3>
-                    <p className="text-dark-600 leading-relaxed font-montserrat">
-                      Inuka Afrika Properties Limited is a well-established and reputable real estate company with over 10 years of experience in the industry. We have a proven track record of success, and our properties are located in some of the most desirable areas in Coastal Kenya.
-                    </p>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="flex items-start gap-4">
+                    <div className="text-4xl font-bold text-red-600 font-montserrat">01</div>
+                    <div>
+                      <h3 className="text-xl font-bold text-dark-900 mb-2 font-montserrat">
+                        Professionalism
+                      </h3>
+                      <p className="text-dark-600 leading-relaxed font-montserrat">
+                        Skilled and ethical service delivery.
+                      </p>
+                    </div>
                   </div>
 
-                  <div>
-                    <h3 className="text-lg md:text-xl font-bold text-dark-900 mb-2 font-montserrat">
-                      Value for money:
-                    </h3>
-                    <p className="text-dark-600 leading-relaxed font-montserrat">
-                      Inuka Afrika Properties Limited offers competitive prices on our properties, and we often offer discounts and promotions. We also provide a variety of payment options to make it easier for you to invest.
-                    </p>
+                  <div className="flex items-start gap-4">
+                    <div className="text-4xl font-bold text-red-600 font-montserrat">02</div>
+                    <div>
+                      <h3 className="text-xl font-bold text-dark-900 mb-2 font-montserrat">
+                        Accountability
+                      </h3>
+                      <p className="text-dark-600 leading-relaxed font-montserrat">
+                        Responsible and transparent business conduct.
+                      </p>
+                    </div>
                   </div>
 
-                  <div>
-                    <h3 className="text-lg md:text-xl font-bold text-dark-900 mb-2 font-montserrat">
-                      Convenience:
-                    </h3>
-                    <p className="text-dark-600 leading-relaxed font-montserrat">
-                      Inuka Afrika Properties Limited makes it easy for you to invest in property. We have a team of experienced professionals who can help you find the perfect property for your needs, and we can also help you with the financing process.
-                    </p>
+                  <div className="flex items-start gap-4">
+                    <div className="text-4xl font-bold text-red-600 font-montserrat">03</div>
+                    <div>
+                      <h3 className="text-xl font-bold text-dark-900 mb-2 font-montserrat">
+                        Teamwork
+                      </h3>
+                      <p className="text-dark-600 leading-relaxed font-montserrat">
+                        Collaborative approach to achieving company goals.
+                      </p>
+                    </div>
                   </div>
 
-                  <div>
-                    <h3 className="text-lg md:text-xl font-bold text-dark-900 mb-2 font-montserrat">
-                      Security:
-                    </h3>
-                    <p className="text-dark-600 leading-relaxed font-montserrat">
-                      Inuka Afrika Properties Limited is committed to providing security for our investors. We have a strict security and documentation system in place and offer title certainty to protect your investment.
-                    </p>
+                  <div className="flex items-start gap-4">
+                    <div className="text-4xl font-bold text-red-600 font-montserrat">04</div>
+                    <div>
+                      <h3 className="text-xl font-bold text-dark-900 mb-2 font-montserrat">
+                        Transparency
+                      </h3>
+                      <p className="text-dark-600 leading-relaxed font-montserrat">
+                        Clear processes and open communication.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4 md:col-span-2">
+                    <div className="text-4xl font-bold text-red-600 font-montserrat">05</div>
+                    <div>
+                      <h3 className="text-xl font-bold text-dark-900 mb-2 font-montserrat">
+                        Integrity
+                      </h3>
+                      <p className="text-dark-600 leading-relaxed font-montserrat">
+                        Honest and ethical engagements with clients and stakeholders.
+                      </p>
+                    </div>
                   </div>
                 </div>
+              </motion.div>
+            </section>
 
-                <div className="mt-8">
-                  <p className="text-dark-700 leading-relaxed font-montserrat">
-                    Overall, Inuka Afrika Properties Limited is a great choice for investing in Kenya's real estate. We offer a wide range of properties, competitive prices, convenient services, and security for your investment.
-                  </p>
+            {/* Why Choose Us Section */}
+            <section>
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="bg-red-600 rounded-xl shadow-lg p-8 md:p-10 text-white"
+              >
+                <h2 className="text-3xl md:text-4xl font-bold text-white mb-8 font-montserrat">
+                  Why Choose Us
+                </h2>
+                
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-cyan-500/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <TrendingUp size={24} className="text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-white mb-2 font-montserrat">
+                        Return On Investment
+                      </h3>
+                      <p className="text-white/90 leading-relaxed font-montserrat">
+                        All our projects are located at strategic locations giving you a guaranteed return on investment.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-cyan-500/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <MapPin size={24} className="text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-white mb-2 font-montserrat">
+                        Prime Locations
+                      </h3>
+                      <p className="text-white/90 leading-relaxed font-montserrat">
+                        Every project is carefully selected to be Near top social prime locations.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-cyan-500/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <DollarSign size={24} className="text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-white mb-2 font-montserrat">
+                        Affordable
+                      </h3>
+                      <p className="text-white/90 leading-relaxed font-montserrat">
+                        Our products are affordable from as low as 250,000.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-cyan-500/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Clock size={24} className="text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-white mb-2 font-montserrat">
+                        Flexibility
+                      </h3>
+                      <p className="text-white/90 leading-relaxed font-montserrat">
+                        We offer flexible terms of payments at no interest.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-cyan-500/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <FileText size={24} className="text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-white mb-2 font-montserrat">
+                        Title Deeds
+                      </h3>
+                      <p className="text-white/90 leading-relaxed font-montserrat">
+                        All our properties come with Title Deeds. Our title deed processing is fast and efficient.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-cyan-500/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Award size={24} className="text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-white mb-2 font-montserrat">
+                        Value Addition
+                      </h3>
+                      <p className="text-white/90 leading-relaxed font-montserrat">
+                        We offer value addition to our projects e.g. fencing, access roads and bush clearing.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             </section>

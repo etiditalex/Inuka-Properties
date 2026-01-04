@@ -67,13 +67,13 @@ export default function NewslettersPage() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-green-50 border-2 border-green-200 rounded-lg p-6 text-center"
+                className="bg-cyan-50 border-2 border-cyan-200 rounded-lg p-6 text-center"
               >
-                <CheckCircle size={48} className="text-green-600 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-green-800 mb-2">
+                <CheckCircle size={48} className="text-cyan-600 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-cyan-800 mb-2">
                   Successfully Subscribed!
                 </h3>
-                <p className="text-green-700">
+                <p className="text-cyan-700">
                   Thank you for subscribing. You'll receive our newsletter soon.
                 </p>
               </motion.div>
@@ -120,4 +120,5 @@ export default function NewslettersPage() {
     </div>
   );
 }
+
 

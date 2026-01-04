@@ -162,9 +162,7 @@ export default function ContactUsPage() {
                   <div>
                     <h3 className="font-semibold text-dark-900 mb-1 font-montserrat">Head Office</h3>
                     <p className="text-dark-600 font-montserrat">
-                      Links Road Opposite Kigothos Hotel<br />
-                      P.O. BOX 525-80100<br />
-                      Nyali, Mombasa, Kenya
+                      Links Road, Nyali, Mombasa - Opposite Kigotho's Hotel
                     </p>
                   </div>
                 </div>
@@ -220,8 +218,8 @@ export default function ContactUsPage() {
             >
               {submitted ? (
                 <div className="text-center py-8">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Send size={32} className="text-green-600" />
+                  <div className="w-16 h-16 bg-cyan-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Send size={32} className="text-cyan-600" />
                   </div>
                   <h3 className="text-2xl font-bold text-dark-900 mb-2 font-montserrat">Message Sent!</h3>
                   <p className="text-dark-600 font-montserrat">
@@ -338,10 +336,7 @@ export default function ContactUsPage() {
               Find Us
             </h2>
             <p className="text-dark-600 font-montserrat">
-              INUKA AFRIKA PROPERTIES LTD
-            </p>
-            <p className="text-dark-600 font-montserrat">
-              Links Road Opposite Kigothos Hotel, P.O. BOX 525-80100, Nyali, Mombasa, Kenya
+              Links Road, Nyali, Mombasa - Opposite Kigotho's Hotel
             </p>
           </div>
           <div className="relative w-full h-96 md:h-[500px]">

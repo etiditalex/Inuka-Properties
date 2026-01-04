@@ -662,7 +662,7 @@ export default function HomePage() {
       icon: Sprout,
       title: "Farm Land",
       description: "Agricultural land in Chakama and beyond",
-      color: "bg-green-100 text-green-700",
+      color: "bg-cyan-100 text-cyan-700",
     },
     {
       icon: TrendingUp,
