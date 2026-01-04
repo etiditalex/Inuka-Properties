@@ -326,6 +326,72 @@ function WhyInukaSection() {
   );
 }
 
+function PartnersCarouselSection() {
+  const partners = [
+    {
+      name: "Kimisitu Sacco",
+      logo: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767561074/Kimisitu_sacco_gagqxz.jpg",
+    },
+    {
+      name: "Tower Sacco",
+      logo: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767561074/Tower_sacco_e1j8jt.jpg",
+    },
+    {
+      name: "Nacico Sacco",
+      logo: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767561074/Nacico_sacco_nghadi.jpg",
+    },
+    {
+      name: "Tramom Sacco",
+      logo: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767561074/Tramom_sacco_kky79y.jpg",
+    },
+  ];
+
+  // Duplicate partners array for seamless infinite scroll
+  const duplicatedPartners = [...partners, ...partners, ...partners];
+
+  return (
+    <section className="py-20 bg-dark-50">
+      <div className="container mx-auto px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center mb-12"
+        >
+          <h2 className="text-3xl md:text-4xl font-bold text-dark-900 mb-4 font-montserrat">
+            Our Partners
+          </h2>
+          <p className="text-lg text-dark-600 font-montserrat">
+            Trusted partnerships that help us deliver exceptional service
+          </p>
+        </motion.div>
+
+        <div className="relative overflow-hidden">
+          {/* Infinite Scrolling Carousel */}
+          <div className="flex animate-partners-carousel gap-8">
+            {duplicatedPartners.map((partner, index) => (
+              <div
+                key={`partner-${index}`}
+                className="flex-shrink-0"
+              >
+                <div className="w-48 h-32 md:w-64 md:h-40 bg-white rounded-lg shadow-md p-4 flex items-center justify-center hover:shadow-xl transition-all hover:scale-105">
+                  <Image
+                    src={partner.logo}
+                    alt={partner.name}
+                    width={240}
+                    height={140}
+                    className="object-contain max-w-full max-h-full"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function CounterSection() {
   const counters = [
     { number: 10, suffix: "+", label: "Years Experience" },
@@ -765,6 +831,9 @@ export default function HomePage() {
 
       {/* Counter Numbers Section */}
       <CounterSection />
+
+      {/* Partners Carousel Section */}
+      <PartnersCarouselSection />
 
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-primary-600 to-primary-800 text-white">
