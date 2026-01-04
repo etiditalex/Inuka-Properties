@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Clock, MapPin, User, Phone, Mail, Send, CheckCircle, X } from "lucide-react";
 
@@ -20,6 +20,7 @@ export default function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitMod
     message: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -44,11 +45,44 @@ export default function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitMod
     return () => window.removeEventListener("keydown", handleEscape);
   }, [isOpen, onClose]);
 
+  // Clear timeout and reset form when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      // Clear any pending timeout when modal closes
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      // Reset form state when modal closes
+      setSubmitted(false);
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        property: "",
+        preferredDate: "",
+        preferredTime: "",
+        message: "",
+      });
+    }
+    // Cleanup on unmount
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, [isOpen]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Clear any existing timeout before creating a new one
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
     // In a real application, this would send the form data to a backend service
     setSubmitted(true);
-    setTimeout(() => {
+    timeoutRef.current = setTimeout(() => {
       setSubmitted(false);
       setFormData({
         name: "",
@@ -60,6 +94,7 @@ export default function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitMod
         message: "",
       });
       onClose();
+      timeoutRef.current = null;
     }, 3000);
   };
 
@@ -311,4 +346,3 @@ export default function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitMod
     </AnimatePresence>
   );
 }
-
