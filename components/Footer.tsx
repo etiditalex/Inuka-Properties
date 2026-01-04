@@ -83,13 +83,41 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-semibold mb-4">Our Services</h4>
             <ul className="space-y-2 text-sm text-dark-300">
-              <li>Residential Properties</li>
-              <li>Commercial Properties</li>
-              <li>Beach Properties</li>
-              <li>Farm Land</li>
-              <li>Affordable Housing</li>
-              <li>Property Management</li>
-              <li>Title Issuance</li>
+              <li>
+                <Link href="/services/residential-properties" className="hover:text-primary-400 transition">
+                  Residential Properties
+                </Link>
+              </li>
+              <li>
+                <Link href="/services/commercial-properties" className="hover:text-primary-400 transition">
+                  Commercial Properties
+                </Link>
+              </li>
+              <li>
+                <Link href="/services/beach-properties" className="hover:text-primary-400 transition">
+                  Beach Properties
+                </Link>
+              </li>
+              <li>
+                <Link href="/services/farm-land" className="hover:text-primary-400 transition">
+                  Farm Land
+                </Link>
+              </li>
+              <li>
+                <Link href="/services/affordable-housing" className="hover:text-primary-400 transition">
+                  Affordable Housing
+                </Link>
+              </li>
+              <li>
+                <Link href="/services/property-management" className="hover:text-primary-400 transition">
+                  Property Management
+                </Link>
+              </li>
+              <li>
+                <Link href="/services/title-issuance" className="hover:text-primary-400 transition">
+                  Title Issuance
+                </Link>
+              </li>
             </ul>
           </div>
 

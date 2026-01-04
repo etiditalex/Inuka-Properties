@@ -6,11 +6,20 @@ import { Download, FileText, Image as ImageIcon, File } from "lucide-react";
 export default function DownloadsPage() {
   const downloads = [
     {
+      title: "Inuka Afrika Company Profile",
+      description: "Comprehensive company profile showcasing our history, services, mission, vision, and property portfolio across coastal Kenya.",
+      type: "PDF",
+      size: "25.3 MB",
+      icon: FileText,
+      file: "/downloads/Inuka-Afrika-Company-Profile.pdf",
+    },
+    {
       title: "Company Brochure 2024",
       description: "Comprehensive overview of our services, properties, and company information.",
       type: "PDF",
       size: "2.5 MB",
       icon: FileText,
+      file: "#",
     },
     {
       title: "Property Investment Guide",
@@ -18,6 +27,7 @@ export default function DownloadsPage() {
       type: "PDF",
       size: "1.8 MB",
       icon: FileText,
+      file: "#",
     },
     {
       title: "Kilifi County Properties Catalog",
@@ -25,6 +35,7 @@ export default function DownloadsPage() {
       type: "PDF",
       size: "5.2 MB",
       icon: ImageIcon,
+      file: "#",
     },
     {
       title: "Title Deed Application Guide",
@@ -32,6 +43,7 @@ export default function DownloadsPage() {
       type: "PDF",
       size: "1.2 MB",
       icon: File,
+      file: "#",
     },
   ];
 
@@ -74,10 +86,14 @@ export default function DownloadsPage() {
                     <div className="text-sm text-dark-500">
                       {item.type} • {item.size}
                     </div>
-                    <button className="bg-primary-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-primary-700 transition flex items-center gap-2">
+                    <a
+                      href={item.file}
+                      download
+                      className="bg-primary-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-primary-700 transition flex items-center gap-2"
+                    >
                       <Download size={18} />
                       Download
-                    </button>
+                    </a>
                   </div>
                 </div>
               </div>
