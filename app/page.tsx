@@ -122,11 +122,11 @@ function PropertyCarousel({ properties }: { properties: Property[] }) {
                 </div>
                 <div className="flex items-center justify-between pt-4 border-t border-dark-200">
                   <div>
-                    <div className="text-lg font-normal text-primary-700 font-montserrat whitespace-nowrap">{properties[currentIndex].price}</div>
+                    <div className="text-lg font-bold text-primary-700 font-montserrat whitespace-nowrap">{properties[currentIndex].price}</div>
                   </div>
                   <Link
                     href={`/for-sale/${properties[currentIndex].id}`}
-                    className="bg-red-600 text-white px-5 py-2 rounded-lg text-sm font-light hover:bg-red-700 transition font-montserrat whitespace-nowrap"
+                    className="bg-red-600 text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-red-700 transition font-montserrat whitespace-nowrap"
                   >
                     View Details
                   </Link>
@@ -223,11 +223,11 @@ function PropertyCardsSection() {
                 </div>
                 <div className="flex items-center justify-between pt-4 border-t border-dark-200">
                   <div>
-                    <div className="text-lg font-normal text-primary-700 font-montserrat whitespace-nowrap">{property.price}</div>
+                    <div className="text-lg font-bold text-primary-700 font-montserrat whitespace-nowrap">{property.price}</div>
                   </div>
                   <Link
                     href={`/for-sale/${property.id}`}
-                    className="bg-red-600 text-white px-5 py-2 rounded-lg text-sm font-light hover:bg-red-700 transition font-montserrat whitespace-nowrap"
+                    className="bg-red-600 text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-red-700 transition font-montserrat whitespace-nowrap"
                   >
                     View Details
                   </Link>
@@ -785,7 +785,7 @@ export default function HomePage() {
               transition={{ duration: 0.8 }}
               className="text-center"
             >
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 font-montserrat drop-shadow-lg whitespace-nowrap">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 font-montserrat drop-shadow-lg">
                 Coastal Gate To <span className="text-primary-300">Real Estate</span>
               </h1>
               <p className="text-lg md:text-xl text-white/90 mb-8 leading-relaxed drop-shadow-md max-w-4xl mx-auto font-montserrat">

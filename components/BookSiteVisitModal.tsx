@@ -19,7 +19,6 @@ function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitModalProps) {
     preferredTime: "",
     message: "",
   });
-  const [submitted, setSubmitted] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Prevent body scroll when modal is open
@@ -54,7 +53,6 @@ function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitModalProps) {
         timeoutRef.current = null;
       }
       // Reset form state when modal closes
-      setSubmitted(false);
       setFormData({
         name: "",
         email: "",
@@ -80,22 +78,39 @@ function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitModalProps) {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
-    // In a real application, this would send the form data to a backend service
-    setSubmitted(true);
-    timeoutRef.current = setTimeout(() => {
-      setSubmitted(false);
-      setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        property: "",
-        preferredDate: "",
-        preferredTime: "",
-        message: "",
-      });
-      onClose();
-      timeoutRef.current = null;
-    }, 3000);
+    
+    // Format the message for WhatsApp
+    const whatsappMessage = `Hello! I would like to book a site visit:
+
+*Name:* ${formData.name}
+*Phone:* ${formData.phone}
+*Email:* ${formData.email}
+*Property of Interest:* ${formData.property}
+*Preferred Date:* ${formData.preferredDate}
+*Preferred Time:* ${formData.preferredTime}
+${formData.message ? `*Additional Notes:* ${formData.message}` : ''}
+
+Thank you!`;
+
+    // Encode the message for URL
+    const encodedMessage = encodeURIComponent(whatsappMessage);
+    const whatsappNumber = "254711082084";
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+    
+    // Open WhatsApp
+    window.open(whatsappUrl, "_blank");
+    
+    // Reset form and close modal
+    setFormData({
+      name: "",
+      email: "",
+      phone: "",
+      property: "",
+      preferredDate: "",
+      preferredTime: "",
+      message: "",
+    });
+    onClose();
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -139,7 +154,7 @@ function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitModalProps) {
             <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
               {/* Modal Header */}
               <div className="sticky top-0 bg-white border-b border-dark-200 px-6 py-4 flex items-center justify-between rounded-t-xl">
-                <h2 className="text-2xl font-bold text-dark-900 font-serif">Book a Site Visit</h2>
+                <h2 className="text-2xl font-bold text-dark-900 font-montserrat">Book a Site Visit</h2>
                 <button
                   onClick={onClose}
                   className="p-2 hover:bg-dark-100 rounded-lg transition"
@@ -151,46 +166,18 @@ function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitModalProps) {
 
               {/* Modal Content */}
               <div className="p-6 md:p-8">
-                {submitted ? (
-                  <div className="text-center py-8">
-                    <div className="w-20 h-20 bg-cyan-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <CheckCircle size={48} className="text-cyan-600" />
-                    </div>
-                    <h3 className="text-2xl font-bold text-dark-900 mb-4">Booking Confirmed!</h3>
-                    <p className="text-dark-600 text-lg mb-6">
-                      Thank you for booking a site visit. Our team will contact you shortly to confirm the details.
-                    </p>
-                    <div className="bg-primary-50 rounded-lg p-6 text-left max-w-md mx-auto">
-                      <h4 className="font-semibold text-dark-900 mb-3">What's Next?</h4>
-                      <ul className="space-y-2 text-dark-600">
-                        <li className="flex items-start gap-2">
-                          <CheckCircle size={20} className="text-primary-600 mt-0.5 flex-shrink-0" />
-                          <span>We'll call you within 24 hours to confirm your visit</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <CheckCircle size={20} className="text-primary-600 mt-0.5 flex-shrink-0" />
-                          <span>You'll receive a confirmation email with visit details</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <CheckCircle size={20} className="text-primary-600 mt-0.5 flex-shrink-0" />
-                          <span>Our team will guide you to the property location</span>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                ) : (
                   <>
                     <div className="mb-6">
-                      <p className="text-dark-600">
+                      <p className="text-dark-600 font-montserrat">
                         Fill out the form below to book a site visit. Our team will contact you to confirm 
                         the details and provide directions to the property.
                       </p>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-5">
+                    <form onSubmit={handleSubmit} className="space-y-5 font-montserrat">
                       <div className="grid md:grid-cols-2 gap-5">
                         <div>
-                          <label htmlFor="modal-name" className="block text-sm font-semibold text-dark-900 mb-2">
+                          <label htmlFor="modal-name" className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat">
                             <User size={16} className="inline mr-2" />
                             Full Name *
                           </label>
@@ -201,12 +188,12 @@ function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitModalProps) {
                             value={formData.name}
                             onChange={handleChange}
                             required
-                            className="w-full px-4 py-3 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            className="w-full px-4 py-3 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 font-montserrat"
                           />
                         </div>
 
                         <div>
-                          <label htmlFor="modal-phone" className="block text-sm font-semibold text-dark-900 mb-2">
+                          <label htmlFor="modal-phone" className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat">
                             <Phone size={16} className="inline mr-2" />
                             Phone Number *
                           </label>
@@ -217,13 +204,13 @@ function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitModalProps) {
                             value={formData.phone}
                             onChange={handleChange}
                             required
-                            className="w-full px-4 py-3 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            className="w-full px-4 py-3 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 font-montserrat"
                           />
                         </div>
                       </div>
 
                       <div>
-                        <label htmlFor="modal-email" className="block text-sm font-semibold text-dark-900 mb-2">
+                        <label htmlFor="modal-email" className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat">
                           <Mail size={16} className="inline mr-2" />
                           Email Address *
                         </label>
@@ -234,12 +221,12 @@ function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitModalProps) {
                           value={formData.email}
                           onChange={handleChange}
                           required
-                          className="w-full px-4 py-3 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          className="w-full px-4 py-3 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 font-montserrat"
                         />
                       </div>
 
                       <div>
-                        <label htmlFor="modal-property" className="block text-sm font-semibold text-dark-900 mb-2">
+                        <label htmlFor="modal-property" className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat">
                           <MapPin size={16} className="inline mr-2" />
                           Property of Interest *
                         </label>
@@ -249,7 +236,7 @@ function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitModalProps) {
                           value={formData.property}
                           onChange={handleChange}
                           required
-                          className="w-full px-4 py-3 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          className="w-full px-4 py-3 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 font-montserrat"
                         >
                           <option value="">Select a property</option>
                           {properties.map((prop) => (
@@ -262,7 +249,7 @@ function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitModalProps) {
 
                       <div className="grid md:grid-cols-2 gap-5">
                         <div>
-                          <label htmlFor="modal-date" className="block text-sm font-semibold text-dark-900 mb-2">
+                          <label htmlFor="modal-date" className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat">
                             <Calendar size={16} className="inline mr-2" />
                             Preferred Date *
                           </label>
@@ -274,12 +261,12 @@ function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitModalProps) {
                             onChange={handleChange}
                             required
                             min={new Date().toISOString().split("T")[0]}
-                            className="w-full px-4 py-3 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            className="w-full px-4 py-3 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 font-montserrat"
                           />
                         </div>
 
                         <div>
-                          <label htmlFor="modal-time" className="block text-sm font-semibold text-dark-900 mb-2">
+                          <label htmlFor="modal-time" className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat">
                             <Clock size={16} className="inline mr-2" />
                             Preferred Time *
                           </label>
@@ -289,7 +276,7 @@ function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitModalProps) {
                             value={formData.preferredTime}
                             onChange={handleChange}
                             required
-                            className="w-full px-4 py-3 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            className="w-full px-4 py-3 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 font-montserrat"
                           >
                             <option value="">Select time</option>
                             <option value="09:00">9:00 AM</option>
@@ -305,7 +292,7 @@ function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitModalProps) {
                       </div>
 
                       <div>
-                        <label htmlFor="modal-message" className="block text-sm font-semibold text-dark-900 mb-2">
+                        <label htmlFor="modal-message" className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat">
                           Additional Notes (Optional)
                         </label>
                         <textarea
@@ -315,7 +302,7 @@ function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitModalProps) {
                           onChange={handleChange}
                           rows={4}
                           placeholder="Any specific requirements or questions..."
-                          className="w-full px-4 py-3 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          className="w-full px-4 py-3 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 font-montserrat"
                         />
                       </div>
 
@@ -323,13 +310,13 @@ function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitModalProps) {
                         <button
                           type="button"
                           onClick={onClose}
-                          className="flex-1 px-6 py-3 border border-dark-300 text-dark-700 rounded-lg font-semibold hover:bg-dark-50 transition"
+                          className="flex-1 px-6 py-3 border border-dark-300 text-dark-700 rounded-lg font-semibold hover:bg-dark-50 transition font-montserrat"
                         >
                           Cancel
                         </button>
                         <button
                           type="submit"
-                          className="flex-1 bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition flex items-center justify-center gap-2"
+                          className="flex-1 bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition flex items-center justify-center gap-2 font-montserrat"
                         >
                           <Send size={20} />
                           Book Site Visit
@@ -337,7 +324,6 @@ function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitModalProps) {
                       </div>
                     </form>
                   </>
-                )}
               </div>
             </div>
           </motion.div>
