@@ -154,7 +154,10 @@ const Footer = () => {
             <p>
               © {currentYear} Inuka Afrika Properties Limited. All rights reserved.
             </p>
-            <div className="flex gap-6">
+            <div className="flex gap-6 flex-wrap">
+              <Link href="/cookie-policy" className="hover:text-primary-400 transition">
+                Cookie Policy
+              </Link>
               <Link href="/about-us" className="hover:text-primary-400 transition">
                 Privacy Policy
               </Link>

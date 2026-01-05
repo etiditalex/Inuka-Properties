@@ -9,7 +9,7 @@ interface BookSiteVisitModalProps {
   onClose: () => void;
 }
 
-export default function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitModalProps) {
+function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitModalProps) {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -346,3 +346,5 @@ export default function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitMod
     </AnimatePresence>
   );
 }
+
+export default BookSiteVisitModal;

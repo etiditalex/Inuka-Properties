@@ -122,11 +122,11 @@ function PropertyCarousel({ properties }: { properties: Property[] }) {
                 </div>
                 <div className="flex items-center justify-between pt-4 border-t border-dark-200">
                   <div>
-                    <div className="text-2xl font-bold text-primary-700 font-montserrat">{properties[currentIndex].price}</div>
+                    <div className="text-lg font-normal text-primary-700 font-montserrat whitespace-nowrap">{properties[currentIndex].price}</div>
                   </div>
                   <Link
                     href={`/for-sale/${properties[currentIndex].id}`}
-                    className="bg-primary-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-primary-700 transition font-montserrat"
+                    className="bg-red-600 text-white px-5 py-2 rounded-lg text-sm font-light hover:bg-red-700 transition font-montserrat whitespace-nowrap"
                   >
                     View Details
                   </Link>
@@ -223,11 +223,11 @@ function PropertyCardsSection() {
                 </div>
                 <div className="flex items-center justify-between pt-4 border-t border-dark-200">
                   <div>
-                    <div className="text-2xl font-bold text-primary-700 font-montserrat">{property.price}</div>
+                    <div className="text-lg font-normal text-primary-700 font-montserrat whitespace-nowrap">{property.price}</div>
                   </div>
                   <Link
                     href={`/for-sale/${property.id}`}
-                    className="bg-primary-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-primary-700 transition font-montserrat"
+                    className="bg-red-600 text-white px-5 py-2 rounded-lg text-sm font-light hover:bg-red-700 transition font-montserrat whitespace-nowrap"
                   >
                     View Details
                   </Link>
@@ -300,13 +300,13 @@ function WhyInukaSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="bg-dark-800/50 border-2 border-dark-700 rounded-lg p-6 hover:border-primary-500 transition"
+              className="bg-red-600 border-2 border-red-700 rounded-lg p-6 hover:border-red-500 transition"
             >
               <div className="flex flex-col items-center md:items-start">
                 <div className="w-16 h-16 mb-4 flex items-center justify-center">
                   <feature.icon 
                     size={48} 
-                    className="text-primary-400 stroke-2" 
+                    className="text-white stroke-2" 
                     strokeWidth={2}
                     fill="none"
                   />
@@ -766,8 +766,8 @@ export default function HomePage() {
         {/* Background Image */}
         <div className="absolute inset-0 w-full h-full">
           <Image
-            src="https://res.cloudinary.com/dyfnobo9r/image/upload/v1757597073/Bofa_Platinum_Estate_2_xiz8o1.jpg"
-            alt="Bofa Platinum Estate"
+            src="https://res.cloudinary.com/dyfnobo9r/image/upload/v1767596630/kilifi_investment_swq82s.jpg"
+            alt="Kilifi Investment Properties"
             fill
             className="object-cover"
             priority
@@ -785,9 +785,8 @@ export default function HomePage() {
               transition={{ duration: 0.8 }}
               className="text-center"
             >
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 font-montserrat drop-shadow-lg">
-                Coastal Gate To{" "}
-                <span className="text-primary-300">Real Estate</span>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 font-montserrat drop-shadow-lg whitespace-nowrap">
+                Coastal Gate To <span className="text-primary-300">Real Estate</span>
               </h1>
               <p className="text-lg md:text-xl text-white/90 mb-8 leading-relaxed drop-shadow-md max-w-4xl mx-auto font-montserrat">
                 We Connect Investors to Coastal Property Market through Trust, Innovation, and Personalized Service & Partnership, Delivering Prime Land & Long-term Value Across the Continent.
@@ -813,11 +812,12 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
+            className="w-full"
           >
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-dark-900 mb-6 font-montserrat text-left">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-dark-900 mb-6 font-montserrat text-left w-full">
               Join the Family
             </h2>
-            <p className="text-base md:text-lg font-normal text-dark-600 leading-relaxed font-montserrat text-left max-w-4xl">
+            <p className="text-base md:text-lg font-normal text-dark-600 leading-relaxed font-montserrat text-left w-full">
               Our portfolio of Properties is as diverse as Your Dreams. Explore the following categories to find the Perfect Property that resonates with your Vision of Home or Investment.
             </p>
           </motion.div>

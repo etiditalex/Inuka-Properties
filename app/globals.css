@@ -16,6 +16,7 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
@@ -27,13 +28,10 @@ body {
   overflow-x: hidden;
 }
 
-html {
-  overflow-x: hidden;
-}
-
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+    -webkit-text-wrap: balance;
   }
 }
 
