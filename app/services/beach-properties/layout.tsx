@@ -10,3 +10,4 @@ export default function BeachPropertiesLayout({
   return <>{children}</>;
 }
 
+
