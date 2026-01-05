@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display, Montserrat } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -186,18 +187,6 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable} ${montserrat.variable}`}>
       <head>
-        {/* Google tag (gtag.js) */}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-GHFER2PFLE"></script>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', 'G-GHFER2PFLE');
-            `,
-          }}
-        />
         <link rel="icon" type="image/jpeg" href="https://res.cloudinary.com/dyfnobo9r/image/upload/v1767347012/Iinuka_properties_logo_xq372f.jpg" />
         <link rel="apple-touch-icon" href="https://res.cloudinary.com/dyfnobo9r/image/upload/v1767347012/Iinuka_properties_logo_xq372f.jpg" />
         <script
@@ -206,6 +195,19 @@ export default function RootLayout({
         />
       </head>
       <body>
+            {/* Google tag (gtag.js) */}
+            <Script
+              src="https://www.googletagmanager.com/gtag/js?id=G-GHFER2PFLE"
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', 'G-GHFER2PFLE');
+              `}
+            </Script>
             <Header />
             <main className="min-h-screen">{children}</main>
             <Footer />
