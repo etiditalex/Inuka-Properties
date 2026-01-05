@@ -5,6 +5,9 @@ import { Users, Mail, Phone, Home, ChevronRight, Briefcase, Award, Target, Heart
 import Link from "next/link";
 import Image from "next/image";
 
+// Note: Metadata should be in a layout.tsx or exported from a non-client component
+// Since this is a client component, metadata is handled in the parent layout
+
 export default function OurTeamPage() {
   const teamMembers = [
     {
