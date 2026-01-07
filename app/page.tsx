@@ -6,6 +6,7 @@ import { ArrowRight, MapPin, Home, Building2, Waves, Sprout, TrendingUp, Bed, Sq
 import Link from "next/link";
 import Image from "next/image";
 import StructuredData from "@/components/StructuredData";
+import GoogleReviewsSection from "@/components/GoogleReviewsSection";
 
 interface Property {
   id: number;
@@ -784,6 +785,9 @@ export default function HomePage() {
 
       {/* Partners Carousel Section */}
       <PartnersCarouselSection />
+
+      {/* Google Reviews Section */}
+      <GoogleReviewsSection />
 
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-primary-600 to-primary-800 text-white">
