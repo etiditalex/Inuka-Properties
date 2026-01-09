@@ -8,6 +8,16 @@ import Image from "next/image";
 export default function BlogsPage() {
   const blogs = [
     {
+      id: 4,
+      title: "Why Land Investment: The Ultimate Guide to Building Wealth Through Real Estate",
+      excerpt: "Discover why land investment is one of the smartest financial decisions you can make. Learn about land investment benefits, strategies, and opportunities in Kenya.",
+      author: "IAPL Investment Team",
+      date: new Date().toISOString().split('T')[0],
+      image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767954926/why_land_investment_2_pryhrf.jpg",
+      category: "Investment",
+      slug: "why-land-investment",
+    },
+    {
       id: 1,
       title: "10 Tips for First-Time Property Buyers in Kenya",
       excerpt: "Essential guidance for navigating your first property purchase in the Kenyan real estate market.",
@@ -15,6 +25,7 @@ export default function BlogsPage() {
       date: "2024-01-15",
       image: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800",
       category: "Buying Guide",
+      slug: "10-tips-first-time-buyers",
     },
     {
       id: 2,
@@ -24,6 +35,7 @@ export default function BlogsPage() {
       date: "2024-01-10",
       image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800",
       category: "Legal",
+      slug: "understanding-title-deeds",
     },
     {
       id: 3,
@@ -33,6 +45,7 @@ export default function BlogsPage() {
       date: "2024-01-05",
       image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800",
       category: "Investment",
+      slug: "kilifi-investment-opportunities",
     },
   ];
 
@@ -89,7 +102,7 @@ export default function BlogsPage() {
                 <h2 className="text-xl font-bold text-dark-900 mb-3">{blog.title}</h2>
                 <p className="text-dark-600 mb-4">{blog.excerpt}</p>
                 <Link
-                  href={`/iapl-insider/blogs/${blog.id}`}
+                  href={blog.slug ? `/iapl-insider/blogs/${blog.slug}` : `/iapl-insider/blogs/${blog.id}`}
                   className="text-primary-600 font-semibold hover:text-primary-700 flex items-center gap-2"
                 >
                   Read More
