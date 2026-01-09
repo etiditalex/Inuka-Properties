@@ -64,6 +64,7 @@ const Header = () => {
         { name: "Newsletters", href: "/testimonials/newsletters" },
       ],
     },
+    { name: "Project Showcase", href: "/project-showcase" },
     { name: "Contact Us", href: "/contact-us" },
   ];
 
