@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, ChevronLeft, ChevronRight, Quote, ExternalLink, MessageSquare } from "lucide-react";
+import { Star, ChevronLeft, ChevronRight, Quote, ExternalLink, MessageSquare, RefreshCw } from "lucide-react";
 import Image from "next/image";
 
 interface Review {
@@ -25,32 +25,75 @@ interface GoogleReviewsData {
 export default function GoogleReviewsSection() {
   const [reviewsData, setReviewsData] = useState<GoogleReviewsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null);
 
+  // Initial fetch
   useEffect(() => {
     fetchReviews();
   }, []);
 
-  const fetchReviews = async () => {
+  // Auto-refresh reviews every 5 minutes (300000ms) for real-time updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchReviews(true); // Pass true to indicate it's a refresh, not initial load
+    }, 300000); // 5 minutes
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchReviews = async (isRefresh = false) => {
     try {
-      setLoading(true);
-      const response = await fetch('/api/google-reviews');
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+      
+      // Add cache-busting query parameter to ensure fresh data
+      const response = await fetch(`/api/google-reviews?t=${Date.now()}`);
       const data = await response.json();
       
       if (data.error) {
         setError(data.error);
         // Use fallback reviews if API is not configured
-        setReviewsData({
-          reviews: getFallbackReviews(),
-          rating: 4.8,
-          totalReviews: 25,
-          placeName: 'Inuka Afrika Properties',
-        });
+        if (!reviewsData) {
+          setReviewsData({
+            reviews: getFallbackReviews(),
+            rating: 4.8,
+            totalReviews: 25,
+            placeName: 'Inuka Afrika Properties',
+          });
+        }
       } else if (data.reviews && data.reviews.length > 0) {
-        setReviewsData(data);
+        // Check if reviews have actually changed
+        const hasNewReviews = !reviewsData || 
+          data.reviews.length !== reviewsData.reviews.length ||
+          data.totalReviews !== reviewsData.totalReviews ||
+          data.rating !== reviewsData.rating;
+        
+        if (hasNewReviews) {
+          setReviewsData(data);
+          setLastUpdateTime(new Date());
+        }
       } else {
         // Use fallback reviews if no reviews found
+        if (!reviewsData) {
+          setReviewsData({
+            reviews: getFallbackReviews(),
+            rating: 4.8,
+            totalReviews: 25,
+            placeName: 'Inuka Afrika Properties',
+          });
+        }
+      }
+    } catch (err: any) {
+      console.error('Error fetching reviews:', err);
+      setError(err.message);
+      // Use fallback reviews on error only if we don't have existing data
+      if (!reviewsData) {
         setReviewsData({
           reviews: getFallbackReviews(),
           rating: 4.8,
@@ -58,18 +101,9 @@ export default function GoogleReviewsSection() {
           placeName: 'Inuka Afrika Properties',
         });
       }
-    } catch (err: any) {
-      console.error('Error fetching reviews:', err);
-      setError(err.message);
-      // Use fallback reviews on error
-      setReviewsData({
-        reviews: getFallbackReviews(),
-        rating: 4.8,
-        totalReviews: 25,
-        placeName: 'Inuka Afrika Properties',
-      });
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -181,6 +215,28 @@ export default function GoogleReviewsSection() {
           <p className="text-dark-600 font-montserrat">
             Based on {reviewsData.totalReviews}+ Google Reviews
           </p>
+          {refreshing && (
+            <p className="text-sm text-primary-600 font-montserrat mt-2 flex items-center justify-center gap-2">
+              <span className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"></span>
+              Checking for new reviews...
+            </p>
+          )}
+          <div className="flex items-center justify-center gap-4 mt-2">
+            {lastUpdateTime && (
+              <p className="text-xs text-dark-500 font-montserrat">
+                Last updated: {lastUpdateTime.toLocaleTimeString()}
+              </p>
+            )}
+            <button
+              onClick={() => fetchReviews(true)}
+              disabled={refreshing}
+              className="flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 font-montserrat transition disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Refresh reviews"
+            >
+              <RefreshCw size={16} className={refreshing ? "animate-spin" : ""} />
+              {refreshing ? "Refreshing..." : "Refresh"}
+            </button>
+          </div>
         </motion.div>
 
         {/* Desktop: Grid of 6 reviews (2 rows of 3) */}

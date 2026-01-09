@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
 
+// Disable caching to ensure real-time updates
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET() {
   try {
     const placeId = process.env.GOOGLE_PLACE_ID;
