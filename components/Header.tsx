@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, ChevronDown, Phone, Mail } from "lucide-react";
+import { Menu, X, ChevronDown, Phone, Mail, Facebook, Instagram, Linkedin, MessageCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import BookSiteVisitModal from "./BookSiteVisitModal";
@@ -95,20 +95,97 @@ const Header = () => {
                 <span className="sm:hidden">Email</span>
               </a>
             </div>
-            <div className="text-primary-200 text-xs lg:text-sm overflow-hidden relative flex-1 max-w-[200px]">
-              <div className="flex animate-marquee whitespace-nowrap">
-                <span className="inline-block px-2">Celebrating 10 Years</span>
-                <span className="inline-block px-2">•</span>
-                <span className="inline-block px-2">Celebrating 10 Years</span>
-                <span className="inline-block px-2">•</span>
-                <span className="inline-block px-2">Celebrating 10 Years</span>
-                <span className="inline-block px-2">•</span>
-                <span className="inline-block px-2">Celebrating 10 Years</span>
-                <span className="inline-block px-2">•</span>
-                <span className="inline-block px-2">Celebrating 10 Years</span>
-                <span className="inline-block px-2">•</span>
-                <span className="inline-block px-2">Celebrating 10 Years</span>
-                <span className="inline-block px-2">•</span>
+            <div className="flex items-center gap-2">
+              <div className="text-primary-200 text-xs lg:text-sm overflow-hidden relative flex-1 max-w-[200px]">
+                <div className="flex animate-marquee whitespace-nowrap">
+                  <span className="inline-block px-2">Celebrating 10 Years</span>
+                  <span className="inline-block px-2">•</span>
+                  <span className="inline-block px-2">Celebrating 10 Years</span>
+                  <span className="inline-block px-2">•</span>
+                  <span className="inline-block px-2">Celebrating 10 Years</span>
+                  <span className="inline-block px-2">•</span>
+                  <span className="inline-block px-2">Celebrating 10 Years</span>
+                  <span className="inline-block px-2">•</span>
+                  <span className="inline-block px-2">Celebrating 10 Years</span>
+                  <span className="inline-block px-2">•</span>
+                  <span className="inline-block px-2">Celebrating 10 Years</span>
+                  <span className="inline-block px-2">•</span>
+                </div>
+              </div>
+              {/* Social Media Links */}
+              <div className="flex items-center gap-2 ml-4 border-l border-primary-600 pl-4">
+                <a 
+                  href="https://www.facebook.com/share/17aKSxGY2a/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:text-primary-200 transition"
+                  aria-label="Facebook"
+                >
+                  <Facebook size={16} />
+                </a>
+                <a 
+                  href="https://x.com/Inukaproperties" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:text-primary-200 transition"
+                  aria-label="X (formerly Twitter)"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  </svg>
+                </a>
+                <a 
+                  href="https://www.instagram.com/inukaafrikaproperties?igsh=MXNtbHUxbTNuNzI2eQ==" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:text-primary-200 transition"
+                  aria-label="Instagram"
+                >
+                  <Instagram size={16} />
+                </a>
+                <a 
+                  href="https://www.linkedin.com/in/inuka-afrika-properties-limited-7aa210210?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:text-primary-200 transition"
+                  aria-label="LinkedIn"
+                >
+                  <Linkedin size={16} />
+                </a>
+                <a 
+                  href="https://www.tiktok.com/@inukaafrikaproperties?_r=1&_t=ZM-92vSSzw2Kmi" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:text-primary-200 transition"
+                  aria-label="TikTok"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                  </svg>
+                </a>
+                <a 
+                  href="https://www.threads.com/@inukaafrikaproperties" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:text-primary-200 transition"
+                  aria-label="Threads"
+                >
+                  <MessageCircle size={16} />
+                </a>
+                <a 
+                  href="https://share.google/ywP6oDAf6abQtplK9" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:text-primary-200 transition"
+                  aria-label="Google Business"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                  </svg>
+                </a>
               </div>
             </div>
           </div>

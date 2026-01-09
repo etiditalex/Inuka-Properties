@@ -52,8 +52,42 @@ export default function WhyLandInvestmentPage() {
     setCurrentPage(page);
   };
 
+  // Structured Data for SEO (JSON-LD)
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": "Why Land Investment: The Ultimate Guide to Building Wealth Through Real Estate",
+    "description": "Discover why land investment is one of the smartest financial decisions you can make. Learn about land investment benefits, strategies, and opportunities in Kenya.",
+    "image": "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767954926/why_land_investment_2_pryhrf.jpg",
+    "datePublished": new Date().toISOString(),
+    "dateModified": new Date().toISOString(),
+    "author": {
+      "@type": "Organization",
+      "name": "Inuka Afrika Properties Limited",
+      "url": "https://www.inukaproperties.co.ke"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "Inuka Afrika Properties Limited",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767347012/Iinuka_properties_logo_xq372f.jpg"
+      }
+    },
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "https://www.inukaproperties.co.ke/iapl-insider/blogs/why-land-investment"
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-24 pb-20">
+      {/* Structured Data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
+      
       <div className="container mx-auto px-4 py-8">
         {/* Back Button */}
         <Link
