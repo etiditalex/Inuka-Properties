@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Playfair_Display, Montserrat } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import ConditionalLayout from "@/components/ConditionalLayout";
 import Chatbot from "@/components/Chatbot";
 import CookieBanner from "@/components/CookieBanner";
 
@@ -208,9 +207,7 @@ export default function RootLayout({
                 gtag('config', 'G-GHFER2PFLE');
               `}
             </Script>
-            <Header />
-            <main className="min-h-screen">{children}</main>
-            <Footer />
+            <ConditionalLayout>{children}</ConditionalLayout>
             <Chatbot />
             <CookieBanner />
       </body>

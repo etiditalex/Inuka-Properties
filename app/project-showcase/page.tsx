@@ -4,6 +4,17 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
+// Preload all project images
+const preloadImages = (imageUrls: string[]) => {
+  imageUrls.forEach((url) => {
+    const link = document.createElement("link");
+    link.rel = "preload";
+    link.as = "image";
+    link.href = url;
+    document.head.appendChild(link);
+  });
+};
+
 interface Project {
   id: number;
   title: string;
@@ -21,7 +32,7 @@ const projects: Project[] = [
     title: "Mtondia Highway Gardens",
     location: "Mtondia, Kilifi County",
     type: "Residential",
-    price: "KES 1,250,000",
+    price: "KES 995,000",
     size: "1/8 Acre",
     image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767286867/Mtondia_Higway_Gardens_2_rwwsyi.jpg",
     features: ["Highway Access", "University Proximity", "Serviced Plots", "Water & Electricity", "Secure Location"],
@@ -45,16 +56,6 @@ const projects: Project[] = [
     size: "1/4 Acre",
     image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767284997/bofa_platinum_gf7vxw.jpg",
     features: ["Beachfront Location", "Gated Community", "30m from Beach", "3 Bedroom Bungalows", "Electricity on Site"],
-  },
-  {
-    id: 2,
-    title: "Chumani Phase 6",
-    location: "Chumani, Kilifi County",
-    type: "Residential",
-    price: "KES 595,000",
-    size: "1/8 Acre",
-    image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767285403/chumani_phase_6_y4smsw.jpg",
-    features: ["Prime Location", "400m from Highway", "Coastal Ambiance", "Thriving Community", "High Investment Potential"],
   },
   {
     id: 3,
@@ -108,6 +109,20 @@ export default function ProjectShowcasePage() {
   const [currentProjectIndex, setCurrentProjectIndex] = useState(0);
   const [currentSloganIndex, setCurrentSloganIndex] = useState(0);
 
+  // Preload all images on mount and preload next image
+  useEffect(() => {
+    const imageUrls = projects.map((p) => p.image);
+    preloadImages(imageUrls);
+  }, []);
+
+  // Preload next project image for smooth transitions
+  useEffect(() => {
+    const nextIndex = (currentProjectIndex + 1) % projects.length;
+    const nextImage = projects[nextIndex].image;
+    const img = new window.Image();
+    img.src = nextImage;
+  }, [currentProjectIndex]);
+
   // Rotate projects every 10 seconds
   useEffect(() => {
     const projectInterval = setInterval(() => {
@@ -129,7 +144,7 @@ export default function ProjectShowcasePage() {
   const currentProject = projects[currentProjectIndex];
 
   return (
-    <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-dark-900">
+    <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-dark-900" style={{ margin: 0, padding: 0 }}>
       {/* Background Image/Video Container */}
       <div className="absolute inset-0 z-0">
         {currentProject && (
@@ -140,6 +155,9 @@ export default function ProjectShowcasePage() {
             className="object-cover"
             priority
             quality={100}
+            unoptimized={false}
+            sizes="100vw"
+            loading="eager"
           />
         )}
         {/* Gradient Overlay for better text readability */}
@@ -147,7 +165,7 @@ export default function ProjectShowcasePage() {
       </div>
 
       {/* Running Slogan at Top */}
-      <div className="absolute top-0 left-0 right-0 z-20 h-28 lg:h-36 xl:h-40 overflow-hidden bg-dark-900/50 backdrop-blur-md">
+      <div className="absolute top-0 left-0 right-0 z-20 h-20 lg:h-24 xl:h-28 overflow-hidden bg-red-600/90 backdrop-blur-md">
         <motion.div
           className="whitespace-nowrap flex h-full items-center"
           animate={{
@@ -163,7 +181,6 @@ export default function ProjectShowcasePage() {
             <span
               key={`${currentSloganIndex}-${i}`}
               className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-medium text-white font-montserrat tracking-wide mx-16 lg:mx-24 inline-block py-2"
-              style={{ textShadow: "0 2px 10px rgba(0,0,0,0.8)" }}
             >
               {slogans[currentSloganIndex]}
             </span>
@@ -179,7 +196,7 @@ export default function ProjectShowcasePage() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 1 }}
-          className="relative z-10 h-full w-full flex items-center justify-center pt-28 lg:pt-36 xl:pt-40"
+          className="relative z-10 h-full w-full flex items-center justify-center pt-20 lg:pt-24 xl:pt-28"
         >
           {/* Full Screen Project Content - Simplified */}
           <div className="absolute inset-0 flex flex-col items-center justify-center px-8 lg:px-16 xl:px-24 text-center">
@@ -188,7 +205,7 @@ export default function ProjectShowcasePage() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.8 }}
-              className="text-6xl md:text-7xl lg:text-8xl xl:text-9xl 2xl:text-[10rem] font-medium mb-8 font-montserrat text-white"
+              className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl font-medium mb-8 font-montserrat text-white"
               style={{ textShadow: "0 4px 20px rgba(0,0,0,0.8)" }}
             >
               {currentProject.title}
@@ -231,19 +248,6 @@ export default function ProjectShowcasePage() {
             }`}
           />
         ))}
-      </div>
-
-      {/* Company Logo (Top Right Corner) */}
-      <div className="absolute top-8 right-8 z-20">
-        <div className="relative w-24 h-24 lg:w-32 lg:h-32">
-          <Image
-            src="https://res.cloudinary.com/dyfnobo9r/image/upload/v1767347012/Iinuka_properties_logo_xq372f.jpg"
-            alt="Inuka Afrika Properties"
-            fill
-            className="object-contain drop-shadow-2xl"
-            priority
-          />
-        </div>
       </div>
     </div>
   );
