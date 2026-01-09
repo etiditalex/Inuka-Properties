@@ -61,6 +61,7 @@ const Header = () => {
       dropdown: [
         { name: "Client Testimonials", href: "/testimonials/client-testimonials" },
         { name: "Downloads", href: "/testimonials/downloads" },
+        { name: "Video Gallery", href: "/testimonials/video-gallery" },
         { name: "Newsletters", href: "/testimonials/newsletters" },
       ],
     },
