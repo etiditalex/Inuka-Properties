@@ -102,3 +102,4 @@ The reviews are cached on the client side and only fetched once per page load, s
 - Client-side code never sees your API key
 
 
+

@@ -1,291 +1,236 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Users, Mail, Phone, Home, ChevronRight, Briefcase, Award, Target, Heart } from "lucide-react";
+import { Home, ChevronRight, Play } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-
-// Note: Metadata should be in a layout.tsx or exported from a non-client component
-// Since this is a client component, metadata is handled in the parent layout
+import { useState } from "react";
 
 export default function OurTeamPage() {
-  const teamMembers = [
+  const [selectedDirectors, setSelectedDirectors] = useState<Set<number>>(new Set());
+  const [selectedTeamMembers, setSelectedTeamMembers] = useState<Set<number>>(new Set());
+
+  // Directors (Executive)
+  const directors = [
     {
-      name: "Sales Team",
-      department: "Sales & Marketing",
-      members: [
-        {
-          name: "Sales Representative 1",
-          role: "Senior Sales Consultant",
-          image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
-          bio: "Experienced in property sales with a focus on residential and commercial properties.",
-        },
-        {
-          name: "Sales Representative 2",
-          role: "Sales Consultant",
-          image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400",
-          bio: "Specializes in beachfront properties and investment opportunities.",
-        },
-      ],
+      name: "Joseph Mbugua",
+      title: "Director - Marketing",
+      image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767434501/Joseph_Mbugua_v4k2c4.jpg",
+      description: "Joseph Mbugua is the Director at Inuka Afrika Properties, where he is in charge of Marketing and brand growth. He plays a key role in promoting the company's real estate solutions and strengthening its market presence. Professionally trained as a Clearing and Forwarding Officer, Joseph brings strong expertise in logistics, coordination, and operational management. His background allows him to apply strategic planning and efficiency-driven approaches to real estate marketing and client engagement. Through his leadership, Joseph contributes to building trust with clients, driving business growth, and positioning Inuka Afrika Properties as a reliable and customer-focused real estate company.",
     },
     {
-      name: "Customer Service Team",
-      department: "Customer Relations",
-      members: [
-        {
-          name: "Customer Service Representative 1",
-          role: "Customer Relations Manager",
-          image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400",
-          bio: "Ensures exceptional customer experience throughout the property acquisition process.",
-        },
-        {
-          name: "Customer Service Representative 2",
-          role: "Client Support Specialist",
-          image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400",
-          bio: "Provides dedicated support to clients from inquiry to property handover.",
-        },
-      ],
+      name: "Josphat Muchere",
+      title: "Director - Projects and IT",
+      image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767434501/Josphat_Muchere_mtskmd.jpg",
+      description: "Josphat Muchere is the Director of Projects and IT at Inuka Afrika Properties, where he oversees project execution, systems management, and technology-driven operations. He plays a critical role in ensuring projects are delivered efficiently while aligning technology with the company's strategic goals. With a strong background in project coordination and information technology, Josphat brings a structured, solutions-oriented approach to real estate development and operations. His expertise supports effective planning, process optimization, and the integration of digital tools to enhance performance and service delivery. Through his leadership, Josphat contributes to operational excellence, innovation, and the successful implementation of projects across the organization.",
     },
     {
-      name: "Operations Team",
-      department: "Operations & Administration",
-      members: [
-        {
-          name: "Operations Manager",
-          role: "Operations Manager",
-          image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400",
-          bio: "Oversees day-to-day operations and ensures smooth business processes.",
-        },
-        {
-          name: "Administrative Assistant",
-          role: "Administrative Coordinator",
-          image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400",
-          bio: "Manages administrative tasks and supports all departments efficiently.",
-        },
-      ],
-    },
-    {
-      name: "Legal & Documentation Team",
-      department: "Legal Services",
-      members: [
-        {
-          name: "Legal Officer",
-          role: "Legal Advisor",
-          image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400",
-          bio: "Handles legal documentation, title processing, and compliance matters.",
-        },
-      ],
+      name: "Kelvin Ngigi Mbugua",
+      title: "Director - Finance and Debt Collection",
+      image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767434501/Kelvin_Mbugua_xwo7d7.jpg",
+      description: "Kelvin Ngigi Mbugua is the Director in charge of Finance and Debt Collection at Inuka Afrika Properties, where he oversees financial management, revenue control, and debt recovery processes. He plays a key role in ensuring the company's financial stability and sustainable growth. Professionally trained as an Engineer, Kelvin brings a strong analytical and problem-solving approach to financial planning and management. In addition to his finance responsibilities, he is actively involved in the company's affordable housing initiatives, contributing technical insight to the development of practical, cost-effective housing solutions. Through his leadership, Kelvin supports financial accountability, operational efficiency, and the advancement of affordable housing within the organization.",
     },
   ];
 
-  const departments = [
+  // Team Members
+  const teamMembers = [
     {
-      icon: Briefcase,
-      title: "Sales & Marketing",
-      description: "Our sales team helps clients find their perfect property investment.",
-      color: "primary",
+      name: "Ruth Mueni",
+      title: "General Manager",
+      image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1768384363/RuthMueni-GeneralManager_g2lcr5.jpg",
+      description: "Ruth Mueni serves as the General Manager at Inuka Afrika Properties, where she provides strategic leadership and oversees the overall operations of the company. She plays a crucial role in coordinating between different departments, ensuring organizational efficiency, and driving the company's growth objectives. With her comprehensive management expertise, Ruth ensures that all business functions align with the company's mission and vision. She is responsible for implementing strategic initiatives, managing resources effectively, and maintaining high standards of service delivery. Through her leadership, Ruth contributes to creating a cohesive work environment and ensuring that Inuka Afrika Properties continues to deliver exceptional value to clients and stakeholders.",
     },
     {
-      icon: Heart,
-      title: "Customer Relations",
-      description: "Dedicated to providing exceptional service and support to our clients.",
-      color: "primary",
+      name: "Esther Kibandi",
+      title: "Sales and Marketing Manager",
+      image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1768384362/EstherKibandi-SalesandMarketingManager_gbt8zx.jpg",
+      description: "Esther Kibandi is the Sales and Marketing Manager at Inuka Afrika Properties, where she leads the company's sales initiatives and marketing strategies. She is responsible for developing and executing comprehensive marketing campaigns that promote the company's real estate offerings and attract potential clients. Esther manages the sales team, coordinates client acquisition efforts, and works closely with the marketing department to ensure consistent brand messaging. Her role involves market research, client relationship management, and developing strategies to expand the company's market reach. Through her expertise, Esther drives revenue growth, enhances brand visibility, and ensures that Inuka Afrika Properties maintains a strong competitive position in the real estate market.",
     },
     {
-      icon: Target,
-      title: "Operations",
-      description: "Ensuring smooth operations and efficient business processes.",
-      color: "primary",
+      name: "Valentine Kerubo",
+      title: "Head Accountant",
+      image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1768384363/ValentineKerubo-HeadAccountant_srl5yg.jpg",
+      description: "Valentine Kerubo serves as the Head Accountant at Inuka Afrika Properties, where she oversees all financial accounting operations and ensures accurate financial reporting. She is responsible for managing the company's financial records, preparing financial statements, and ensuring compliance with accounting standards and regulations. Valentine plays a critical role in budgeting, financial analysis, and providing financial insights to support strategic decision-making. Her expertise in accounting principles and financial management helps maintain the company's financial integrity and supports sustainable business growth. Through her meticulous attention to detail and financial acumen, Valentine ensures that all financial transactions are properly recorded and that the company maintains transparent and accurate financial records.",
     },
     {
-      icon: Award,
-      title: "Legal Services",
-      description: "Expert legal support for all property transactions and documentation.",
-      color: "primary",
+      name: "Alex Etidit",
+      title: "IT Manager",
+      image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1768384362/AlexEtidit-ITManager_ud1mce.jpg",
+      description: "Alex Etidit is the IT Manager at Inuka Afrika Properties, where he manages the company's information technology infrastructure and systems. He is responsible for ensuring that all IT systems operate efficiently, securely, and support the company's operational needs. Alex oversees the implementation of new technologies, maintains existing systems, and provides technical support to staff across all departments. His role involves managing network security, data backup and recovery, software updates, and ensuring that technology solutions align with business objectives. Through his technical expertise, Alex helps streamline operations, improve productivity, and ensure that Inuka Afrika Properties leverages technology effectively to serve clients and maintain a competitive edge in the digital landscape.",
     },
+    {
+      name: "Benjamin Maza",
+      title: "Head of Logistics and Transport",
+      image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1768384362/BenjaminMaza-HeadofLogisticsandTransport_tiqw0b.jpg",
+      description: "Benjamin Maza serves as the Head of Logistics and Transport at Inuka Afrika Properties, where he manages the company's transportation and logistics operations. He is responsible for coordinating the movement of materials, equipment, and personnel required for various projects and business activities. Benjamin oversees vehicle fleet management, route planning, and ensures timely delivery of services. His role involves managing logistics partnerships, optimizing transportation costs, and ensuring that all logistics operations run smoothly and efficiently. Through his expertise in logistics and transport management, Benjamin supports project execution, client site visits, and overall operational efficiency, contributing to the company's ability to deliver services effectively across different locations.",
+    },
+    {
+      name: "Derick Mogaka",
+      title: "Graphic Designer and Social Media Manager",
+      image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1768384362/DerickMogaka-GraphicDesignerandSocialMediaManager_noblnu.jpg",
+      description: "Derick Mogaka is the Graphic Designer and Social Media Manager at Inuka Afrika Properties, where he combines creative design skills with digital marketing expertise. He is responsible for creating visually compelling marketing materials, including brochures, advertisements, and digital content that effectively communicate the company's brand and property offerings. Derick manages the company's social media presence across various platforms, developing engaging content strategies and maintaining consistent brand messaging. His role involves graphic design, content creation, social media campaign management, and analyzing engagement metrics to optimize digital marketing efforts. Through his creative and strategic approach, Derick helps enhance brand visibility, engage with potential clients, and strengthen Inuka Afrika Properties' online presence in the competitive real estate market.",
+    },
+    {
+      name: "Liz Ntziki",
+      title: "Office Administrator",
+      image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1768384362/LizNtziki-OfficeAdministrator_b8qotj.jpg",
+      description: "Liz Ntziki serves as the Office Administrator at Inuka Afrika Properties, where she ensures the smooth day-to-day operations of the office. She is responsible for managing administrative tasks, coordinating office activities, and providing support to all departments. Liz handles document management, scheduling, correspondence, and maintains organized office systems. Her role involves client communication, managing office supplies, coordinating meetings, and ensuring that administrative processes run efficiently. Through her organizational skills and attention to detail, Liz contributes to creating a well-functioning office environment that supports the company's operations and enables staff to focus on their core responsibilities, ultimately enhancing overall productivity and service delivery.",
+    },
+    {
+      name: "Sophia Santa",
+      title: "Registry",
+      image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1768384363/SophiaSanta-Registry_he9g7b.jpg",
+      description: "Sophia Santa serves in the Registry department at Inuka Afrika Properties, where she manages important company documents and records. She is responsible for maintaining organized filing systems, ensuring proper documentation of transactions, and managing the storage and retrieval of critical business documents. Sophia plays a key role in document control, record keeping, and ensuring that all important paperwork is properly catalogued and easily accessible when needed. Her role involves handling property documentation, legal records, and maintaining compliance with record-keeping requirements. Through her meticulous organization and management of company records, Sophia supports efficient operations, facilitates quick access to important information, and ensures that Inuka Afrika Properties maintains proper documentation standards for all business activities.",
+    },
+    {
+      name: "Tabitha Wangari",
+      title: "Office Assistant",
+      image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1768384364/Tabitha_Wangari-_office_assistant_kvrajb.jpg",
+      description: "Tabitha Wangari serves as the Office Assistant at Inuka Afrika Properties, where she provides essential support to ensure the office operates smoothly. She assists with various administrative tasks, helps maintain a clean and organized work environment, and supports staff members across different departments. Tabitha handles routine office duties, assists with client inquiries, and helps coordinate day-to-day office activities. Her role involves providing general administrative support, managing office supplies, and ensuring that the office environment is conducive to productivity. Through her dedication and support, Tabitha contributes to the efficient functioning of the office, enabling other team members to focus on their specialized responsibilities and ensuring that clients receive prompt and professional service.",
+    },
+  ];
+
+
+  const aboutLinks = [
+    { name: "About Us", href: "/about-us", active: false },
+    { name: "Our Team", href: "/about-us/our-team", active: true },
   ];
 
   return (
-    <div className="pt-24 pb-20">
-      {/* Hero Section */}
-      <section className="bg-white py-12 md:py-16">
+    <div className="pt-24 pb-20 bg-white min-h-screen">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-8 items-center">
-            {/* Left Side - Content */}
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-            >
               {/* Breadcrumb */}
-              <div className="flex items-center gap-2 mb-6 text-dark-600">
-                <Link href="/" className="flex items-center hover:text-primary-600 transition">
-                  <Home size={18} className="stroke-2" />
+        <div className="mb-6">
+          <div className="flex items-center gap-2 text-dark-600 text-sm md:text-base">
+            <Link href="/" className="hover:text-primary-600 transition font-montserrat">
+              INUKA AFRIKA PROPERTIES
                 </Link>
                 <ChevronRight size={16} className="text-dark-400" />
-                <Link href="/about-us" className="text-dark-600 hover:text-primary-600 transition font-montserrat">
-                  About Us
+            <Link href="/about-us" className="hover:text-primary-600 transition font-montserrat">
+              ABOUT US
                 </Link>
                 <ChevronRight size={16} className="text-dark-400" />
-                <span className="text-dark-900 font-montserrat">Our Team</span>
+            <span className="text-dark-900 font-montserrat">OUR TEAM</span>
+          </div>
               </div>
 
-              {/* Main Heading */}
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-dark-900 mb-4 font-montserrat">
-                Our Team
-              </h1>
-
-              {/* Subheading */}
-              <p className="text-lg md:text-xl text-dark-600 font-montserrat">
-                Meet the dedicated professionals behind Inuka Afrika Properties
-              </p>
-            </motion.div>
-
-            {/* Right Side - City Skyline Graphic */}
+        <div className="grid lg:grid-cols-4 gap-8">
+          {/* Left Sidebar - Navigation */}
+          <aside className="lg:col-span-1">
             <motion.div
-              initial={{ opacity: 0, x: 30 }}
+              initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="hidden lg:block relative h-64 md:h-80"
+              transition={{ duration: 0.5 }}
+              className="border-2 border-primary-600 rounded-lg p-6 bg-white shadow-sm"
             >
-              <svg
-                viewBox="0 0 400 300"
-                className="w-full h-full"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                {/* City Skyline Buildings */}
-                <g stroke="#e5e7eb" strokeWidth="1.5" fill="none">
-                  {/* Building 1 */}
-                  <rect x="20" y="180" width="60" height="100" />
-                  <rect x="25" y="190" width="8" height="8" />
-                  <rect x="37" y="190" width="8" height="8" />
-                  <rect x="49" y="190" width="8" height="8" />
-                  <rect x="61" y="190" width="8" height="8" />
-                  <rect x="25" y="205" width="8" height="8" />
-                  <rect x="37" y="205" width="8" height="8" />
-                  <rect x="49" y="205" width="8" height="8" />
-                  <rect x="61" y="205" width="8" height="8" />
-                  
-                  {/* Building 2 */}
-                  <rect x="100" y="150" width="70" height="130" />
-                  <rect x="108" y="160" width="10" height="10" />
-                  <rect x="123" y="160" width="10" height="10" />
-                  <rect x="138" y="160" width="10" height="10" />
-                  <rect x="153" y="160" width="10" height="10" />
-                  <rect x="108" y="178" width="10" height="10" />
-                  <rect x="123" y="178" width="10" height="10" />
-                  <rect x="138" y="178" width="10" height="10" />
-                  <rect x="153" y="178" width="10" height="10" />
-                  <rect x="108" y="196" width="10" height="10" />
-                  <rect x="123" y="196" width="10" height="10" />
-                  <rect x="138" y="196" width="10" height="10" />
-                  
-                  {/* Building 3 */}
-                  <rect x="190" y="120" width="80" height="160" />
-                  <rect x="200" y="135" width="12" height="12" />
-                  <rect x="218" y="135" width="12" height="12" />
-                  <rect x="236" y="135" width="12" height="12" />
-                  <rect x="254" y="135" width="12" height="12" />
-                  <rect x="200" y="155" width="12" height="12" />
-                  <rect x="218" y="155" width="12" height="12" />
-                  <rect x="236" y="155" width="12" height="12" />
-                  <rect x="254" y="155" width="12" height="12" />
-                  <rect x="200" y="175" width="12" height="12" />
-                  <rect x="218" y="175" width="12" height="12" />
-                  <rect x="236" y="175" width="12" height="12" />
-                  
-                  {/* Building 4 */}
-                  <rect x="290" y="160" width="65" height="120" />
-                  <rect x="298" y="170" width="9" height="9" />
-                  <rect x="312" y="170" width="9" height="9" />
-                  <rect x="326" y="170" width="9" height="9" />
-                  <rect x="340" y="170" width="9" height="9" />
-                  <rect x="298" y="186" width="9" height="9" />
-                  <rect x="312" y="186" width="9" height="9" />
-                  <rect x="326" y="186" width="9" height="9" />
-                  <rect x="340" y="186" width="9" height="9" />
-                </g>
-              </svg>
+              <h2 className="text-xl font-bold text-dark-900 mb-6 font-montserrat">ABOUT</h2>
+              <nav className="space-y-3">
+                {aboutLinks.map((link, index) => (
+                  <Link
+                    key={index}
+                    href={link.href}
+                    className={`flex items-center gap-2 font-bold text-sm md:text-base transition ${
+                      link.active
+                        ? "text-dark-900"
+                        : "text-dark-700 hover:text-primary-600"
+                    } font-montserrat`}
+                  >
+                    {link.active && (
+                      <Play size={16} className="text-primary-600" fill="currentColor" />
+                    )}
+                    {!link.active && link.name !== "About Us" && (
+                      <Play size={16} className="text-primary-600" />
+                    )}
+                    <span>{link.name}</span>
+                  </Link>
+                ))}
+              </nav>
             </motion.div>
-          </div>
+            
+            {/* Dashed line pattern below sidebar */}
+            <div className="mt-6 hidden lg:block">
+              <div className="border-t-2 border-dashed border-dark-300"></div>
         </div>
-      </section>
 
-      {/* Departments Overview */}
-      <section className="bg-dark-50 py-16">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            {/* Vision and Mission in Sidebar */}
+            <div className="mt-8 space-y-6">
+              {/* Our Vision Section */}
+              <motion.section
+                initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-12"
+                transition={{ duration: 0.6 }}
           >
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-dark-900 mb-4 font-montserrat">
-              Our Departments
+                <h2 className="text-xl md:text-2xl font-bold text-dark-900 mb-3 font-montserrat">
+                  OUR VISION
             </h2>
-            <p className="text-lg text-dark-600 max-w-2xl mx-auto font-montserrat">
-              A diverse team of professionals working together to deliver excellence
-            </p>
-          </motion.div>
+                <p className="text-sm md:text-base text-dark-700 leading-relaxed font-montserrat">
+                  To transform the real estate landscape in Kenya with affordable and accessible property solutions.
+                </p>
+              </motion.section>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {departments.map((dept, index) => {
-              const Icon = dept.icon;
-              return (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 30 }}
+              {/* Our Mission Section */}
+              <motion.section
+                initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition text-center"
-                >
-                  <div className="w-16 h-16 bg-primary-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <Icon size={32} className="text-primary-600" />
-                  </div>
-                  <h3 className="text-xl font-bold text-dark-900 mb-2 font-montserrat">
-                    {dept.title}
-                  </h3>
-                  <p className="text-dark-600 text-sm font-montserrat">
-                    {dept.description}
-                  </p>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Team Members by Department */}
-      <section className="bg-white py-16">
-        <div className="container mx-auto px-4">
-          {teamMembers.map((team, teamIndex) => (
-            <motion.div
-              key={teamIndex}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="mb-16"
-            >
-              <div className="text-center mb-8">
-                <h2 className="text-2xl md:text-3xl font-bold text-dark-900 mb-2 font-montserrat">
-                  {team.name}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
+                <h2 className="text-xl md:text-2xl font-bold text-dark-900 mb-3 font-montserrat">
+                  OUR MISSION
                 </h2>
-                <p className="text-dark-600 font-montserrat">{team.department}</p>
-              </div>
+                <p className="text-sm md:text-base text-dark-700 leading-relaxed font-montserrat">
+                  To provide comprehensive real estate services that meet our clients' property and land ownership needs.
+                </p>
+              </motion.section>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {team.members.map((member, memberIndex) => (
+              {/* Our Core Values Section */}
+              <motion.section
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+              >
+                <h2 className="text-xl md:text-2xl font-bold text-dark-900 mb-3 font-montserrat">
+                  OUR CORE VALUES
+                </h2>
+                <ul className="space-y-2 text-sm md:text-base text-dark-700 leading-relaxed font-montserrat">
+                  <li>• <strong>Integrity:</strong> We conduct business with honesty and transparency</li>
+                  <li>• <strong>Customer Focus:</strong> Our clients' satisfaction is our top priority</li>
+                  <li>• <strong>Excellence:</strong> We strive for the highest standards in all our services</li>
+                  <li>• <strong>Innovation:</strong> We embrace new solutions to better serve our clients</li>
+                  <li>• <strong>Trust:</strong> We build lasting relationships based on reliability</li>
+                </ul>
+              </motion.section>
+          </div>
+          </aside>
+
+          {/* Main Content Area */}
+          <main className="lg:col-span-3">
+            {/* Executive Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <h2 className="text-3xl md:text-4xl font-bold text-primary-600 mb-8 text-left font-montserrat">
+                EXECUTIVE
+                </h2>
+
+              {/* Executive Profiles Grid */}
+              <div className="grid md:grid-cols-3 gap-6 lg:gap-8 mb-12">
+                {directors.map((member, index) => {
+                  const isExpanded = selectedDirectors.has(index);
+                  return (
                   <motion.div
-                    key={memberIndex}
+                      key={index}
                     initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: memberIndex * 0.1 }}
-                    className="bg-white border border-dark-200 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition"
-                  >
-                    <div className="relative h-64 bg-gradient-to-br from-primary-50 to-primary-100">
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
+                      className="bg-white overflow-hidden"
+                    >
+                      {/* Member Image */}
+                      <div className="relative w-full aspect-[3/4] overflow-hidden">
                       <Image
                         src={member.image}
                         alt={member.name}
@@ -294,65 +239,142 @@ export default function OurTeamPage() {
                         quality={90}
                       />
                     </div>
-                    <div className="p-6">
-                      <h3 className="text-xl font-bold text-dark-900 mb-1 font-montserrat">
-                        {member.name}
+                      
+                      {/* Member Info */}
+                      <div className="p-4 md:p-6 text-center">
+                        <h3 className="text-lg md:text-xl font-bold text-dark-900 mb-2 font-montserrat">
+                          {member.name.toUpperCase()}
                       </h3>
-                      <p className="text-primary-600 font-semibold mb-3 text-sm font-montserrat">
-                        {member.role}
-                      </p>
-                      <p className="text-dark-600 text-sm leading-relaxed font-montserrat">
-                        {member.bio}
+                        <p className="text-sm md:text-base text-dark-600 mb-4 font-montserrat">
+                          {member.title}
+                        </p>
+                        <button
+                          onClick={() => {
+                            const newSet = new Set(selectedDirectors);
+                            if (isExpanded) {
+                              newSet.delete(index);
+                            } else {
+                              newSet.add(index);
+                            }
+                            setSelectedDirectors(newSet);
+                          }}
+                          className="bg-primary-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-primary-700 transition font-montserrat text-sm md:text-base w-full"
+                        >
+                          {isExpanded ? "View less" : "View more"}
+                        </button>
+                      </div>
+
+                      {/* Expanded Details Below Card */}
+                      {isExpanded && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="px-4 md:px-6 pb-4 md:pb-6"
+                        >
+                          <div className="pt-4 border-t border-dark-200">
+                            <p className="text-sm md:text-base text-dark-700 leading-relaxed font-montserrat text-left">
+                              {member.description}
                       </p>
                     </div>
                   </motion.div>
-                ))}
+                      )}
+                    </motion.div>
+                  );
+                })}
               </div>
             </motion.div>
-          ))}
-        </div>
-      </section>
 
-      {/* Join Our Team CTA */}
-      <section className="bg-dark-50 py-20">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
+            {/* Dashed line separator */}
+            <div className="my-12">
+              <div className="border-t-2 border-dashed border-dark-300"></div>
+        </div>
+
+            {/* Team Members Section */}
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="bg-white rounded-xl shadow-lg p-8 md:p-12 text-center"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
             >
-              <div className="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Users size={40} className="text-primary-600" />
-              </div>
-              <h2 className="text-3xl font-bold text-dark-900 mb-4 font-montserrat">
-                Join Our Growing Team
+              <h2 className="text-3xl md:text-4xl font-bold text-primary-600 mb-8 text-left font-montserrat">
+                OUR TEAM
               </h2>
-              <p className="text-dark-700 mb-8 text-lg font-montserrat">
-                We're always looking for talented individuals to join our growing team. 
-                If you're passionate about real estate and customer service, we'd love to hear from you.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <a
-                  href="mailto:info@inukaproperties.co.ke"
-                  className="bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition inline-flex items-center justify-center gap-2 font-montserrat"
-                >
-                  <Mail size={20} />
-                  Send Your CV
-                </a>
-                <a
-                  href="tel:+254711082084"
-                  className="bg-white text-primary-700 px-8 py-3 rounded-lg font-semibold hover:bg-primary-50 transition border-2 border-primary-600 inline-flex items-center justify-center gap-2 font-montserrat"
-                >
-                  <Phone size={20} />
-                  Call Us
-                </a>
+
+              {/* Team Members Grid */}
+              <div className="grid md:grid-cols-3 gap-6 lg:gap-8 mb-12">
+                {teamMembers.map((member, index) => {
+                  const isExpanded = selectedTeamMembers.has(index);
+                  return (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.5 + index * 0.1 }}
+                      className="bg-white overflow-hidden"
+                    >
+                      {/* Member Image */}
+                      <div className="relative w-full aspect-[3/4] overflow-hidden">
+                        <Image
+                          src={member.image}
+                          alt={member.name}
+                          fill
+                          className="object-cover"
+                          quality={90}
+                        />
+                      </div>
+                      
+                      {/* Member Info */}
+                      <div className="p-4 md:p-6 text-center">
+                        <h3 className="text-lg md:text-xl font-bold text-dark-900 mb-2 font-montserrat">
+                          {member.name.toUpperCase()}
+                        </h3>
+                        <p className="text-sm md:text-base text-dark-600 mb-4 font-montserrat">
+                          {member.title}
+                        </p>
+                        <button
+                          onClick={() => {
+                            const newSet = new Set(selectedTeamMembers);
+                            if (isExpanded) {
+                              newSet.delete(index);
+                            } else {
+                              newSet.add(index);
+                            }
+                            setSelectedTeamMembers(newSet);
+                          }}
+                          className="bg-primary-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-primary-700 transition font-montserrat text-sm md:text-base w-full"
+                        >
+                          {isExpanded ? "View less" : "View more"}
+                        </button>
+                      </div>
+
+                      {/* Expanded Details Below Card */}
+                      {isExpanded && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="px-4 md:px-6 pb-4 md:pb-6"
+                        >
+                          <div className="pt-4 border-t border-dark-200">
+                            <p className="text-sm md:text-base text-dark-700 leading-relaxed font-montserrat text-left">
+                              {member.description}
+                            </p>
+                          </div>
+                        </motion.div>
+                      )}
+                    </motion.div>
+                  );
+                })}
               </div>
             </motion.div>
+
+            {/* Dashed line at bottom */}
+            <div className="mt-12">
+              <div className="border-t-2 border-dashed border-dark-300"></div>
           </div>
+          </main>
         </div>
-      </section>
+      </div>
     </div>
   );
 }
