@@ -10,14 +10,14 @@ export default function NewsPage() {
     {
       id: 1,
       title: "Site Visits Happening in Mariakani and Kilifi",
-      excerpt: "Join us for exciting site visits to our projects in Mariakani and Kilifi. Experience our premium developments firsthand and discover exceptional investment opportunities in these prime locations. Book your visit today to explore our properties with our expert sales team.",
+      excerpt: "Join us for exciting site visits to our plots of land in Mariakani and Kilifi. Clients are visiting our prime land plots to explore exceptional investment opportunities in these strategic locations. Book your visit today to see the plots firsthand with our expert sales team.",
       date: new Date().toISOString().split('T')[0],
       category: "Site Visits",
       image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1768629737/site_visit_highlight_i53mqx.jpg",
       featured: true,
       details: [
         "Site visits available in Mariakani and Kilifi",
-        "Explore our premium developments in prime locations",
+        "Explore our plots of land in prime locations",
         "Personalized attention from our expert sales team",
         "Book in advance to secure your spot",
       ],
