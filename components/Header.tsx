@@ -31,7 +31,6 @@ const Header = () => {
       dropdown: [
         { name: "All Properties", href: "/for-sale" },
         { name: "Ongoing Projects", href: "/for-sale/ongoing-projects" },
-        { name: "Sold Out Projects", href: "/for-sale/sold-out-projects" },
       ],
     },
     {
