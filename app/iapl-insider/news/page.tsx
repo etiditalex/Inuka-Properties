@@ -9,16 +9,16 @@ export default function NewsPage() {
   const newsItems = [
     {
       id: 1,
-      title: "Weekly Site Visits: Every Wednesday and Saturday",
-      excerpt: "We conduct organized site visits to all our projects every Wednesday and Saturday. Clients are highly recommended to book their site visits in advance to ensure availability and personalized attention from our sales team.",
+      title: "Site Visits Happening in Mariakani and Kilifi",
+      excerpt: "Join us for exciting site visits to our projects in Mariakani and Kilifi. Experience our premium developments firsthand and discover exceptional investment opportunities in these prime locations. Book your visit today to explore our properties with our expert sales team.",
       date: new Date().toISOString().split('T')[0],
       category: "Site Visits",
-      image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767678352/Book_siste_visit_za3hmi.jpg",
+      image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1768629737/site_visit_highlight_i53mqx.jpg",
       featured: true,
       details: [
-        "Site visits available every Wednesday and Saturday",
-        "Visit all our projects in one organized tour",
-        "Personalized attention from our sales team",
+        "Site visits available in Mariakani and Kilifi",
+        "Explore our premium developments in prime locations",
+        "Personalized attention from our expert sales team",
         "Book in advance to secure your spot",
       ],
     },
