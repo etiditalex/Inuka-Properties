@@ -368,6 +368,98 @@ export default function OurTeamPage() {
               </div>
             </motion.div>
 
+            {/* Dashed line separator */}
+            <div className="my-12">
+              <div className="border-t-2 border-dashed border-dark-300"></div>
+            </div>
+
+            {/* Sales Team Section - Full Width */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className="w-full"
+            >
+              <h2 className="text-3xl md:text-4xl font-bold text-primary-600 mb-8 text-left font-montserrat">
+                SALES TEAM
+              </h2>
+
+              {/* Sales Team Images Grid - 2 columns per row, landscape images */}
+              <div className="space-y-6 lg:space-y-8 mb-12 w-full">
+                {/* Row 1: 2 images */}
+                <div className="grid md:grid-cols-2 gap-6 lg:gap-8 w-full">
+                  {[
+                    "https://res.cloudinary.com/dyfnobo9r/image/upload/v1768633314/TheTeam1_cfiuux.jpg",
+                    "https://res.cloudinary.com/dyfnobo9r/image/upload/v1768633314/TheTeam2_d4yvtv.jpg",
+                  ].map((imageUrl, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.7 + index * 0.1 }}
+                      className="bg-white overflow-hidden w-full"
+                    >
+                      <div className="relative w-full aspect-[16/9] overflow-hidden">
+                        <Image
+                          src={imageUrl}
+                          alt={`Sales Team Member ${index + 1}`}
+                          fill
+                          className="object-cover"
+                          quality={90}
+                        />
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+
+                {/* Row 2: 2 images */}
+                <div className="grid md:grid-cols-2 gap-6 lg:gap-8 w-full">
+                  {[
+                    "https://res.cloudinary.com/dyfnobo9r/image/upload/v1768633315/TheTeam3_fhahx2.jpg",
+                    "https://res.cloudinary.com/dyfnobo9r/image/upload/v1768633314/TheTeam4_c4kv9d.jpg",
+                  ].map((imageUrl, index) => (
+                    <motion.div
+                      key={index + 2}
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.9 + index * 0.1 }}
+                      className="bg-white overflow-hidden w-full"
+                    >
+                      <div className="relative w-full aspect-[16/9] overflow-hidden">
+                        <Image
+                          src={imageUrl}
+                          alt={`Sales Team Member ${index + 3}`}
+                          fill
+                          className="object-cover"
+                          quality={90}
+                        />
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+
+                {/* Row 3: 1 image (full width) */}
+                <div className="w-full">
+                  <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 1.1 }}
+                    className="bg-white overflow-hidden w-full"
+                  >
+                    <div className="relative w-full aspect-[16/9] overflow-hidden">
+                      <Image
+                        src="https://res.cloudinary.com/dyfnobo9r/image/upload/v1768633315/TheTeam5_q0gmur.jpg"
+                        alt="Sales Team Member 5"
+                        fill
+                        className="object-cover"
+                        quality={90}
+                      />
+                    </div>
+                  </motion.div>
+                </div>
+              </div>
+            </motion.div>
+
             {/* Dashed line at bottom */}
             <div className="mt-12">
               <div className="border-t-2 border-dashed border-dark-300"></div>
