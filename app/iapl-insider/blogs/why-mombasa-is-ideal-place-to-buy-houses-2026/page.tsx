@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, User, ArrowLeft, MapPin } from "lucide-react";
+import { Calendar, User, ArrowLeft, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -105,23 +105,25 @@ export default function WhyMombasaIsIdealPlacePage() {
             <div className="flex justify-center gap-4 mb-6">
               <button
                 onClick={() => handlePageFlip(1)}
-                className={`px-6 py-2 rounded-lg font-semibold transition ${
+                disabled={currentPage === 1}
+                className={`p-3 rounded-lg transition ${
                   currentPage === 1
-                    ? "bg-primary-600 text-white"
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                     : "bg-white text-primary-600 border-2 border-primary-600 hover:bg-primary-50"
                 }`}
               >
-                Page 1
+                <ChevronLeft size={24} />
               </button>
               <button
                 onClick={() => handlePageFlip(2)}
-                className={`px-6 py-2 rounded-lg font-semibold transition ${
+                disabled={currentPage === 2}
+                className={`p-3 rounded-lg transition ${
                   currentPage === 2
-                    ? "bg-primary-600 text-white"
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                     : "bg-white text-primary-600 border-2 border-primary-600 hover:bg-primary-50"
                 }`}
               >
-                Page 2
+                <ChevronRight size={24} />
               </button>
             </div>
 
@@ -210,10 +212,6 @@ export default function WhyMombasaIsIdealPlacePage() {
                             The plots of land in Kikambala are strategically located in prime positions, offering both accessibility and potential for appreciation. As infrastructure continues to improve and the area develops further, these plots represent excellent investment opportunities. Whether for residential development, future resale, or long-term investment, the plots of land in Kikambala provide investors with flexible options in one of the Coastal region's most promising markets.
                           </p>
 
-                          {/* Page 1 Footer */}
-                          <div className="mt-8 pt-6 border-t border-gray-300 text-center text-sm text-gray-500">
-                            Continued on Page 2 →
-                          </div>
                         </div>
                       </div>
                     </article>
@@ -232,7 +230,7 @@ export default function WhyMombasaIsIdealPlacePage() {
                     <div className="bg-gradient-to-r from-primary-700 to-primary-800 text-white p-6 md:p-8">
                       <div className="flex items-center justify-between mb-4">
                         <div className="text-sm opacity-90">Inuka Afrika Properties</div>
-                        <div className="text-sm opacity-90">Page 2</div>
+                        <div className="text-sm opacity-90" suppressHydrationWarning>{dates.long || 'Loading...'}</div>
                       </div>
                       <h2 className="text-2xl md:text-3xl font-bold font-serif">
                         Why the Coastal region Is Ideal (Continued)
@@ -243,7 +241,6 @@ export default function WhyMombasaIsIdealPlacePage() {
                     <article className="p-6 md:p-10 lg:p-12">
                       <div className="max-w-4xl mx-auto">
                         <div className="prose prose-lg max-w-none">
-                          <p className="text-sm text-gray-500 mb-6">← Continued from Page 1</p>
 
                           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mt-4 mb-4">Kilifi, Bofa, and the Northern Coast: Emerging Investment Hotspots</h2>
                           <p className="text-gray-700 mb-6 leading-relaxed">

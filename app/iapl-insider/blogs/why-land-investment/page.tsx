@@ -105,23 +105,25 @@ export default function WhyLandInvestmentPage() {
             <div className="flex justify-center gap-4 mb-6">
               <button
                 onClick={() => handlePageFlip(1)}
-                className={`px-6 py-2 rounded-lg font-semibold transition ${
+                disabled={currentPage === 1}
+                className={`p-3 rounded-lg transition ${
                   currentPage === 1
-                    ? "bg-primary-600 text-white"
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                     : "bg-white text-primary-600 border-2 border-primary-600 hover:bg-primary-50"
                 }`}
               >
-                Page 1
+                <ChevronLeft size={24} />
               </button>
               <button
                 onClick={() => handlePageFlip(2)}
-                className={`px-6 py-2 rounded-lg font-semibold transition ${
+                disabled={currentPage === 2}
+                className={`p-3 rounded-lg transition ${
                   currentPage === 2
-                    ? "bg-primary-600 text-white"
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                     : "bg-white text-primary-600 border-2 border-primary-600 hover:bg-primary-50"
                 }`}
               >
-                Page 2
+                <ChevronRight size={24} />
               </button>
             </div>
 
@@ -209,10 +211,6 @@ export default function WhyLandInvestmentPage() {
                             <strong>Location Matters:</strong> When investing in land, location is paramount. Properties near highways, beaches, universities, or growing urban centers tend to appreciate faster. Areas like Mtondia, Mwanda, and Bofa in Kilifi County offer excellent potential due to their strategic positioning and ongoing development projects.
                           </p>
 
-                          {/* Page 1 Footer */}
-                          <div className="mt-8 pt-6 border-t border-gray-300 text-center text-sm text-gray-500">
-                            Continued on Page 2 →
-                          </div>
                         </div>
                       </div>
                     </article>
@@ -231,7 +229,7 @@ export default function WhyLandInvestmentPage() {
                     <div className="bg-gradient-to-r from-primary-700 to-primary-800 text-white p-6 md:p-8">
                       <div className="flex items-center justify-between mb-4">
                         <div className="text-sm opacity-90">Inuka Afrika Properties</div>
-                        <div className="text-sm opacity-90">Page 2</div>
+                        <div className="text-sm opacity-90" suppressHydrationWarning>{dates.long || 'Loading...'}</div>
                       </div>
                       <h2 className="text-2xl md:text-3xl font-bold font-serif">
                         Why Land Investment (Continued)
@@ -242,7 +240,6 @@ export default function WhyLandInvestmentPage() {
                     <article className="p-6 md:p-10 lg:p-12">
                       <div className="max-w-4xl mx-auto">
                         <div className="prose prose-lg max-w-none">
-                          <p className="text-sm text-gray-500 mb-6">← Continued from Page 1</p>
 
                           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mt-4 mb-4">Building Generational Wealth</h2>
                           <p className="text-gray-700 mb-6 leading-relaxed">
