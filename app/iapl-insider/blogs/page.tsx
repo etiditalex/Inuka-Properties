@@ -8,6 +8,16 @@ import Image from "next/image";
 export default function BlogsPage() {
   const blogs = [
     {
+      id: 5,
+      title: "Why the Coastal region Is The Ideal Place To Buy Land In 2026",
+      excerpt: "Discover why the Coastal region is the perfect destination to buy land in 2026. Explore Mariakani, Mtwapa, Kikambala, Kilifi, Malindi, Watamu, and Diani. Learn about infrastructure growth, affordable housing initiatives, and tourism opportunities.",
+      author: "IAPL Investment Team",
+      date: new Date().toISOString().split('T')[0],
+      image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1768631111/mombasa_2_dazxqj.jpg",
+      category: "Investment",
+      slug: "why-mombasa-is-ideal-place-to-buy-houses-2026",
+    },
+    {
       id: 4,
       title: "Why Land Investment: The Ultimate Guide to Building Wealth Through Real Estate",
       excerpt: "Discover why land investment is one of the smartest financial decisions you can make. Learn about land investment benefits, strategies, and opportunities in Kenya.",
