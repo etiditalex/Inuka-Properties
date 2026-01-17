@@ -15,7 +15,7 @@ export default function BlogsPage() {
       date: new Date().toISOString().split('T')[0],
       image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1768631111/mombasa_2_dazxqj.jpg",
       category: "Investment",
-      slug: "why-mombasa-is-ideal-place-to-buy-houses-2026",
+      slug: "why-coastal-region-is-ideal-place-to-buy-land-2026",
     },
     {
       id: 4,
