@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Bed, Square, Filter, Search, Clock, ArrowRight, Home, ChevronRight } from "lucide-react";
+import { MapPin, Bed, Square, Filter, Search, Clock, ArrowRight, Home, ChevronRight, X, SlidersHorizontal } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -87,13 +87,30 @@ const formatDate = (dateString: string): string => {
 export default function OngoingProjectsPage() {
   const [filter, setFilter] = useState<PropertyType>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [locationFilter, setLocationFilter] = useState("all");
+  const [priceRange, setPriceRange] = useState({ min: "", max: "" });
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Get unique locations
+  const locations = Array.from(new Set(ongoingProjects.map(p => p.location)));
 
   const filteredProjects = ongoingProjects.filter((project) => {
     const matchesFilter = filter === "all" || project.type === filter;
     const matchesSearch =
       project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       project.location.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesFilter && matchesSearch;
+    const matchesLocation = locationFilter === "all" || project.location === locationFilter;
+    
+    // Price filtering (extract numeric value from price string)
+    let matchesPrice = true;
+    if (priceRange.min || priceRange.max) {
+      const priceNum = parseInt(project.price.replace(/[^\d]/g, ""));
+      const minPrice = priceRange.min ? parseInt(priceRange.min.replace(/[^\d]/g, "")) : 0;
+      const maxPrice = priceRange.max ? parseInt(priceRange.max.replace(/[^\d]/g, "")) : Infinity;
+      matchesPrice = priceNum >= minPrice && priceNum <= maxPrice;
+    }
+    
+    return matchesFilter && matchesSearch && matchesLocation && matchesPrice;
   });
 
   const propertyTypes: { value: PropertyType; label: string }[] = [
@@ -104,6 +121,13 @@ export default function OngoingProjectsPage() {
     { value: "farm", label: "Farm Land" },
     { value: "affordable", label: "Affordable Housing" },
   ];
+
+  const clearFilters = () => {
+    setFilter("all");
+    setSearchQuery("");
+    setLocationFilter("all");
+    setPriceRange({ min: "", max: "" });
+  };
 
   return (
     <div className="pt-24 pb-20">
@@ -214,41 +238,153 @@ export default function OngoingProjectsPage() {
         </div>
       </section>
 
-      {/* Filters and Search */}
-      <section className="container mx-auto px-4 py-8">
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* Search */}
+      {/* Filters and Search - Mobile */}
+      <section className="container mx-auto px-4 py-4 lg:hidden">
+        <div className="bg-white rounded-xl shadow-lg p-4">
+          <div className="flex gap-3">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-primary-700 transition"
+            >
+              <SlidersHorizontal size={18} />
+              Filters
+            </button>
             <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-dark-400" size={20} />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-400" size={18} />
               <input
                 type="text"
-                placeholder="Search by location or project name..."
+                placeholder="Search projects..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full pl-10 pr-4 py-2 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
-            </div>
-            {/* Filter */}
-            <div className="flex items-center gap-2">
-              <Filter size={20} className="text-dark-600" />
-              <select
-                value={filter}
-                onChange={(e) => setFilter(e.target.value as PropertyType)}
-                className="px-4 py-3 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-              >
-                {propertyTypes.map((type) => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
-                  </option>
-                ))}
-              </select>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Projects List - Horizontal Cards */}
-        <div className="space-y-6">
+      {/* Main Content with Sidebar */}
+      <section className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Sidebar */}
+          <aside className={`lg:col-span-1 ${sidebarOpen ? 'fixed inset-y-0 left-0 z-50 w-80 overflow-y-auto' : 'hidden lg:block'}`}>
+            <div className={`bg-white ${sidebarOpen ? 'h-full p-6' : 'rounded-xl shadow-lg p-6 sticky top-24'}`}>
+              {/* Mobile Close Button */}
+              <div className="flex items-center justify-between mb-6 lg:hidden">
+                <h2 className="text-xl font-bold text-dark-900 font-montserrat">Filters</h2>
+                <button
+                  onClick={() => setSidebarOpen(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Desktop Title */}
+              <h2 className="text-xl font-bold text-dark-900 mb-6 hidden lg:block font-montserrat">Search Filters</h2>
+
+              {/* Search */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat">
+                  Search
+                </label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-dark-400" size={18} />
+                  <input
+                    type="text"
+                    placeholder="Search projects..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  />
+                </div>
+              </div>
+
+              {/* Property Type */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat">
+                  Project Type
+                </label>
+                <select
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value as PropertyType)}
+                  className="w-full px-4 py-2 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  {propertyTypes.map((type) => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Location */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat">
+                  Location
+                </label>
+                <select
+                  value={locationFilter}
+                  onChange={(e) => setLocationFilter(e.target.value)}
+                  className="w-full px-4 py-2 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  <option value="all">All Locations</option>
+                  {locations.map((location) => (
+                    <option key={location} value={location}>
+                      {location}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Price Range */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat">
+                  Price Range
+                </label>
+                <div className="space-y-3">
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="Min Price (KES)"
+                      value={priceRange.min}
+                      onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
+                      className="w-full px-4 py-2 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    />
+                  </div>
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="Max Price (KES)"
+                      value={priceRange.max}
+                      onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
+                      className="w-full px-4 py-2 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Clear Filters */}
+              <button
+                onClick={clearFilters}
+                className="w-full bg-gray-100 text-dark-700 px-4 py-2 rounded-lg font-semibold hover:bg-gray-200 transition font-montserrat"
+              >
+                Clear All Filters
+              </button>
+
+              {/* Results Count */}
+              <div className="mt-6 pt-6 border-t border-dark-200">
+                <p className="text-sm text-dark-600 font-montserrat">
+                  <span className="font-bold text-dark-900">{filteredProjects.length}</span> projects found
+                </p>
+              </div>
+            </div>
+          </aside>
+
+          {/* Projects List */}
+          <div className="lg:col-span-3">
+            {/* Projects List - Horizontal Cards */}
+            <div className="space-y-6">
           {filteredProjects.map((project, index) => (
             <motion.div
               key={project.id}
@@ -371,12 +507,23 @@ export default function OngoingProjectsPage() {
           ))}
         </div>
 
-        {filteredProjects.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-xl text-dark-600">No ongoing projects found matching your criteria.</p>
+            {filteredProjects.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-xl text-dark-600 font-montserrat">No ongoing projects found matching your criteria.</p>
+              </div>
+            )}
+            </div>
           </div>
-        )}
+        </div>
       </section>
+
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
     </div>
   );
 }
