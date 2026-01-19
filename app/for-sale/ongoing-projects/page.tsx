@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Bed, Square, Filter, Search, Clock, ArrowRight, Home, ChevronRight, X, SlidersHorizontal } from "lucide-react";
 import Image from "next/image";
@@ -75,21 +75,21 @@ const ongoingProjects: Property[] = [
   },
 ];
 
-// Helper function to format dates consistently
-const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  const day = date.getDate().toString().padStart(2, '0');
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const year = date.getFullYear();
-  return `${day}/${month}/${year}`;
-};
-
 export default function OngoingProjectsPage() {
   const [filter, setFilter] = useState<PropertyType>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [locationFilter, setLocationFilter] = useState("all");
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Helper function to format dates consistently
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
 
   // Get unique locations
   const locations = Array.from(new Set(ongoingProjects.map(p => p.location)));
@@ -385,133 +385,129 @@ export default function OngoingProjectsPage() {
           <div className="lg:col-span-3">
             {/* Projects List - Horizontal Cards */}
             <div className="space-y-6">
-          {filteredProjects.map((project, index) => (
-            <motion.div
-              key={project.id}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition"
-            >
-              <div className="grid md:grid-cols-2 gap-0">
-                {/* Image Left */}
-                <div className="relative h-64 md:h-auto min-h-[300px] overflow-hidden">
-                  <Image
-                    src={project.image}
-                    alt={project.title}
-                    fill
-                    className="object-cover"
-                  />
-                  {project.soldPercentage && (
-                    <div className="absolute bottom-0 left-0 right-0 bg-primary-900/80 text-white p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-semibold font-montserrat">Sold</span>
-                        <span className="text-sm font-semibold font-montserrat">{project.soldPercentage}%</span>
-                      </div>
-                      <div className="w-full bg-primary-800/30 rounded-full h-2">
-                        <div
-                          className="bg-primary-400 h-2 rounded-full transition-all duration-500"
-                          style={{ width: `${project.soldPercentage}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Content Right */}
-                <div className="p-6 md:p-8 flex flex-col justify-between">
-                  <div>
-                    {/* Status Badge */}
-                    {project.soldPercentage && (
-                      <div className="mb-4">
-                        <span className="inline-block px-4 py-1 rounded-lg text-sm font-semibold text-white bg-primary-500 font-montserrat">
-                          {project.soldPercentage}% Sold
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Price */}
-                    <div className="mb-4">
-                      <div className="text-3xl md:text-4xl font-bold text-dark-900 font-montserrat">
-                        {project.price}
-                      </div>
-                    </div>
-
-                    {/* Title */}
-                    <h3 className="text-2xl md:text-3xl font-bold text-dark-900 mb-4 font-montserrat">
-                      {project.title}
-                    </h3>
-
-                    {/* Location */}
-                    <div className="flex items-center text-dark-600 mb-4 font-montserrat">
-                      <MapPin size={18} className="mr-2 text-primary-600" />
-                      <span>{project.location}</span>
-                    </div>
-
-                    {/* Features/Amenities */}
-                    {project.features && project.features.length > 0 && (
-                      <div className="mb-6">
-                        <ul className="space-y-2">
-                          {project.features.map((feature, idx) => (
-                            <li key={idx} className="flex items-center text-dark-600 font-montserrat">
-                              <span className="w-1.5 h-1.5 bg-primary-600 rounded-full mr-3"></span>
-                              {feature}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {/* Property Details */}
-                    <div className="flex items-center gap-4 text-sm text-dark-600 mb-4 font-montserrat">
-                      <div className="flex items-center gap-1">
-                        <Square size={16} />
-                        <span>{project.size}</span>
-                      </div>
-                      {project.bedrooms && (
-                        <div className="flex items-center gap-1">
-                          <Bed size={16} />
-                          <span>{project.bedrooms} Bedrooms</span>
+              {filteredProjects.map((project, index) => (
+                <motion.div
+                  key={project.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition"
+                >
+                  <div className="grid md:grid-cols-2 gap-0">
+                    {/* Image Left */}
+                    <div className="relative h-64 md:h-auto min-h-[300px] overflow-hidden">
+                      <Image src={project.image} alt={project.title} fill className="object-cover" />
+                      {project.soldPercentage && (
+                        <div className="absolute bottom-0 left-0 right-0 bg-primary-900/80 text-white p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-semibold font-montserrat">Sold</span>
+                            <span className="text-sm font-semibold font-montserrat">{project.soldPercentage}%</span>
+                          </div>
+                          <div className="w-full bg-primary-800/30 rounded-full h-2">
+                            <div
+                              className="bg-primary-400 h-2 rounded-full transition-all duration-500"
+                              style={{ width: `${project.soldPercentage}%` }}
+                            />
+                          </div>
                         </div>
                       )}
                     </div>
 
-                    {/* Expected Completion */}
-                    {project.completionDate && (
-                      <div className="flex items-center gap-2 text-sm text-dark-600 mb-6 font-montserrat">
-                        <Clock size={16} className="text-primary-600" />
-                        <span>Expected Completion: {formatDate(project.completionDate)}</span>
+                    {/* Content Right */}
+                    <div className="p-6 md:p-8 flex flex-col justify-between">
+                      <div>
+                        {/* Status Badge */}
+                        {project.soldPercentage && (
+                          <div className="mb-4">
+                            <span className="inline-block px-4 py-1 rounded-lg text-sm font-semibold text-white bg-primary-500 font-montserrat">
+                              {project.soldPercentage}% Sold
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Price */}
+                        <div className="mb-4">
+                          <div className="text-3xl md:text-4xl font-bold text-dark-900 font-montserrat">
+                            {project.price}
+                          </div>
+                        </div>
+
+                        {/* Title */}
+                        <h3 className="text-2xl md:text-3xl font-bold text-dark-900 mb-4 font-montserrat">
+                          {project.title}
+                        </h3>
+
+                        {/* Location */}
+                        <div className="flex items-center text-dark-600 mb-4 font-montserrat">
+                          <MapPin size={18} className="mr-2 text-primary-600" />
+                          <span>{project.location}</span>
+                        </div>
+
+                        {/* Features/Amenities */}
+                        {project.features && project.features.length > 0 && (
+                          <div className="mb-6">
+                            <ul className="space-y-2">
+                              {project.features.map((feature, idx) => (
+                                <li key={idx} className="flex items-center text-dark-600 font-montserrat">
+                                  <span className="w-1.5 h-1.5 bg-primary-600 rounded-full mr-3" />
+                                  {feature}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {/* Property Details */}
+                        <div className="flex items-center gap-4 text-sm text-dark-600 mb-4 font-montserrat">
+                          <div className="flex items-center gap-1">
+                            <Square size={16} />
+                            <span>{project.size}</span>
+                          </div>
+                          {project.bedrooms && (
+                            <div className="flex items-center gap-1">
+                              <Bed size={16} />
+                              <span>{project.bedrooms} Bedrooms</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Expected Completion */}
+                        {project.completionDate && (
+                          <div className="flex items-center gap-2 text-sm text-dark-600 mb-6 font-montserrat">
+                            <Clock size={16} className="text-primary-600" />
+                            <span>Expected Completion: {formatDate(project.completionDate)}</span>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex flex-col sm:flex-row gap-3 mt-6">
-                    <Link
-                      href="/contact-us"
-                      className="flex items-center justify-center gap-2 bg-primary-800 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition font-montserrat"
-                    >
-                      Contact Us
-                      <ArrowRight size={18} />
-                    </Link>
-                    <Link
-                      href={`/for-sale/${project.id}`}
-                      className="flex items-center justify-center gap-2 bg-white text-primary-800 border-2 border-primary-800 px-6 py-3 rounded-lg font-semibold hover:bg-primary-50 transition font-montserrat"
-                    >
-                      More Information
-                    </Link>
+                      {/* Action Buttons */}
+                      <div className="flex flex-col sm:flex-row gap-3 mt-6">
+                        <Link
+                          href="/contact-us"
+                          className="flex items-center justify-center gap-2 bg-primary-800 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition font-montserrat"
+                        >
+                          Contact Us
+                          <ArrowRight size={18} />
+                        </Link>
+                        <Link
+                          href={`/for-sale/${project.id}`}
+                          className="flex items-center justify-center gap-2 bg-white text-primary-800 border-2 border-primary-800 px-6 py-3 rounded-lg font-semibold hover:bg-primary-50 transition font-montserrat"
+                        >
+                          More Information
+                        </Link>
+                      </div>
+                    </div>
                   </div>
+                </motion.div>
+              ))}
+
+              {filteredProjects.length === 0 && (
+                <div className="text-center py-12">
+                  <p className="text-xl text-dark-600 font-montserrat">
+                    No ongoing projects found matching your criteria.
+                  </p>
                 </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-            {filteredProjects.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-xl text-dark-600 font-montserrat">No ongoing projects found matching your criteria.</p>
-              </div>
-            )}
+              )}
             </div>
           </div>
         </div>
