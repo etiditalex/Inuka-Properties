@@ -2,9 +2,12 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, MapPin, Square } from "lucide-react";
+import { Search, MapPin, Square, Home, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+
+const HERO_BG_IMAGE =
+  "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767330607/Mwanda_Phase_3_3_ejntad.jpg";
 
 interface Property {
   id: number;
@@ -207,19 +210,89 @@ export default function DownloadsPage() {
   );
 
   return (
-    <div className="pt-24 pb-20 bg-white">
-      <section className="container mx-auto px-4 py-12">
+    <div className="pt-24 pb-20">
+      {/* Hero Section (image background) */}
+      <section className="relative overflow-hidden py-16 md:py-20 text-white">
+        {/* Background image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${HERO_BG_IMAGE})` }}
+          aria-hidden="true"
+        />
+        {/* Overlay for readability */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/80" aria-hidden="true" />
+
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-10 items-center">
+            {/* Left Side - Content */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              {/* Breadcrumb */}
+              <div className="flex items-center gap-2 mb-6 text-white/80">
+                <Link href="/" className="flex items-center hover:text-white transition">
+                  <Home size={18} className="stroke-2" />
+                </Link>
+                <ChevronRight size={16} className="text-white/50" />
+                <Link href="/testimonials" className="hover:text-white transition font-montserrat">
+                  Testimonials
+                </Link>
+                <ChevronRight size={16} className="text-white/50" />
+                <span className="text-white font-montserrat">Downloads</span>
+              </div>
+
+              {/* Main Heading */}
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 font-montserrat">
+                Downloads
+              </h1>
+
+              {/* Subheading */}
+              <p className="text-lg md:text-xl text-white/80 font-montserrat max-w-2xl">
+                Access our company profile, property listings, and project maps
+              </p>
+            </motion.div>
+
+            {/* Right Side - Quick Info Card */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="hidden lg:block"
+            >
+              <div className="bg-white/10 backdrop-blur rounded-2xl border border-white/15 p-6 shadow-2xl">
+                <p className="text-sm text-white/80 font-montserrat mb-4">
+                  Use the search to quickly find documents and maps.
+                </p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white/10 rounded-xl p-4 border border-white/10">
+                    <p className="text-xs text-white/70 font-montserrat mb-1">Featured properties</p>
+                    <p className="text-2xl font-bold font-montserrat">{featuredProperties.length}</p>
+                  </div>
+                  <div className="bg-white/10 rounded-xl p-4 border border-white/10">
+                    <p className="text-xs text-white/70 font-montserrat mb-1">Download sections</p>
+                    <p className="text-2xl font-bold font-montserrat">{downloads.length}</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      <section className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Downloads */}
           <div className="lg:col-span-2">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-8"
+              className="mb-8 bg-white rounded-xl shadow-lg p-6 md:p-8"
             >
-              <h1 className="text-4xl md:text-5xl font-bold text-primary-700 mb-8 font-montserrat">
-                Downloads
-              </h1>
+              <h2 className="text-2xl md:text-3xl font-bold text-dark-900 mb-6 font-montserrat">
+                Available Documents
+              </h2>
               
               <ul className="space-y-3 list-disc list-inside">
                 {downloads.map((item, index) => (
@@ -287,14 +360,14 @@ export default function DownloadsPage() {
           <aside className="lg:col-span-1">
             <div className="sticky top-24 space-y-6">
               {/* Search Bar */}
-              <div className="bg-white border border-gray-300 rounded-lg p-4">
+              <div className="bg-white rounded-xl shadow-lg p-4">
                 <div className="flex gap-2">
                   <input
                     type="text"
                     placeholder="Search..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="flex-1 px-4 py-2 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
                   <button className="bg-dark-900 text-white px-4 py-2 rounded-lg hover:bg-dark-800 transition">
                     <Search size={20} />
