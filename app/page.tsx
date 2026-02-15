@@ -22,6 +22,16 @@ interface Property {
 
 const featuredProperties: Property[] = [
   {
+    id: 12,
+    title: "Rafiki @10",
+    location: "Tezo, Kilifi County",
+    type: "Residential",
+    price: "KES 650,000",
+    size: "10 Acres (72 Units)",
+    image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1771129318/Rafriki_10_Prime_plots_for_sale_s89vom.jpg",
+    featured: true,
+  },
+  {
     id: 11,
     title: "Mwanda Phase 3",
     location: "Mariakani, Kilifi County",

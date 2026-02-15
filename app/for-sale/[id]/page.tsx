@@ -15,6 +15,41 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
   
   // Property data based on ID
   const properties: Record<number, any> = {
+    12: {
+      id: 12,
+      title: "Rafiki @10 – Prime Plots Now Selling",
+      location: "Tezo, Kilifi County",
+      type: "residential",
+      price: "KES 650,000",
+      size: "10 Acres (72 Units)",
+      image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1771129318/Rafriki_10_Prime_plots_for_sale_s89vom.jpg",
+      mapLink: "https://maps.google.com/?q=-3.535695,39.896584",
+      description:
+        "Rafiki @10 is strategically located off the Kilifi–Malindi Highway, just 500m from Tezo Town, in a fast-growing and well-developed area. The project features a perimeter fence with a common gated entrance, graded access and internal all-weather murram roads, and reliable water availability. It is close to schools, hospitals, and markets — ideal for immediate residential use or investment (uncontrolled development — build at your own pace). A 10 acre property subdivided into 72 units.\n\nValentine + Inuka @10 Combo Offer valid until end of February:\n• Pay 50% (KES 325,000) → Get 10% (KES 65,000) off invoice price (KES 585,000)\n• Pay KES 200,000 → Get 5% (KES 32,500) off invoice price (KES 617,500)",
+      features: [
+        "Perimeter fence with common gated entrance",
+        "Graded access & internal all-weather murram roads",
+        "Reliable water availability",
+        "Close to schools, hospitals & markets",
+        "500m from Tezo Town",
+        "Off the Kilifi–Malindi Highway",
+        "Uncontrolled development — build at your own pace",
+      ],
+      pricing: {
+        "Per Plot": "KES 650,000",
+        "Offer (Pay 50%)": "KES 585,000",
+        "Offer (Pay 200K)": "KES 617,500",
+      },
+      quickInfo: {
+        Location: "Tezo, Kilifi County",
+        "Highway Access": "Off Kilifi–Malindi Highway",
+        "Tezo Town": "500m",
+        "Project Size": "10 acres",
+        Subdivision: "72 units",
+        "Development Control": "Uncontrolled — build at your own pace",
+        "Map Location": "https://maps.google.com/?q=-3.535695,39.896584",
+      },
+    },
     1: {
       id: 1,
       title: "Bofa Platinum",
@@ -582,6 +617,16 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
             </div>
 
             <div className="space-y-4 mb-6">
+              {property.mapLink && (
+                <a
+                  href={property.mapLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full bg-dark-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-dark-800 transition text-center"
+                >
+                  View Map Location
+                </a>
+              )}
               <a
                 href="tel:+254711082084"
                 className="block w-full bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition text-center flex items-center justify-center gap-2"
