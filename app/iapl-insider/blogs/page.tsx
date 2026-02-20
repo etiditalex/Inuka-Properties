@@ -5,14 +5,34 @@ import { Calendar, User, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
+const formatIsoDate = (isoDate: string) => {
+  const parts = isoDate.split("-");
+  if (parts.length !== 3) return isoDate;
+  const [year, month, day] = parts;
+  if (!year || !month || !day) return isoDate;
+  return `${day}/${month}/${year}`;
+};
+
 export default function BlogsPage() {
   const blogs = [
+    {
+      id: 6,
+      title: "Why Investing in Tezo Is a Smart Move in 2026: Spotlight on Inuka Afrika Properties’ New Project",
+      excerpt:
+        "Tezo is quickly becoming one of Kenya’s most promising coastal investment destinations. Here’s why early buyers are moving in now — and how Inuka Afrika Properties’ newest Tezo project creates strong opportunities for investors and homebuyers.",
+      author: "IAPL Investment Team",
+      date: "2026-02-16",
+      image:
+        "https://res.cloudinary.com/dyfnobo9r/image/upload/v1771578534/WhatsApp_Image_2026-02-16_at_10.12.29_zor4t2.jpg",
+      category: "Investment",
+      slug: "why-investing-in-tezo-is-a-smart-move-2026",
+    },
     {
       id: 5,
       title: "Why the Coastal region Is The Ideal Place To Buy Land In 2026",
       excerpt: "Discover why the Coastal region is the perfect destination to buy land in 2026. Explore Mariakani, Mtwapa, Kikambala, Kilifi, Malindi, Watamu, and Diani. Learn about infrastructure growth, affordable housing initiatives, and tourism opportunities.",
       author: "IAPL Investment Team",
-      date: new Date().toISOString().split('T')[0],
+      date: "2026-02-20",
       image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1768631111/mombasa_2_dazxqj.jpg",
       category: "Investment",
       slug: "why-coastal-region-is-ideal-place-to-buy-land-2026",
@@ -22,7 +42,7 @@ export default function BlogsPage() {
       title: "Why Land Investment: The Ultimate Guide to Building Wealth Through Real Estate",
       excerpt: "Discover why land investment is one of the smartest financial decisions you can make. Learn about land investment benefits, strategies, and opportunities in Kenya.",
       author: "IAPL Investment Team",
-      date: new Date().toISOString().split('T')[0],
+      date: "2026-02-20",
       image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767954926/why_land_investment_2_pryhrf.jpg",
       category: "Investment",
       slug: "why-land-investment",
@@ -102,7 +122,7 @@ export default function BlogsPage() {
                 <div className="flex items-center gap-4 text-sm text-dark-600 mb-3">
                   <div className="flex items-center gap-1">
                     <Calendar size={16} />
-                    <span>{new Date(blog.date).toLocaleDateString()}</span>
+                    <span>{formatIsoDate(blog.date)}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <User size={16} />

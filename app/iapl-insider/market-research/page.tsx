@@ -3,6 +3,14 @@
 import { motion } from "framer-motion";
 import { BarChart3, TrendingUp, MapPin, Download } from "lucide-react";
 
+const formatIsoDate = (isoDate: string) => {
+  const parts = isoDate.split("-");
+  if (parts.length !== 3) return isoDate;
+  const [year, month, day] = parts;
+  if (!year || !month || !day) return isoDate;
+  return `${day}/${month}/${year}`;
+};
+
 export default function MarketResearchPage() {
   const reports = [
     {
@@ -100,7 +108,7 @@ export default function MarketResearchPage() {
                     <span className="bg-primary-100 text-primary-700 px-3 py-1 rounded-full text-sm font-semibold">
                       {report.type}
                     </span>
-                    <span className="text-sm text-dark-600">{new Date(report.date).toLocaleDateString()}</span>
+                    <span className="text-sm text-dark-600">{formatIsoDate(report.date)}</span>
                   </div>
                   <h3 className="text-xl font-bold text-dark-900 mb-2">{report.title}</h3>
                   <p className="text-dark-600">{report.description}</p>

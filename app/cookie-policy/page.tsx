@@ -4,6 +4,16 @@ import { motion } from "framer-motion";
 import { Cookie, Shield, Eye, Settings, FileText } from "lucide-react";
 import Link from "next/link";
 
+const LAST_UPDATED_ISO = "2026-02-20";
+
+const formatLongUSDate = (isoDate: string) =>
+  new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${isoDate}T00:00:00Z`));
+
 export default function CookiePolicyPage() {
   return (
     <div className="pt-24 pb-20">
@@ -35,7 +45,7 @@ export default function CookiePolicyPage() {
           >
             <div>
               <p className="text-dark-600 mb-6">
-                <strong>Last Updated:</strong> {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                <strong>Last Updated:</strong> {formatLongUSDate(LAST_UPDATED_ISO)}
               </p>
               <p className="text-dark-600 leading-relaxed">
                 At Inuka Afrika Properties Limited ("we," "us," or "our"), we respect your privacy and are committed to protecting your personal data. This Cookie Policy explains how we use cookies and similar tracking technologies on our website.
