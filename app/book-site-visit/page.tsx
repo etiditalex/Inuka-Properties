@@ -39,6 +39,7 @@ export default function BookSiteVisitPage() {
   };
 
   const properties = [
+    "Msabaha Phase 8",
     "Mwanda Phase 3",
     "Kibao Kiche Haven",
     "Bofa Platinum",

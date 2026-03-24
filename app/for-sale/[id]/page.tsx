@@ -50,6 +50,43 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
         "Map Location": "https://maps.google.com/?q=-3.535695,39.896584",
       },
     },
+    13: {
+      id: 13,
+      title: "Msabaha Phase 8",
+      location: "Msabaha, Malindi (after Kizingo Police Station)",
+      type: "residential",
+      price: "From KES 395,000",
+      size: "1/8 & 1/4 Acre",
+      image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1774342011/Msabaha_phase_8_fc1tuh.jpg",
+      description:
+        "Msabaha Phase 8 is a prime land opportunity in Msabaha, Malindi — just past Kizingo Police Station — alongside the same trusted corridor as our fully sold-out Msabaha Phase 3 and Phase 7. The project covers 19 acres, subdivided into 1/8 and 1/4 acre plots, in a well-developed area suited to immediate settlement. To celebrate 10 years of Inuka Afrika, we are offering special all-inclusive pricing with no hidden charges: 1/8 acre at KES 395,000 (deposit KES 150,000, balance within 12 months) and 1/4 acre at KES 950,000 (deposit KES 250,000, balance within 12 months). The land is ideal for residential development, crop farming, and animal keeping, with fertile soil and a friendly climate year-round, surrounded by a growing, established community. Only about 800 metres from the Malindi Highway, with access via Children of the Rising Sun junction.",
+      features: [
+        "800m from Malindi Highway — easy regional connectivity",
+        "Access via Children of the Rising Sun junction",
+        "Settled, growing neighbourhood — ideal for immediate settlement",
+        "19 acres subdivided into 1/8 and 1/4 acre plots",
+        "Residential, farming & livestock-friendly — fertile soil, great climate",
+        "Continuity with sold-out Msabaha Phase 3 & Phase 7 — proven demand",
+        "10-year anniversary pricing — all-inclusive, no hidden charges",
+        "Flexible terms — 12-month balance after deposit",
+      ],
+      pricing: {
+        "1/8 Acre": "KES 395,000",
+        "1/4 Acre": "KES 950,000",
+      },
+      quickInfo: {
+        Location: "Msabaha, Malindi (after Kizingo Police Station)",
+        "Highway access": "~800m to Malindi Highway",
+        Access: "Children of the Rising Sun junction",
+        "Project size": "19 acres",
+        Subdivision: "1/8 & 1/4 acre plots",
+        "1/8 acre — total": "KES 395,000 (all-inclusive)",
+        "1/8 acre — deposit": "KES 150,000; balance within 12 months",
+        "1/4 acre — total": "KES 950,000 (all-inclusive)",
+        "1/4 acre — deposit": "KES 250,000; balance within 12 months",
+        "Promotion": "Special 10-year Inuka Afrika anniversary pricing",
+      },
+    },
     1: {
       id: 1,
       title: "Bofa Platinum",
@@ -750,6 +787,22 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
                           <div>• Water & Electricity on-site</div>
                           <div>• Ready to Build</div>
                           <div>• Perfect for Home or Investment</div>
+                        </div>
+                      )}
+                      {size === "1/8 Acre" && property.id === 13 && (
+                        <div className="mt-2 text-sm text-dark-600">
+                          <div>• All-inclusive — no hidden charges</div>
+                          <div>• Deposit KES 150,000</div>
+                          <div>• Balance within 12 months</div>
+                          <div>• 10-year anniversary offer</div>
+                        </div>
+                      )}
+                      {size === "1/4 Acre" && property.id === 13 && (
+                        <div className="mt-2 text-sm text-dark-600">
+                          <div>• All-inclusive — no hidden charges</div>
+                          <div>• Deposit KES 250,000</div>
+                          <div>• Balance within 12 months</div>
+                          <div>• More space for home or farm</div>
                         </div>
                       )}
                     </div>

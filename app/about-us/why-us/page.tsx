@@ -23,6 +23,15 @@ interface Property {
 
 const properties: Property[] = [
   {
+    id: 13,
+    title: "Msabaha Phase 8",
+    location: "Msabaha, Malindi (after Kizingo Police Station)",
+    type: "residential",
+    price: "From KES 395,000",
+    size: "1/8 & 1/4 Acre",
+    image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1774342011/Msabaha_phase_8_fc1tuh.jpg",
+  },
+  {
     id: 11,
     title: "Mwanda Phase 3",
     location: "Mariakani, Kilifi County",

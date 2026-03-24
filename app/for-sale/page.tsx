@@ -24,6 +24,25 @@ interface Property {
 
 const properties: Property[] = [
   {
+    id: 13,
+    title: "Msabaha Phase 8",
+    location: "Msabaha, Malindi (after Kizingo Police Station)",
+    type: "residential",
+    price: "From KES 395,000",
+    size: "1/8 & 1/4 Acre",
+    image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1774342011/Msabaha_phase_8_fc1tuh.jpg",
+    status: "available",
+    featured: true,
+    features: [
+      "~800m from Malindi Highway",
+      "Access via Children of the Rising Sun junction",
+      "19 acres — 1/8 & 1/4 acre plots",
+      "Anniversary pricing — all-inclusive, no hidden charges",
+      "Deposit + 12-month balance (see listing for plot sizes)",
+      "Neighbours sold-out Msabaha Phase 3 & Phase 7",
+    ],
+  },
+  {
     id: 12,
     title: "Rafiki @10",
     location: "Tezo, Kilifi County",

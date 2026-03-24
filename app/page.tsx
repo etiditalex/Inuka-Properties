@@ -22,6 +22,16 @@ interface Property {
 
 const featuredProperties: Property[] = [
   {
+    id: 13,
+    title: "Msabaha Phase 8",
+    location: "Msabaha, Malindi",
+    type: "Residential",
+    price: "From KES 395,000",
+    size: "1/8 & 1/4 Acre",
+    image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1774342011/Msabaha_phase_8_fc1tuh.jpg",
+    featured: true,
+  },
+  {
     id: 12,
     title: "Rafiki @10",
     location: "Tezo, Kilifi County",
@@ -72,6 +82,74 @@ const featuredProperties: Property[] = [
   },
 ];
 
+/** Only these show in the home featured section */
+const homeFeaturedProperties = featuredProperties.slice(0, 4);
+
+function FeaturedPropertyPoster({
+  property,
+  imageHeightClass = "h-72 sm:h-80",
+}: {
+  property: Property;
+  imageHeightClass?: string;
+}) {
+  return (
+    <div className={`relative w-full overflow-hidden ${imageHeightClass}`}>
+      <Image
+        src={property.image}
+        alt={property.title}
+        fill
+        className="object-cover group-hover:scale-105 transition duration-500"
+        sizes="(max-width: 1024px) 100vw, 25vw"
+      />
+      {/* Readability: darken image behind text */}
+      <div
+        className="absolute inset-0 z-[1] bg-gradient-to-t from-black/95 via-black/55 to-black/15 pointer-events-none"
+        aria-hidden
+      />
+      {property.featured && (
+        <div className="absolute top-3 left-3 z-[2] bg-primary-600 text-white px-3 py-1 rounded-full text-xs sm:text-sm font-semibold shadow-lg">
+          Featured
+        </div>
+      )}
+      <div className="absolute top-3 right-3 z-[2] bg-black/55 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs sm:text-sm font-semibold border border-white/20">
+        {property.type}
+      </div>
+      <div className="absolute inset-x-0 bottom-0 z-[2] p-4 sm:p-5 flex flex-col gap-2">
+        <h3 className="text-lg sm:text-xl font-bold text-white font-montserrat leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]">
+          {property.title}
+        </h3>
+        <div className="flex items-start gap-1.5 text-white/95 text-sm drop-shadow-md">
+          <MapPin size={16} className="mt-0.5 shrink-0 text-primary-300" />
+          <span className="font-montserrat line-clamp-2">{property.location}</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-white/90 text-sm">
+          <span className="flex items-center gap-1 drop-shadow-md">
+            <Square size={14} className="shrink-0 text-primary-300" />
+            <span>{property.size}</span>
+          </span>
+          {property.bedrooms && (
+            <span className="flex items-center gap-1 drop-shadow-md">
+              <Bed size={14} className="shrink-0 text-primary-300" />
+              <span>{property.bedrooms} Bedrooms</span>
+            </span>
+          )}
+        </div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1 border-t border-white/25 mt-1">
+          <div className="text-base sm:text-lg font-semibold text-primary-300 font-montserrat drop-shadow-md">
+            {property.price}
+          </div>
+          <Link
+            href={`/for-sale/${property.id}`}
+            className="inline-flex justify-center bg-red-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-red-700 transition font-montserrat shadow-lg whitespace-nowrap"
+          >
+            View Details
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PropertyCarousel({ properties }: { properties: Property[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -84,85 +162,40 @@ function PropertyCarousel({ properties }: { properties: Property[] }) {
   };
 
   return (
-    <div className="lg:hidden relative">
-      <div className="relative overflow-hidden rounded-xl">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentIndex}
-            initial={{ opacity: 0, x: 300 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -300 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-              <div className="relative h-64 overflow-hidden">
-                <Image
-                  src={properties[currentIndex].image}
-                  alt={properties[currentIndex].title}
-                  fill
-                  className="object-cover"
-                />
-                {properties[currentIndex].featured && (
-                  <div className="absolute top-4 left-4 bg-primary-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                    Featured
-                  </div>
-                )}
-                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-semibold text-primary-700">
-                  {properties[currentIndex].type}
-                </div>
+    <div className="lg:hidden">
+      <div className="relative">
+        <div className="relative overflow-hidden rounded-xl">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentIndex}
+              initial={{ opacity: 0, x: 300 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -300 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="bg-dark-900 rounded-xl shadow-lg overflow-hidden group">
+                <FeaturedPropertyPoster property={properties[currentIndex]} imageHeightClass="h-[22rem] sm:h-96" />
               </div>
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-dark-900 mb-2 font-montserrat">{properties[currentIndex].title}</h3>
-                <div className="flex items-center text-dark-600 mb-4">
-                  <MapPin size={18} className="mr-2 text-primary-600" />
-                  <span className="font-montserrat">{properties[currentIndex].location}</span>
-                </div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-4 text-sm text-dark-600">
-                    <div className="flex items-center gap-1">
-                      <Square size={16} />
-                      <span>{properties[currentIndex].size}</span>
-                    </div>
-                    {properties[currentIndex].bedrooms && (
-                      <div className="flex items-center gap-1">
-                        <Bed size={16} />
-                        <span>{properties[currentIndex].bedrooms} Bedrooms</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center justify-between pt-4 border-t border-dark-200">
-                  <div>
-                    <div className="text-lg font-normal text-primary-700 font-montserrat whitespace-nowrap">{properties[currentIndex].price}</div>
-                  </div>
-                  <Link
-                    href={`/for-sale/${properties[currentIndex].id}`}
-                    className="bg-red-600 text-white px-5 py-2 rounded-lg text-sm font-light hover:bg-red-700 transition font-montserrat whitespace-nowrap"
-                  >
-                    View Details
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </AnimatePresence>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+        <button
+          type="button"
+          onClick={prevSlide}
+          className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-white transition z-10"
+          aria-label="Previous property"
+        >
+          <ChevronLeft size={24} className="text-dark-900" />
+        </button>
+        <button
+          type="button"
+          onClick={nextSlide}
+          className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-white transition z-10"
+          aria-label="Next property"
+        >
+          <ChevronRight size={24} className="text-dark-900" />
+        </button>
       </div>
-      
-      {/* Navigation Buttons */}
-      <button
-        onClick={prevSlide}
-        className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-white transition z-10"
-        aria-label="Previous property"
-      >
-        <ChevronLeft size={24} className="text-dark-900" />
-      </button>
-      <button
-        onClick={nextSlide}
-        className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-white transition z-10"
-        aria-label="Next property"
-      >
-        <ChevronRight size={24} className="text-dark-900" />
-      </button>
 
       {/* Dots Indicator */}
       <div className="flex justify-center gap-2 mt-4">
@@ -187,69 +220,22 @@ function PropertyCardsSection() {
       <div className="w-full px-4 md:px-6 lg:px-8">
         {/* Desktop Grid - 4 columns */}
         <div className="hidden lg:grid lg:grid-cols-4 gap-6">
-          {featuredProperties.map((property, index) => (
+          {homeFeaturedProperties.map((property, index) => (
             <motion.div
               key={property.id}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition group"
+              className="rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition group ring-1 ring-dark-200/80"
             >
-              <div className="relative h-64 overflow-hidden">
-                <Image
-                  src={property.image}
-                  alt={property.title}
-                  fill
-                  className="object-cover group-hover:scale-110 transition duration-500"
-                />
-                {property.featured && (
-                  <div className="absolute top-4 left-4 bg-primary-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                    Featured
-                  </div>
-                )}
-                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-semibold text-primary-700">
-                  {property.type}
-                </div>
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-dark-900 mb-2 font-montserrat">{property.title}</h3>
-                <div className="flex items-center text-dark-600 mb-4">
-                  <MapPin size={18} className="mr-2 text-primary-600" />
-                  <span className="font-montserrat">{property.location}</span>
-                </div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-4 text-sm text-dark-600">
-                    <div className="flex items-center gap-1">
-                      <Square size={16} />
-                      <span>{property.size}</span>
-                    </div>
-                    {property.bedrooms && (
-                      <div className="flex items-center gap-1">
-                        <Bed size={16} />
-                        <span>{property.bedrooms} Bedrooms</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center justify-between pt-4 border-t border-dark-200">
-                  <div>
-                    <div className="text-lg font-normal text-primary-700 font-montserrat whitespace-nowrap">{property.price}</div>
-                  </div>
-                  <Link
-                    href={`/for-sale/${property.id}`}
-                    className="bg-red-600 text-white px-5 py-2 rounded-lg text-sm font-light hover:bg-red-700 transition font-montserrat whitespace-nowrap"
-                  >
-                    View Details
-                  </Link>
-                </div>
-              </div>
+              <FeaturedPropertyPoster property={property} imageHeightClass="h-[340px]" />
             </motion.div>
           ))}
         </div>
 
         {/* Mobile Carousel */}
-        <PropertyCarousel properties={featuredProperties} />
+        <PropertyCarousel properties={homeFeaturedProperties} />
       </div>
     </section>
   );

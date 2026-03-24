@@ -28,6 +28,21 @@ interface Project {
 
 const projects: Project[] = [
   {
+    id: 13,
+    title: "Msabaha Phase 8",
+    location: "Msabaha, Malindi (after Kizingo Police Station)",
+    type: "Residential",
+    price: "From KES 395,000",
+    size: "1/8 & 1/4 Acre",
+    image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1774342011/Msabaha_phase_8_fc1tuh.jpg",
+    features: [
+      "~800m from Malindi Highway",
+      "Children of the Rising Sun junction access",
+      "19 acres — 1/8 & 1/4 plots",
+      "10-year anniversary all-inclusive pricing",
+    ],
+  },
+  {
     id: 5,
     title: "Mtondia Highway Gardens",
     location: "Mtondia, Kilifi County",
