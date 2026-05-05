@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, MapPin, Home, Building2, Waves, Sprout, TrendingUp, Bed, Square, ChevronLeft, ChevronRight, DollarSign, Heart, FileText, CheckCircle2 } from "lucide-react";
+import { ArrowRight, MapPin, Home, Building2, Waves, Sprout, TrendingUp, ChevronLeft, ChevronRight, DollarSign, Heart, FileText, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import StructuredData from "@/components/StructuredData";
 import GoogleReviewsSection from "@/components/GoogleReviewsSection";
+import PropertyListingCard from "@/components/PropertyListingCard";
 
 interface Property {
   id: number;
@@ -18,6 +19,7 @@ interface Property {
   bedrooms?: number;
   image: string;
   featured?: boolean;
+  status?: "available" | "ongoing" | "sold";
 }
 
 const featuredProperties: Property[] = [
@@ -49,7 +51,7 @@ const featuredProperties: Property[] = [
     price: "KES 325,000",
     size: "1/8 Acre",
     image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767330607/Mwanda_Phase_3_3_ejntad.jpg",
-    featured: true,
+    status: "sold",
   },
   {
     id: 10,
@@ -85,71 +87,6 @@ const featuredProperties: Property[] = [
 /** Only these show in the home featured section */
 const homeFeaturedProperties = featuredProperties.slice(0, 4);
 
-function FeaturedPropertyPoster({
-  property,
-  imageHeightClass = "h-72 sm:h-80",
-}: {
-  property: Property;
-  imageHeightClass?: string;
-}) {
-  return (
-    <div className={`relative w-full overflow-hidden ${imageHeightClass}`}>
-      <Image
-        src={property.image}
-        alt={property.title}
-        fill
-        className="object-cover group-hover:scale-105 transition duration-500"
-        sizes="(max-width: 1024px) 100vw, 25vw"
-      />
-      {/* Readability: darken image behind text */}
-      <div
-        className="absolute inset-0 z-[1] bg-gradient-to-t from-black/95 via-black/55 to-black/15 pointer-events-none"
-        aria-hidden
-      />
-      {property.featured && (
-        <div className="absolute top-3 left-3 z-[2] bg-primary-600 text-white px-3 py-1 rounded-full text-xs sm:text-sm font-semibold shadow-lg">
-          Featured
-        </div>
-      )}
-      <div className="absolute top-3 right-3 z-[2] bg-black/55 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs sm:text-sm font-semibold border border-white/20">
-        {property.type}
-      </div>
-      <div className="absolute inset-x-0 bottom-0 z-[2] p-4 sm:p-5 flex flex-col gap-2">
-        <h3 className="text-lg sm:text-xl font-bold text-white font-montserrat leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]">
-          {property.title}
-        </h3>
-        <div className="flex items-start gap-1.5 text-white/95 text-sm drop-shadow-md">
-          <MapPin size={16} className="mt-0.5 shrink-0 text-primary-300" />
-          <span className="font-montserrat line-clamp-2">{property.location}</span>
-        </div>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-white/90 text-sm">
-          <span className="flex items-center gap-1 drop-shadow-md">
-            <Square size={14} className="shrink-0 text-primary-300" />
-            <span>{property.size}</span>
-          </span>
-          {property.bedrooms && (
-            <span className="flex items-center gap-1 drop-shadow-md">
-              <Bed size={14} className="shrink-0 text-primary-300" />
-              <span>{property.bedrooms} Bedrooms</span>
-            </span>
-          )}
-        </div>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1 border-t border-white/25 mt-1">
-          <div className="text-base sm:text-lg font-semibold text-primary-300 font-montserrat drop-shadow-md">
-            {property.price}
-          </div>
-          <Link
-            href={`/for-sale/${property.id}`}
-            className="inline-flex justify-center bg-red-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-red-700 transition font-montserrat shadow-lg whitespace-nowrap"
-          >
-            View Details
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function PropertyCarousel({ properties }: { properties: Property[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -164,7 +101,7 @@ function PropertyCarousel({ properties }: { properties: Property[] }) {
   return (
     <div className="lg:hidden">
       <div className="relative">
-        <div className="relative overflow-hidden rounded-xl">
+        <div className="relative overflow-visible rounded-xl">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentIndex}
@@ -173,9 +110,11 @@ function PropertyCarousel({ properties }: { properties: Property[] }) {
               exit={{ opacity: 0, x: -300 }}
               transition={{ duration: 0.3 }}
             >
-              <div className="bg-dark-900 rounded-xl shadow-lg overflow-hidden group">
-                <FeaturedPropertyPoster property={properties[currentIndex]} imageHeightClass="h-[22rem] sm:h-96" />
-              </div>
+              <PropertyListingCard
+                property={properties[currentIndex]}
+                imageHeightClass="h-[220px] sm:h-[260px]"
+                imageSizes="100vw"
+              />
             </motion.div>
           </AnimatePresence>
         </div>
@@ -227,9 +166,8 @@ function PropertyCardsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition group ring-1 ring-dark-200/80"
             >
-              <FeaturedPropertyPoster property={property} imageHeightClass="h-[340px]" />
+              <PropertyListingCard property={property} />
             </motion.div>
           ))}
         </div>

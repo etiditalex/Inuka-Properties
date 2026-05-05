@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Bed, Square, Filter, Search, ArrowRight, Phone, Home, ChevronRight, X, SlidersHorizontal } from "lucide-react";
-import Image from "next/image";
+import { Search, Home, ChevronRight, X, SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
+import PropertyListingCard from "@/components/PropertyListingCard";
 
 type PropertyType = "all" | "residential" | "commercial" | "beach" | "farm" | "affordable";
 
@@ -70,8 +70,7 @@ const properties: Property[] = [
     price: "KES 325,000",
     size: "1/8 Acre",
     image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767330607/Mwanda_Phase_3_3_ejntad.jpg",
-    status: "available",
-    featured: true,
+    status: "sold",
     features: ["Prime Location - 1km off Mariakani-Kaloleni Bypass", "Water & Electricity on-site", "Ready to Build", "Perfect for Home or Investment", "Affordable Pricing - KES 325,000", "Flexible Payment - KES 100,000 deposit, balance over 12 months"],
   },
   {
@@ -454,129 +453,41 @@ export default function ForSalePage() {
             </div>
           </aside>
 
-          {/* Properties List */}
+          {/* Properties grid — listing cards (matches marketing layout) */}
           <div className="lg:col-span-3">
-            {/* Properties List - Horizontal Cards */}
-            <div className="space-y-6">
-          {filteredProperties.map((property, index) => {
-            const statusLabels = {
-              available: "Available",
-              ongoing: "Construction Ongoing",
-              sold: "Sold Out",
-            };
-            
-            const statusColors = {
-              available: "bg-primary-600",
-              ongoing: "bg-primary-500",
-              sold: "bg-primary-800",
-            };
-
-            return (
-              <motion.div
-                key={property.id}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition"
-              >
-                <div className="grid md:grid-cols-2 gap-0">
-                  {/* Image Left */}
-                  <div className="relative h-64 md:h-auto min-h-[300px] overflow-hidden">
-                    <Image
-                      src={property.image}
-                      alt={property.title}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-
-                  {/* Content Right */}
-                  <div className="p-6 md:p-8 flex flex-col justify-between">
-                    <div>
-                      {/* Status Badge */}
-                      {property.status && (
-                        <div className="mb-4">
-                          <span className={`inline-block px-4 py-1 rounded-lg text-sm font-semibold text-white ${statusColors[property.status] || "bg-primary-500"}`}>
-                            {statusLabels[property.status]}
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Price */}
-                      <div className="mb-4">
-                        <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-dark-900 font-montserrat">
-                          {property.price}
-                        </div>
-                      </div>
-
-                      {/* Title */}
-                      <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-dark-900 mb-4 font-montserrat">
-                        {property.title}
-                      </h3>
-
-                      {/* Location */}
-                      <div className="flex items-center text-dark-600 mb-4 font-montserrat">
-                        <MapPin size={18} className="mr-2 text-primary-600" />
-                        <span>{property.location}</span>
-                      </div>
-
-                      {/* Features/Amenities */}
-                      {property.features && property.features.length > 0 && (
-                        <div className="mb-6">
-                          <ul className="space-y-2">
-                            {property.features.map((feature, idx) => (
-                              <li key={idx} className="flex items-center text-dark-600 font-montserrat">
-                                <span className="w-1.5 h-1.5 bg-primary-600 rounded-full mr-3"></span>
-                                {feature}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-
-                      {/* Property Details */}
-                      <div className="flex items-center gap-4 text-sm text-dark-600 mb-6 font-montserrat">
-                        <div className="flex items-center gap-1">
-                          <Square size={16} />
-                          <span>{property.size}</span>
-                        </div>
-                        {property.bedrooms && (
-                          <div className="flex items-center gap-1">
-                            <Bed size={16} />
-                            <span>{property.bedrooms} Bedrooms</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex flex-col sm:flex-row gap-3 mt-6">
-                      <Link
-                        href="/contact-us"
-                        className="flex items-center justify-center gap-2 bg-primary-800 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition font-montserrat"
-                      >
-                        Contact Us
-                        <ArrowRight size={18} />
-                      </Link>
-                      <Link
-                        href={`/for-sale/${property.id}`}
-                        className="flex items-center justify-center gap-2 bg-white text-primary-800 border-2 border-primary-800 px-6 py-3 rounded-lg font-semibold hover:bg-primary-50 transition font-montserrat"
-                      >
-                        More Information
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
+            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              {filteredProperties.map((property, index) => (
+                <motion.div
+                  key={property.id}
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <PropertyListingCard
+                    property={{
+                      id: property.id,
+                      title: property.title,
+                      location: property.location,
+                      type: property.type,
+                      price: property.price,
+                      size: property.size,
+                      bedrooms: property.bedrooms,
+                      image: property.image,
+                      status: property.status,
+                    }}
+                    imageSizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                  />
+                </motion.div>
+              ))}
+            </div>
 
             {filteredProperties.length === 0 && (
               <div className="text-center py-12">
-                <p className="text-xl text-dark-600 font-montserrat">No properties found matching your criteria.</p>
+                <p className="text-xl text-dark-600 font-montserrat">
+                  No properties found matching your criteria.
+                </p>
               </div>
             )}
-            </div>
           </div>
         </div>
       </section>

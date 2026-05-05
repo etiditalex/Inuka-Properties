@@ -371,6 +371,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
       type: "residential",
       price: "KES 325,000",
       size: "1/8 Acre",
+      status: "sold",
       image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767330607/Mwanda_Phase_3_3_ejntad.jpg",
       gallery: [
         "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767330607/Mwanda_Phase_3_3_ejntad.jpg",
@@ -378,7 +379,8 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
         "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767330607/Mwanda_Phase_3_4_bi5ptt.jpg",
         "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767330608/Mwanda_Phase_3_2_ifxzbr.jpg",
       ],
-      description: "Mwanda Phase 3 Now Selling. Prime residential plots located just 1km off the Mariakani-Kaloleni Bypass, offering excellent accessibility and strategic positioning. This development features water and electricity already on-site, making it ready to build immediately. Perfect for both home construction and investment purposes, with affordable pricing at KES 325,000 and flexible payment terms including a KES 100,000 deposit and balance payable over 12 months.",
+      description:
+        "Mwanda Phase 3 is now sold out. Thank you to everyone who invested in this project.\n\nThis page is kept for reference. The development offered prime residential plots just 1km off the Mariakani-Kaloleni Bypass, with water and electricity on-site, ready-to-build plots at KES 325,000, and flexible payment terms (KES 100,000 deposit with balance over 12 months). For similar opportunities in Mariakani and across Kilifi County, browse our current listings or contact our team.",
       features: [
         "Prime Location - Just 1km off Mariakani-Kaloleni Bypass",
         "Water & Electricity on-site - Ready for immediate development",
@@ -407,7 +409,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
         "Deposit": "KES 100,000",
         "Payment Plan": "Deposit + 12 Monthly Installments",
         "Utilities": "Water & Electricity on-site",
-        "Development Status": "Ready to Build",
+        "Development Status": "Sold out",
       },
     },
     8: {
@@ -579,6 +581,22 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
           Back to Properties
         </Link>
 
+        {property.status === "sold" && (
+          <div
+            className="mb-6 rounded-xl border border-dark-700 bg-dark-900 px-5 py-4 text-white shadow-lg"
+            role="status"
+          >
+            <p className="font-montserrat text-base font-bold">{property.title} is sold out</p>
+            <p className="mt-2 text-sm font-montserrat text-white/90 leading-relaxed">
+              Plots in this phase are no longer available. See our{" "}
+              <Link href="/for-sale" className="font-semibold underline underline-offset-2 hover:text-primary-300">
+                current listings
+              </Link>{" "}
+              or contact us for similar projects in Mariakani and Kilifi County.
+            </p>
+          </div>
+        )}
+
         <div className="grid lg:grid-cols-2 gap-8">
           <motion.div
             initial={{ opacity: 0, x: -30 }}
@@ -631,13 +649,26 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
             animate={{ opacity: 1, x: 0 }}
             className="bg-white rounded-xl shadow-lg p-4 sm:p-6 md:p-8"
           >
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-dark-900 mb-4">{property.title}</h1>
-              <div className="flex items-center text-dark-600 mb-4">
-                <MapPin size={20} className="mr-2 text-primary-600" />
-                <span>{property.location}</span>
+            <div className="mb-6 min-w-0">
+              <h1 className="text-3xl font-bold text-dark-900 mb-4 break-words [overflow-wrap:anywhere]">
+                {property.title}
+              </h1>
+              <div className="flex items-start gap-2 text-dark-600 mb-4 min-w-0">
+                <MapPin size={20} className="mr-0 shrink-0 mt-1 text-primary-600" />
+                <span className="break-words [overflow-wrap:anywhere]">{property.location}</span>
               </div>
-              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary-700 mb-6">{property.price}</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary-700 mb-6 break-words [overflow-wrap:anywhere]">
+                {property.status === "sold" ? (
+                  <>
+                    <span className="block text-dark-700">Sold out</span>
+                    <span className="mt-2 block text-lg font-semibold text-dark-500 line-through sm:text-xl md:text-2xl">
+                      {property.price}
+                    </span>
+                  </>
+                ) : (
+                  property.price
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
@@ -692,7 +723,9 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
           <div className="lg:col-span-2">
             <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
               <h2 className="text-2xl font-bold text-dark-900 mb-4">Description</h2>
-              <p className="text-dark-700 leading-relaxed">{property.description}</p>
+              <p className="text-dark-700 leading-relaxed whitespace-pre-line break-words [overflow-wrap:anywhere]">
+                {property.description}
+              </p>
             </div>
 
             {property.pricing && (

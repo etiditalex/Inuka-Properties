@@ -19,6 +19,7 @@ interface Property {
   bedrooms?: number;
   image: string;
   featured?: boolean;
+  status?: "available" | "ongoing" | "sold";
 }
 
 const properties: Property[] = [
@@ -39,6 +40,7 @@ const properties: Property[] = [
     price: "KES 325,000",
     size: "1/8 Acre",
     image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767330607/Mwanda_Phase_3_3_ejntad.jpg",
+    status: "sold",
   },
   {
     id: 10,
@@ -564,6 +566,11 @@ export default function WhyUsPage() {
                               fill
                               className="object-cover group-hover:scale-105 transition duration-300"
                             />
+                            {property.status === "sold" && (
+                              <div className="absolute left-2 top-2 rounded bg-dark-900 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
+                                Sold out
+                              </div>
+                            )}
                           </div>
                           <div className="flex items-center gap-2 mb-2">
                             <Icon size={16} className="text-primary-600" />
@@ -571,14 +578,23 @@ export default function WhyUsPage() {
                               {property.type}
                             </span>
                           </div>
-                          <h4 className="font-bold text-dark-900 mb-1 line-clamp-1 font-montserrat">
+                          <h4 className="font-bold text-dark-900 mb-1 break-words leading-snug font-montserrat [overflow-wrap:anywhere]">
                             {property.title}
                           </h4>
-                          <p className="text-sm text-dark-600 mb-2 font-montserrat">
+                          <p className="text-sm text-dark-600 mb-2 font-montserrat break-words [overflow-wrap:anywhere]">
                             {property.location}
                           </p>
-                          <p className="text-lg font-bold text-primary-600 font-montserrat">
-                            {property.price}
+                          <p className="text-lg font-bold text-primary-600 font-montserrat break-words [overflow-wrap:anywhere]">
+                            {property.status === "sold" ? (
+                              <span>
+                                Sold out
+                                <span className="mt-1 block text-sm font-normal text-dark-500 line-through">
+                                  Was {property.price}
+                                </span>
+                              </span>
+                            ) : (
+                              property.price
+                            )}
                           </p>
                           <div className="flex items-center gap-1 mt-2 text-primary-600 text-sm font-montserrat">
                             <span>View Details</span>

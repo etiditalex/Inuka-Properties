@@ -129,7 +129,7 @@ Thank you!`;
 
   const properties = [
     "Msabaha Phase 8",
-    "Mwanda Phase 3",
+    "Mwanda Phase 3 (sold out)",
     "Kibao Kiche Haven",
     "Bofa Platinum",
     "Chumani Phase 6",

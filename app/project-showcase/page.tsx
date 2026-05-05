@@ -24,6 +24,7 @@ interface Project {
   size: string;
   image: string;
   features?: string[];
+  status?: "available" | "ongoing" | "sold";
 }
 
 const projects: Project[] = [
@@ -60,6 +61,7 @@ const projects: Project[] = [
     price: "KES 325,000",
     size: "1/8 Acre",
     image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767330607/Mwanda_Phase_3_3_ejntad.jpg",
+    status: "sold",
     features: ["Prime Location - 1km off Mariakani-Kaloleni Bypass", "Water & Electricity on-site", "Ready to Build", "Perfect for Home or Investment"],
   },
   {
@@ -242,11 +244,43 @@ export default function ProjectShowcasePage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.8 }}
-              className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl 2xl:text-9xl font-medium text-primary-400 font-montserrat"
-              style={{ textShadow: "0 4px 20px rgba(0,0,0,0.8)" }}
+              className="flex flex-col items-center gap-2"
             >
-              {currentProject.price}
+              {currentProject.status === "sold" ? (
+                <>
+                  <div
+                    className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl 2xl:text-9xl font-medium font-montserrat text-white"
+                    style={{ textShadow: "0 4px 20px rgba(0,0,0,0.8)" }}
+                  >
+                    Sold out
+                  </div>
+                  <div
+                    className="text-2xl font-montserrat text-white/75 line-through md:text-3xl lg:text-4xl"
+                    style={{ textShadow: "0 2px 10px rgba(0,0,0,0.6)" }}
+                  >
+                    {currentProject.price}
+                  </div>
+                </>
+              ) : (
+                <div
+                  className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl 2xl:text-9xl font-medium text-primary-400 font-montserrat"
+                  style={{ textShadow: "0 4px 20px rgba(0,0,0,0.8)" }}
+                >
+                  {currentProject.price}
+                </div>
+              )}
             </motion.div>
+            {currentProject.status === "sold" && (
+              <motion.p
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.65, duration: 0.6 }}
+                className="mt-4 rounded-lg bg-white/15 px-6 py-3 text-center text-lg font-semibold text-white backdrop-blur-sm md:text-xl"
+                style={{ textShadow: "0 2px 10px rgba(0,0,0,0.6)" }}
+              >
+                Ask us about similar plots in Mariakani &amp; Kilifi
+              </motion.p>
+            )}
           </div>
         </motion.div>
       </AnimatePresence>
