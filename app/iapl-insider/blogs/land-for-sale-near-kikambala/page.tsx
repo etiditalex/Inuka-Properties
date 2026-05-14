@@ -44,6 +44,7 @@ export default function LandForSaleNearKikambalaPage() {
     <BlogArticleLayout
       currentSlug="land-for-sale-near-kikambala"
       title={TITLE}
+      heroTitle="Land for sale near Kikambala"
       heroImage={HERO_IMAGE}
       heroImageAlt="Land for sale near Kikambala — fertile coastal plot with palms under clear sky, Kilifi County"
       category="Investment"
@@ -59,12 +60,11 @@ export default function LandForSaleNearKikambalaPage() {
     >
       <div className="prose prose-lg max-w-none">
         <p className="text-xl font-semibold leading-relaxed text-neutral-800 md:text-2xl">
-          If you are searching for{" "}
-          <strong>land for sale near Kikambala</strong>, you are targeting one of
-          the North Coast&apos;s most talked-about corridors for{" "}
-          <strong>plots for sale in Kilifi County</strong>—where{" "}
-          <strong>coastal Kenya real estate</strong> demand, improving access, and
-          long-term appreciation continue to align.
+          <strong>Land for sale near Kikambala</strong> puts you on the North Coast
+          growth path: strong interest in{" "}
+          <strong>plots for sale in Kilifi County</strong>, rising{" "}
+          <strong>coastal Kenya real estate</strong> demand, and better access over
+          time—if you buy with proper <strong>title deed</strong> checks.
         </p>
 
         <p className="mb-6 leading-relaxed text-neutral-700">

@@ -99,7 +99,7 @@ function BlogsGridFallback() {
 
 export default function BlogsPage() {
   return (
-    <div className="pb-20 pt-24">
+    <div className="pb-20 pt-24 font-montserrat">
       <section className="bg-gradient-to-r from-primary-600 to-primary-800 py-16 text-white">
         <div className="container mx-auto px-4">
           <motion.div
@@ -107,7 +107,7 @@ export default function BlogsPage() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center"
           >
-            <h1 className="mb-4 font-serif text-4xl font-bold md:text-5xl">
+            <h1 className="mb-4 text-4xl font-bold md:text-5xl">
               Blogs
             </h1>
             <p className="mx-auto max-w-2xl text-xl text-primary-100">

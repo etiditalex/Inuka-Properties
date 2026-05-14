@@ -15,7 +15,10 @@ import { SITE_ORIGIN } from "@/lib/site";
 
 export type BlogArticleLayoutProps = {
   currentSlug: string;
+  /** Used for share links and fallbacks when `heroTitle` is omitted */
   title: string;
+  /** Shorter line for the hero H1 when the SEO title is long */
+  heroTitle?: string;
   heroImage: string;
   heroImageAlt: string;
   category: string;
@@ -30,6 +33,7 @@ export type BlogArticleLayoutProps = {
 export default function BlogArticleLayout({
   currentSlug,
   title,
+  heroTitle,
   heroImage,
   heroImageAlt,
   category,
@@ -45,6 +49,7 @@ export default function BlogArticleLayout({
 
   const pageUrl = `${SITE_ORIGIN}${pathname ?? ""}`;
   const encodedUrl = useMemo(() => encodeURIComponent(pageUrl), [pageUrl]);
+  const displayTitle = heroTitle ?? title;
   const encodedTitle = useMemo(() => encodeURIComponent(title), [title]);
 
   const shareLinks = useMemo(
@@ -88,7 +93,7 @@ export default function BlogArticleLayout({
   };
 
   return (
-    <div className="min-h-screen bg-neutral-100 pt-20 md:pt-24">
+    <div className="min-h-screen bg-neutral-100 pt-20 font-montserrat md:pt-24">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
@@ -107,8 +112,8 @@ export default function BlogArticleLayout({
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/35" />
         <div className="relative z-10 flex min-h-[320px] md:min-h-[440px] flex-col justify-end px-4 pb-10 pt-28 md:px-10 md:pb-14 lg:px-16">
           <div className="mx-auto w-full max-w-6xl">
-            <h1 className="max-w-4xl font-serif text-3xl font-bold leading-tight text-white md:text-4xl lg:text-5xl">
-              {title}
+            <h1 className="max-w-4xl text-3xl font-bold leading-tight text-white md:text-4xl lg:text-5xl">
+              {displayTitle}
             </h1>
             <nav
               className="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-white/90"
@@ -131,7 +136,9 @@ export default function BlogArticleLayout({
                 /
               </span>
               <span className="rounded bg-black/45 px-2 py-0.5 text-primary-100">
-                {title.length > 48 ? `${title.slice(0, 48)}…` : title}
+                {displayTitle.length > 48
+                  ? `${displayTitle.slice(0, 48)}…`
+                  : displayTitle}
               </span>
             </nav>
           </div>
@@ -212,7 +219,7 @@ export default function BlogArticleLayout({
             </div>
 
             <div className="rounded-lg border border-neutral-200 bg-white p-5 shadow-sm">
-              <h2 className="font-serif text-lg font-bold text-secondary-700">
+              <h2 className="text-lg font-bold text-secondary-700">
                 Latest posts
               </h2>
               <ul className="mt-4 divide-y divide-dotted divide-neutral-200">
