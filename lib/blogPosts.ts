@@ -129,6 +129,26 @@ export function formatBlogDateCarousel(isoDate: string): string {
     .toUpperCase();
 }
 
+/** e.g. "May 14, 2026" for blog list cards */
+export function formatBlogCardDate(isoDate: string): string {
+  const date = parseLocalNoon(isoDate);
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+  return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+}
+
 export function formatLongDateFromIso(isoDate: string): string {
   const date = parseLocalNoon(isoDate);
   const weekdays = [
