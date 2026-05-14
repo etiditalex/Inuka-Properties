@@ -7,6 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { BLOG_POSTS, formatIsoDate } from "@/lib/blogPosts";
+import BlogsHeroCarousel from "@/components/blog/BlogsHeroCarousel";
 
 function BlogsGrid() {
   const searchParams = useSearchParams();
@@ -63,7 +64,7 @@ function BlogsGrid() {
                   <span>{blog.author}</span>
                 </div>
               </div>
-              <h2 className="mb-3 text-xl font-bold text-dark-900">{blog.title}</h2>
+              <h3 className="mb-3 text-xl font-bold text-dark-900">{blog.title}</h3>
               <p className="mb-4 text-dark-600">{blog.excerpt}</p>
               <Link
                 href={
@@ -98,26 +99,26 @@ function BlogsGridFallback() {
 }
 
 export default function BlogsPage() {
+  const carouselPosts = useMemo(
+    () => [...BLOG_POSTS].sort((a, b) => b.date.localeCompare(a.date)),
+    []
+  );
+
   return (
-    <div className="pb-20 pt-24 font-montserrat">
-      <section className="bg-gradient-to-r from-primary-600 to-primary-800 py-16 text-white">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center"
-          >
-            <h1 className="mb-4 text-4xl font-bold md:text-5xl">
-              Blogs
-            </h1>
-            <p className="mx-auto max-w-2xl text-xl text-primary-100">
-              Expert insights and practical advice for your real estate journey
-            </p>
-          </motion.div>
-        </div>
-      </section>
+    <div className="pb-20 font-montserrat">
+      <h1 className="sr-only">
+        Blogs — expert property insights from Inuka Afrika Properties
+      </h1>
+      <BlogsHeroCarousel posts={carouselPosts} />
 
       <section className="container mx-auto px-4 py-12">
+        <h2 className="mb-2 text-2xl font-bold text-dark-900 md:text-3xl">
+          All articles
+        </h2>
+        <p className="mb-8 max-w-2xl text-dark-600">
+          Browse every story from our team: buying guides, legal explainers, and
+          investment analysis across Kilifi County and the Kenya coast.
+        </p>
         <Suspense fallback={<BlogsGridFallback />}>
           <BlogsGrid />
         </Suspense>

@@ -117,6 +117,18 @@ function parseLocalNoon(isoDate: string): Date {
   return new Date(`${isoDate}T12:00:00`);
 }
 
+/** e.g. "MAY 14, 2026" for blog hero cards */
+export function formatBlogDateCarousel(isoDate: string): string {
+  const date = parseLocalNoon(isoDate);
+  return date
+    .toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    })
+    .toUpperCase();
+}
+
 export function formatLongDateFromIso(isoDate: string): string {
   const date = parseLocalNoon(isoDate);
   const weekdays = [

@@ -63,6 +63,7 @@ const config: Config = {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
         serif: ["var(--font-playfair)", "Georgia", "serif"],
         montserrat: ["var(--font-montserrat)", "sans-serif"],
+        blogScript: ["var(--font-dancing-script)", "cursive"],
       },
     },
   },
