@@ -12,6 +12,7 @@ export type BlogPostListItem = {
 
 /** Posts that have a dedicated article page under `/iapl-insider/blogs/[slug]`. */
 export const BLOG_ARTICLE_SLUGS: ReadonlySet<string> = new Set([
+  "why-more-kenyans-investing-land-for-sale-kilifi-county",
   "land-for-sale-near-kikambala",
   "why-investing-in-tezo-is-a-smart-move-2026",
   "why-coastal-region-is-ideal-place-to-buy-land-2026",
@@ -19,6 +20,19 @@ export const BLOG_ARTICLE_SLUGS: ReadonlySet<string> = new Set([
 ]);
 
 export const BLOG_POSTS: BlogPostListItem[] = [
+  {
+    id: 8,
+    title:
+      "Why More Kenyans Are Investing in Land for Sale in Kilifi County",
+    excerpt:
+      "The demand for land for sale in Kilifi County has continued to rise as more Kenyans discover the value of investing in affordable coastal property. Explore Tezo, Msabaha, Matsangoni, title deed plots, and flexible installment plans with Inuka Afrika Properties Ltd.",
+    author: "IAPL Investment Team",
+    date: "2026-05-18",
+    image:
+      "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767954926/why_land_investment_2_pryhrf.jpg",
+    category: "Investment",
+    slug: "why-more-kenyans-investing-land-for-sale-kilifi-county",
+  },
   {
     id: 7,
     title:
