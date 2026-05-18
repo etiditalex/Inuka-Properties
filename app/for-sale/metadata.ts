@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import { buildPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Properties For Sale in Kilifi County | Mariakani, Mtwapa, Kikambala, Bofa, Chumani, Tezo, Msabaha, Mtondia, Malindi",
-  description: "Browse our extensive collection of properties for sale in Kilifi County. Find residential plots, commercial spaces, and beach properties in Mariakani, Mtwapa, Kikambala, Bofa, Chumani, Tezo, Msabaha, Mtondia, and Malindi. Affordable pricing with flexible payment plans.",
+export const metadata: Metadata = buildPageMetadata({
+  title: "Properties For Sale in Kilifi County",
+  description:
+    "Browse land and property for sale in Mariakani, Mtwapa, Kikambala, Bofa, Chumani, Tezo, Msabaha, Mtondia, and Malindi. Title deed plots with flexible 12-month payment plans.",
+  path: "/for-sale",
   keywords: [
     "properties for sale Kilifi",
     "land for sale Mariakani",
@@ -17,17 +20,10 @@ export const metadata: Metadata = {
     "affordable properties Kilifi County",
     "residential plots coastal Kenya",
     "beach properties for sale",
-    "commercial properties Kilifi"
+    "commercial properties Kilifi",
+    "title deed plots Kilifi",
   ],
-  openGraph: {
-    title: "Properties For Sale in Kilifi County | Inuka Afrika Properties",
-    description: "Browse properties for sale in Mariakani, Mtwapa, Kikambala, Bofa, Chumani, Tezo, Msabaha, Mtondia, and Malindi. Affordable pricing with flexible payment plans.",
-    url: "https://www.inukaproperties.co.ke/for-sale",
-  },
-  alternates: {
-    canonical: "https://www.inukaproperties.co.ke/for-sale",
-  },
-};
+});
 
 
 

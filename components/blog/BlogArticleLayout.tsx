@@ -11,6 +11,7 @@ import {
   formatLongDateFromIso,
   getSidebarArticlePosts,
 } from "@/lib/blogPosts";
+import { buildBreadcrumbSchema } from "@/lib/seo";
 import { SITE_ORIGIN } from "@/lib/site";
 
 export type BlogArticleLayoutProps = {
@@ -80,6 +81,12 @@ export default function BlogArticleLayout({
 
   const sidebarPosts = getSidebarArticlePosts(currentSlug);
 
+  const breadcrumbSchema = buildBreadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: "Blogs", path: "/iapl-insider/blogs" },
+    { name: displayTitle, path: `/iapl-insider/blogs/${currentSlug}` },
+  ]);
+
   const dateShort = formatIsoDate(publishedIso);
   const dateLong = formatLongDateFromIso(publishedIso);
 
@@ -97,6 +104,10 @@ export default function BlogArticleLayout({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
 
       <section className="relative min-h-[320px] md:min-h-[440px] w-full overflow-hidden">

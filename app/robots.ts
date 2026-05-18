@@ -1,16 +1,18 @@
-import { MetadataRoute } from 'next'
+import type { MetadataRoute } from "next";
+import { SITE_ORIGIN } from "@/lib/site";
 
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       {
-        userAgent: '*',
-        allow: '/',
-        disallow: ['/api/', '/admin/'],
+        userAgent: "*",
+        allow: "/",
+        disallow: ["/api/", "/admin/"],
       },
     ],
-    sitemap: 'https://www.inukaproperties.co.ke/sitemap.xml',
-  }
+    sitemap: `${SITE_ORIGIN}/sitemap.xml`,
+    host: SITE_ORIGIN.replace(/^https?:\/\//, ""),
+  };
 }
 
 
