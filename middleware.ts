@@ -5,6 +5,7 @@ import type { NextRequest } from "next/server";
 export function middleware(request: NextRequest) {
   const host = request.headers.get("host") ?? "";
   const proto = request.headers.get("x-forwarded-proto") ?? "https";
+
   if (
     process.env.NODE_ENV === "production" &&
     host === "inukaproperties.co.ke"
@@ -30,6 +31,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|xml|txt)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 };

@@ -70,21 +70,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
-  const extraBlogSlugs = [
-    "why-mombasa-is-ideal-place-to-buy-houses-2026",
-  ].filter((slug) => !BLOG_ARTICLE_SLUGS.has(slug));
-
-  const extraBlogRoutes: SitemapEntry[] = extraBlogSlugs.map((slug) => ({
-    url: `${SITE_ORIGIN}/iapl-insider/blogs/${slug}`,
-    lastModified: new Date(),
-    changeFrequency: "monthly" as const,
-    priority: 0.75,
-  }));
-
   return [
     ...staticRoutes,
     ...propertyRoutes,
     ...blogRoutes,
-    ...extraBlogRoutes,
   ];
 }
