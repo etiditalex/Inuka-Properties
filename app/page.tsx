@@ -26,7 +26,7 @@ const featuredProperties: Property[] = [
   {
     id: 14,
     title: "Tulivu Haven",
-    location: "Kibao Kiche, Mariakani",
+    location: "Kibao Kiche, Mariakani, Kilifi County",
     type: "Residential",
     price: "KES 450,000",
     size: "1/8 Acre",

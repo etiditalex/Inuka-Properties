@@ -26,7 +26,7 @@ const properties: Property[] = [
   {
     id: 14,
     title: "Tulivu Haven",
-    location: "Kibao Kiche, Mariakani",
+    location: "Kibao Kiche, Mariakani, Kilifi County",
     type: "residential",
     price: "KES 450,000",
     size: "1/8 Acre",
@@ -34,12 +34,12 @@ const properties: Property[] = [
     status: "available",
     featured: true,
     features: [
-      "600m from the Mariakani–Mavueni Bypass",
+      "Land for sale in Mariakani, Kilifi County",
+      "600m from Mariakani–Mavueni Bypass",
       "Water & electricity on site",
-      "1/8-acre plots from KES 450,000",
-      "Deposit KES 150,000 — balance within 12 months",
-      "Growing, well-positioned Kibao Kiche location",
-      "Ideal for residential or investment",
+      "Title deed 1/8-acre plots — KES 450,000",
+      "Deposit KES 150,000 — 12-month balance",
+      "Ideal for Mombasa & Nairobi investors",
     ],
   },
   {

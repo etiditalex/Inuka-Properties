@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { MapPin, Bed, Square, Phone, Mail, ArrowLeft, ChevronLeft, ChevronRight, X } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { propertySiteVisitWhatsAppUrl } from "@/lib/whatsapp";
 
 export default function PropertyDetailPage({ params }: { params: { id: string } }) {
   // In a real application, this would fetch property data based on the ID
@@ -18,11 +19,14 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
     14: {
       id: 14,
       title: "Tulivu Haven",
-      location: "Kibao Kiche, Mariakani",
+      h1: "Tulivu Haven — Land for Sale in Kibao Kiche, Mariakani, Kilifi County",
+      location: "Kibao Kiche, Mariakani, Kilifi County",
       type: "residential",
       price: "KES 450,000",
-      size: "1/8 Acre",
+      size: "1/8 Acre (50×100)",
       image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1781934536/Tulivu_haven_2_huxl0k.jpg",
+      imageAltPrefix: "Tulivu Haven land for sale in Kibao Kiche Mariakani Kilifi County",
+      mapLink: "https://maps.google.com/?q=Kibao+Kiche+Mariakani+Kilifi+Kenya",
       gallery: [
         "https://res.cloudinary.com/dyfnobo9r/image/upload/v1781934536/Tulivu_haven_2_huxl0k.jpg",
         "https://res.cloudinary.com/dyfnobo9r/image/upload/v1781934536/Tulivu_haven_1_vau8kg.jpg",
@@ -33,7 +37,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
         "https://res.cloudinary.com/dyfnobo9r/image/upload/v1781934535/Tulivu_haven_6_veuhfn.jpg",
       ],
       description:
-        "TULIVU HAVEN – KIBAO KICHE, MARIAKANI\n\nOwn a 1/8-acre plot for only KES 450,000 in a growing and well-positioned location.\n\n• Just 600m from the Mariakani–Mavueni Bypass\n• Water & Electricity on Site\n• Deposit KES 150,000, balance payable within 12 months\n\nYour future home starts with one smart decision.\n\nCall or WhatsApp 0711 082 084 to book a site visit.",
+        "TULIVU HAVEN – KIBAO KICHE, MARIAKANI, KILIFI COUNTY\n\nOwn a verified 1/8-acre plot for only KES 450,000 in one of Mariakani's fastest-growing corridors — ideal for buyers searching for affordable land for sale in Kilifi County, near Mombasa, and along the Nairobi–Mombasa highway.\n\n• Just 600m from the Mariakani–Mavueni Bypass\n• Water & electricity on site — ready for development\n• Title deed plots with flexible payment\n• Deposit KES 150,000, balance payable within 12 months (approx. KES 25,000/month)\n\nPopular with Mombasa, Nairobi, and upcountry investors looking for serviced plots in Mariakani at a fraction of coastal city prices.\n\nYour future home starts with one smart decision. Call or WhatsApp 0711 082 084 to book a site visit today.",
       features: [
         "600m from the Mariakani–Mavueni Bypass",
         "Water & electricity on site",
@@ -542,12 +546,17 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
     },
   };
   
-  const property = properties[propertyId] || properties[1]; // Default to Bofa Platinum if ID not found
+  const property = properties[propertyId];
 
-  // In a real app, check if property exists
-  if (isNaN(propertyId) || propertyId < 1) {
+  if (isNaN(propertyId) || !property) {
     notFound();
   }
+
+  const pageTitle = property.h1 ?? property.title;
+  const imageAltBase =
+    property.imageAltPrefix ??
+    `${property.title} land for sale in ${property.location}`;
+  const siteVisitWhatsAppUrl = propertySiteVisitWhatsAppUrl(property.title);
 
   // Image Gallery Modal
   const ImageGalleryModal = () => {
@@ -593,7 +602,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
           <div className="relative w-full h-full max-h-[90vh] flex items-center justify-center">
             <Image
               src={currentImage}
-              alt={`${property.title} - Image ${selectedImageIndex + 1}`}
+              alt={`${imageAltBase} — photo ${selectedImageIndex + 1}`}
               width={1200}
               height={800}
               className="object-contain max-w-full max-h-full"
@@ -660,7 +669,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
             >
               <Image
                 src={property.image}
-                alt={property.title}
+                alt={imageAltBase}
                 fill
                 className="object-cover"
               />
@@ -684,7 +693,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
                   >
                     <Image
                       src={img}
-                      alt={`${property.title} - Image ${index + 1}`}
+                      alt={`${imageAltBase} — thumbnail ${index + 1}`}
                       fill
                       className="object-cover"
                     />
@@ -700,8 +709,8 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
             className="bg-white rounded-xl shadow-lg p-4 sm:p-6 md:p-8"
           >
             <div className="mb-6 min-w-0">
-              <h1 className="text-3xl font-bold text-dark-900 mb-4 break-words [overflow-wrap:anywhere]">
-                {property.title}
+              <h1 className="text-2xl sm:text-3xl font-bold text-dark-900 mb-4 break-words [overflow-wrap:anywhere]">
+                {pageTitle}
               </h1>
               <div className="flex items-start gap-2 text-dark-600 mb-4 min-w-0">
                 <MapPin size={20} className="mr-0 shrink-0 mt-1 text-primary-600" />
@@ -759,12 +768,14 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
                 <Mail size={20} />
                 Email Us
               </a>
-              <Link
-                href="/book-site-visit"
+              <a
+                href={siteVisitWhatsAppUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="block w-full bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition text-center"
               >
                 Book Site Visit
-              </Link>
+              </a>
             </div>
           </motion.div>
         </div>
@@ -772,7 +783,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
         <div className="mt-12 grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-              <h2 className="text-2xl font-bold text-dark-900 mb-4">Description</h2>
+              <h2 className="text-2xl font-bold text-dark-900 mb-4">About this property</h2>
               <p className="text-dark-700 leading-relaxed whitespace-pre-line break-words [overflow-wrap:anywhere]">
                 {property.description}
               </p>
@@ -870,6 +881,14 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
                           <div>• Water & Electricity on-site</div>
                           <div>• Ready to Build</div>
                           <div>• Perfect for Home or Investment</div>
+                        </div>
+                      )}
+                      {size === "1/8 Acre" && property.id === 14 && (
+                        <div className="mt-2 text-sm text-dark-600">
+                          <div>• 600m from Mariakani–Mavueni Bypass</div>
+                          <div>• Water & electricity on site</div>
+                          <div>• Deposit KES 150,000</div>
+                          <div>• Balance within 12 months</div>
                         </div>
                       )}
                       {size === "1/8 Acre" && property.id === 13 && (

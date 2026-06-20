@@ -1,13 +1,27 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import JsonLd from "@/components/JsonLd";
-import { getPropertySeo, propertyDetailPath } from "@/lib/propertySeo";
-import { buildPageMetadata, buildRealEstateListingSchema } from "@/lib/seo";
+import PropertySeoBlock from "@/components/property/PropertySeoBlock";
+import {
+  getAllPropertyIds,
+  getPropertySeo,
+  propertyDetailPath,
+} from "@/lib/propertySeo";
+import {
+  buildBreadcrumbSchema,
+  buildFaqSchema,
+  buildPageMetadata,
+  buildRealEstateListingSchema,
+} from "@/lib/seo";
 
 type Props = {
   children: ReactNode;
   params: { id: string };
 };
+
+export function generateStaticParams() {
+  return getAllPropertyIds().map((id) => ({ id: String(id) }));
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const id = Number(params.id);
@@ -16,29 +30,37 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!property) {
     return buildPageMetadata({
       title: "Property Not Found",
-      description: "Browse land and property for sale in Kilifi County with Inuka Afrika Properties.",
+      description:
+        "Browse land and property for sale in Kilifi County with Inuka Afrika Properties.",
       path: "/for-sale",
       noIndex: true,
     });
   }
 
   const path = propertyDetailPath(property.id);
-  const title = `${property.title} | Land for Sale in ${property.location}`;
-  const description = `${property.description} Price: ${property.price}. Title deed plots with flexible payment plans from Inuka Afrika Properties.`;
+  const county = property.county ?? "Kilifi County";
+  const title =
+    property.seoTitle ??
+    `${property.title} | Land for Sale in ${property.location}, ${county}`;
+  const description =
+    property.metaDescription ??
+    `${property.description} Price: ${property.price}. Title deed plots with flexible payment plans from Inuka Afrika Properties.`;
+
+  const defaultKeywords = [
+    `${property.title} for sale`,
+    `land for sale ${property.location}`,
+    `plots for sale ${county}`,
+    "title deed land Kenya",
+    "Inuka Afrika Properties",
+  ];
 
   return buildPageMetadata({
     title,
     description,
     path,
-    keywords: [
-      `${property.title} for sale`,
-      `land for sale ${property.location}`,
-      "plots for sale Kilifi County",
-      "title deed land Kenya",
-      "Inuka Afrika Properties",
-    ],
+    keywords: property.keywords ?? defaultKeywords,
     ogImage: property.image,
-    ogImageAlt: `${property.title} — ${property.location}`,
+    ogImageAlt: `${property.title} — land for sale in ${property.location}, ${county}`,
     noIndex: property.soldOut,
   });
 }
@@ -46,22 +68,43 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default function PropertyDetailLayout({ children, params }: Props) {
   const id = Number(params.id);
   const property = getPropertySeo(id);
+  const path = property ? propertyDetailPath(property.id) : "/for-sale";
 
   const listingSchema =
     property &&
     buildRealEstateListingSchema({
-      name: property.title,
-      description: property.description,
-      image: property.image,
-      path: propertyDetailPath(property.id),
+      name: property.h1 ?? property.title,
+      description: property.metaDescription ?? property.description,
+      image: property.gallery ?? property.image,
+      path,
       price: property.price,
+      priceAmount: property.priceAmount,
       location: property.location,
+      county: property.county,
+      geo: property.geo,
+      availability: property.soldOut ? "SoldOut" : "InStock",
     });
+
+  const breadcrumbSchema = property
+    ? buildBreadcrumbSchema([
+        { name: "Home", path: "/" },
+        { name: "Properties for Sale", path: "/for-sale" },
+        { name: property.title, path },
+      ])
+    : null;
+
+  const faqSchema =
+    property?.faq && property.faq.length > 0
+      ? buildFaqSchema(property.faq)
+      : null;
 
   return (
     <>
       {listingSchema ? <JsonLd data={listingSchema} /> : null}
+      {breadcrumbSchema ? <JsonLd data={breadcrumbSchema} /> : null}
+      {faqSchema ? <JsonLd data={faqSchema} /> : null}
       {children}
+      {property ? <PropertySeoBlock propertyId={id} /> : null}
     </>
   );
 }

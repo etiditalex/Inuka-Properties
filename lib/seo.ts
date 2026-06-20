@@ -260,29 +260,73 @@ export function buildBlogPostingSchema(options: {
 export function buildRealEstateListingSchema(options: {
   name: string;
   description: string;
-  image: string;
+  image: string | string[];
   path: string;
   price: string;
+  priceAmount?: number;
   location: string;
+  county?: string;
+  geo?: { latitude: number; longitude: number };
+  availability?: "InStock" | "SoldOut";
 }): Record<string, unknown> {
+  const images = Array.isArray(options.image) ? options.image : [options.image];
+  const parsed = Number(String(options.price).replace(/[^\d]/g, ""));
+  const numericPrice =
+    options.priceAmount ?? (parsed > 0 ? parsed : undefined);
+
   return {
     "@context": "https://schema.org",
     "@type": "RealEstateListing",
     name: options.name,
     description: options.description,
-    image: options.image,
+    image: images,
     url: absoluteUrl(options.path),
+    datePosted: new Date().toISOString().split("T")[0],
     offers: {
       "@type": "Offer",
-      price: options.price,
+      ...(numericPrice ? { price: numericPrice } : { price: options.price }),
       priceCurrency: "KES",
-      availability: "https://schema.org/InStock",
+      availability:
+        options.availability === "SoldOut"
+          ? "https://schema.org/SoldOut"
+          : "https://schema.org/InStock",
+      seller: {
+        "@type": "RealEstateAgent",
+        name: SITE_NAME,
+        url: SITE_ORIGIN,
+      },
     },
+    ...(options.geo
+      ? {
+          geo: {
+            "@type": "GeoCoordinates",
+            latitude: options.geo.latitude,
+            longitude: options.geo.longitude,
+          },
+        }
+      : {}),
     address: {
       "@type": "PostalAddress",
       addressLocality: options.location,
-      addressRegion: "Kilifi County",
+      addressRegion: options.county ?? "Kilifi County",
       addressCountry: "KE",
     },
+  };
+}
+
+export function buildFaqSchema(
+  items: { question: string; answer: string }[]
+): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
   };
 }
