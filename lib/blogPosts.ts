@@ -12,6 +12,7 @@ export type BlogPostListItem = {
 
 /** Posts that have a dedicated article page under `/iapl-insider/blogs/[slug]`. */
 export const BLOG_ARTICLE_SLUGS: ReadonlySet<string> = new Set([
+  "why-mariakani-is-new-property-hotspot-kilifi",
   "why-more-kenyans-investing-land-for-sale-kilifi-county",
   "land-for-sale-near-kikambala",
   "why-investing-in-tezo-is-a-smart-move-2026",
@@ -20,6 +21,18 @@ export const BLOG_ARTICLE_SLUGS: ReadonlySet<string> = new Set([
 ]);
 
 export const BLOG_POSTS: BlogPostListItem[] = [
+  {
+    id: 9,
+    title: "Why Mariakani is the New Property Hotspot in Kilifi",
+    excerpt:
+      "Mariakani is transforming from a highway stopover into Kilifi County's next property frontier. Discover affordable land, infrastructure growth, and Tulivu Haven plots from Inuka Afrika Properties.",
+    author: "IAPL Investment Team",
+    date: "2026-06-20",
+    image:
+      "https://res.cloudinary.com/dyfnobo9r/image/upload/v1781934535/Tulivu_haven_7_znzmct.jpg",
+    category: "Investment",
+    slug: "why-mariakani-is-new-property-hotspot-kilifi",
+  },
   {
     id: 8,
     title:
