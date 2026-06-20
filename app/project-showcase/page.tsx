@@ -29,6 +29,21 @@ interface Project {
 
 const projects: Project[] = [
   {
+    id: 14,
+    title: "Tulivu Haven",
+    location: "Kibao Kiche, Mariakani",
+    type: "Residential",
+    price: "KES 450,000",
+    size: "1/8 Acre",
+    image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1781934536/Tulivu_haven_2_huxl0k.jpg",
+    features: [
+      "600m from Mariakani–Mavueni Bypass",
+      "Water & electricity on site",
+      "Deposit KES 150,000 — 12-month balance",
+      "Growing Kibao Kiche location",
+    ],
+  },
+  {
     id: 13,
     title: "Msabaha Phase 8",
     location: "Msabaha, Malindi (after Kizingo Police Station)",

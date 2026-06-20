@@ -12,6 +12,16 @@ export type PropertySeoEntry = {
 /** SEO fields for property detail pages — kept in sync with `/for-sale/[id]`. */
 export const PROPERTY_SEO: PropertySeoEntry[] = [
   {
+    id: 14,
+    title: "Tulivu Haven",
+    location: "Kibao Kiche, Mariakani",
+    price: "KES 450,000",
+    image:
+      "https://res.cloudinary.com/dyfnobo9r/image/upload/v1781934536/Tulivu_haven_2_huxl0k.jpg",
+    description:
+      "Tulivu Haven land for sale in Kibao Kiche, Mariakani — 1/8-acre plots from KES 450,000, water and electricity on site, 600m from Mariakani–Mavueni Bypass, flexible 12-month payment plan.",
+  },
+  {
     id: 13,
     title: "Msabaha Phase 8",
     location: "Msabaha, Malindi",

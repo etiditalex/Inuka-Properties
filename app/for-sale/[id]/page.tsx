@@ -15,6 +15,56 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
   
   // Property data based on ID
   const properties: Record<number, any> = {
+    14: {
+      id: 14,
+      title: "Tulivu Haven",
+      location: "Kibao Kiche, Mariakani",
+      type: "residential",
+      price: "KES 450,000",
+      size: "1/8 Acre",
+      image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1781934536/Tulivu_haven_2_huxl0k.jpg",
+      gallery: [
+        "https://res.cloudinary.com/dyfnobo9r/image/upload/v1781934536/Tulivu_haven_2_huxl0k.jpg",
+        "https://res.cloudinary.com/dyfnobo9r/image/upload/v1781934536/Tulivu_haven_1_vau8kg.jpg",
+        "https://res.cloudinary.com/dyfnobo9r/image/upload/v1781934535/Tulivu_haven_7_znzmct.jpg",
+        "https://res.cloudinary.com/dyfnobo9r/image/upload/v1781934535/Tulivu_haven_5_rusy8s.jpg",
+        "https://res.cloudinary.com/dyfnobo9r/image/upload/v1781934535/Tulivu_haven_4_h2befh.jpg",
+        "https://res.cloudinary.com/dyfnobo9r/image/upload/v1781934535/Tulivu_haven_3_p2wbfk.jpg",
+        "https://res.cloudinary.com/dyfnobo9r/image/upload/v1781934535/Tulivu_haven_6_veuhfn.jpg",
+      ],
+      description:
+        "TULIVU HAVEN – KIBAO KICHE, MARIAKANI\n\nOwn a 1/8-acre plot for only KES 450,000 in a growing and well-positioned location.\n\n• Just 600m from the Mariakani–Mavueni Bypass\n• Water & Electricity on Site\n• Deposit KES 150,000, balance payable within 12 months\n\nYour future home starts with one smart decision.\n\nCall or WhatsApp 0711 082 084 to book a site visit.",
+      features: [
+        "600m from the Mariakani–Mavueni Bypass",
+        "Water & electricity on site",
+        "1/8-acre plots at KES 450,000",
+        "Deposit KES 150,000 — balance within 12 months",
+        "Growing, well-positioned Kibao Kiche location",
+        "Ideal for residential development or investment",
+        "Book a site visit — call or WhatsApp 0711 082 084",
+      ],
+      pricing: {
+        "1/8 Acre": "KES 450,000",
+      },
+      paymentPlan: {
+        "Total Price": "KES 450,000",
+        "Deposit": "KES 150,000",
+        "Remaining Balance": "KES 300,000",
+        "Monthly Installments": "12 months",
+        "Monthly Payment": "KES 25,000",
+      },
+      quickInfo: {
+        Location: "Kibao Kiche, Mariakani",
+        "Bypass Access": "600m from Mariakani–Mavueni Bypass",
+        "Plot Size": "1/8 Acre",
+        "Property Type": "Residential Development",
+        Utilities: "Water & Electricity on Site",
+        "Total Price": "KES 450,000",
+        Deposit: "KES 150,000",
+        "Payment Plan": "Deposit + balance within 12 months",
+        Contact: "0711 082 084 (Call or WhatsApp)",
+      },
+    },
     12: {
       id: 12,
       title: "Rafiki @10 – Prime Plots Now Selling",

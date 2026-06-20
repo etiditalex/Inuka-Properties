@@ -39,6 +39,7 @@ export default function BookSiteVisitPage() {
   };
 
   const properties = [
+    "Tulivu Haven",
     "Msabaha Phase 8",
     "Mwanda Phase 3 (sold out)",
     "Kibao Kiche Haven",

@@ -24,6 +24,16 @@ interface Property {
 
 const featuredProperties: Property[] = [
   {
+    id: 14,
+    title: "Tulivu Haven",
+    location: "Kibao Kiche, Mariakani",
+    type: "Residential",
+    price: "KES 450,000",
+    size: "1/8 Acre",
+    image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1781934536/Tulivu_haven_2_huxl0k.jpg",
+    featured: true,
+  },
+  {
     id: 13,
     title: "Msabaha Phase 8",
     location: "Msabaha, Malindi",
