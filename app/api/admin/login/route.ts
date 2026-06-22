@@ -1,0 +1,89 @@
+import { createClient } from "@supabase/supabase-js";
+import crypto from "crypto";
+import { NextResponse } from "next/server";
+import { createServiceClient } from "@/lib/supabase/service";
+import {
+  CODE_TTL_MS,
+  encryptSession,
+  generateLoginCode,
+  hashLoginCode,
+  sendLoginVerificationEmail,
+} from "@/lib/admin/login-verification";
+
+function getAuthClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+}
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const email = String(body.email || "")
+      .trim()
+      .toLowerCase();
+    const password = String(body.password || "");
+
+    if (!email || !password) {
+      return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
+    }
+
+    const authClient = getAuthClient();
+    const serviceClient = createServiceClient();
+
+    if (!authClient || !serviceClient) {
+      return NextResponse.json(
+        { error: "Authentication service is not configured" },
+        { status: 503 }
+      );
+    }
+
+    const { data, error } = await authClient.auth.signInWithPassword({ email, password });
+
+    if (error || !data.session || !data.user?.email) {
+      return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+    }
+
+    const verificationId = crypto.randomUUID();
+    const code = generateLoginCode();
+    const codeHash = hashLoginCode(code, verificationId);
+    const sessionEncrypted = encryptSession({
+      access_token: data.session.access_token,
+      refresh_token: data.session.refresh_token,
+    });
+
+    await serviceClient.from("admin_login_codes").delete().eq("user_id", data.user.id);
+
+    const { error: insertError } = await serviceClient.from("admin_login_codes").insert({
+      id: verificationId,
+      user_id: data.user.id,
+      email: data.user.email,
+      code_hash: codeHash,
+      session_encrypted: sessionEncrypted,
+      expires_at: new Date(Date.now() + CODE_TTL_MS).toISOString(),
+    });
+
+    if (insertError) {
+      return NextResponse.json({ error: "Could not start verification" }, { status: 500 });
+    }
+
+    const sent = await sendLoginVerificationEmail(data.user.email, code);
+    if (!sent) {
+      await serviceClient.from("admin_login_codes").delete().eq("id", verificationId);
+      return NextResponse.json(
+        { error: "Could not send verification email. Check RESEND_API_KEY." },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      verificationId,
+      email: data.user.email,
+      message: "Verification code sent to your email.",
+    });
+  } catch (err) {
+    console.error("[admin login]", err);
+    return NextResponse.json({ error: "Login failed" }, { status: 500 });
+  }
+}

@@ -4,7 +4,7 @@ import { Suspense, useMemo } from "react";
 import BlogsHeroCarousel from "@/components/blog/BlogsHeroCarousel";
 import BlogsArchiveMain from "@/components/blog/BlogsArchiveMain";
 import BlogsArchiveSidebar from "@/components/blog/BlogsArchiveSidebar";
-import { BLOG_POSTS } from "@/lib/blogPosts";
+import { useBlogPosts } from "@/lib/blog/useBlogPosts";
 
 function BlogsArchiveMainFallback() {
   return (
@@ -36,9 +36,10 @@ function BlogsArchiveMainFallback() {
 }
 
 export default function BlogsPage() {
-  const carouselPosts = useMemo(
-    () => [...BLOG_POSTS].sort((a, b) => b.date.localeCompare(a.date)),
-    []
+  const { posts: carouselPosts } = useBlogPosts();
+  const sortedPosts = useMemo(
+    () => [...carouselPosts].sort((a, b) => b.date.localeCompare(a.date)),
+    [carouselPosts]
   );
 
   return (
@@ -46,7 +47,7 @@ export default function BlogsPage() {
       <h1 className="sr-only">
         Blogs — expert property insights from Inuka Afrika Properties
       </h1>
-      <BlogsHeroCarousel posts={carouselPosts} />
+      <BlogsHeroCarousel posts={sortedPosts} />
 
       <section className="bg-neutral-100 py-10 md:py-14">
         <div className="container mx-auto max-w-7xl px-4">

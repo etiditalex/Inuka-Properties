@@ -3,8 +3,7 @@ import { Dancing_Script, Inter, Playfair_Display, Montserrat } from "next/font/g
 import Script from "next/script";
 import "./globals.css";
 import ConditionalLayout from "@/components/ConditionalLayout";
-import Chatbot from "@/components/Chatbot";
-import CookieBanner from "@/components/CookieBanner";
+import AdminAwareWidgets from "@/components/AdminAwareWidgets";
 import JsonLd from "@/components/JsonLd";
 import {
   DEFAULT_OG_IMAGE,
@@ -150,8 +149,7 @@ export default function RootLayout({
               `}
             </Script>
             <ConditionalLayout>{children}</ConditionalLayout>
-            <Chatbot />
-            <CookieBanner />
+            <AdminAwareWidgets />
       </body>
     </html>
   );

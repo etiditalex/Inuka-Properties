@@ -1,12 +1,13 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { Calendar, Tag, MapPin, Clock, ArrowRight, Home, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 export default function NewsPage() {
-  const newsItems = [
+  const staticNewsItems = [
     {
       id: 5,
       title: "Rafiki @10 (Tezo Plots) – Prime Plots Now Selling",
@@ -73,6 +74,39 @@ export default function NewsPage() {
       featured: false,
     },
   ];
+
+  const [newsItems, setNewsItems] = useState(staticNewsItems);
+
+  useEffect(() => {
+    fetch("/api/content/news")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.items?.length) {
+          setNewsItems(
+            data.items.map((item: {
+              id: number;
+              title: string;
+              excerpt: string;
+              published_at: string;
+              category: string;
+              image: string;
+              featured?: boolean;
+              details?: string[];
+            }) => ({
+              id: item.id,
+              title: item.title,
+              excerpt: item.excerpt,
+              date: item.published_at,
+              category: item.category,
+              image: item.image,
+              featured: item.featured,
+              details: item.details,
+            }))
+          );
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Helper function to format dates consistently
   const formatDate = (dateString: string): string => {

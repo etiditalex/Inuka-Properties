@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { BarChart3, TrendingUp, MapPin, Download } from "lucide-react";
 
 const formatIsoDate = (isoDate: string) => {
@@ -12,7 +13,7 @@ const formatIsoDate = (isoDate: string) => {
 };
 
 export default function MarketResearchPage() {
-  const reports = [
+  const staticReports = [
     {
       title: "Kilifi County Real Estate Market Report 2024",
       description: "Comprehensive analysis of property trends, prices, and investment opportunities in Kilifi County.",
@@ -33,7 +34,7 @@ export default function MarketResearchPage() {
     },
   ];
 
-  const insights = [
+  const staticInsights = [
     {
       icon: TrendingUp,
       title: "Market Growth",
@@ -53,6 +54,38 @@ export default function MarketResearchPage() {
       description: "Average annual returns on coastal properties",
     },
   ];
+
+  const [reports, setReports] = useState(staticReports);
+  const [insights, setInsights] = useState(staticInsights);
+
+  useEffect(() => {
+    fetch("/api/content/market-research")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.reports?.length) {
+          setReports(
+            data.reports.map((r: { title: string; description: string; report_date: string; report_type: string; file_url?: string }) => ({
+              title: r.title,
+              description: r.description,
+              date: r.report_date,
+              type: r.report_type,
+              fileUrl: r.file_url,
+            }))
+          );
+        }
+        if (data.insights?.length) {
+          setInsights(
+            data.insights.map((i: { icon: string; title: string; value: string; description: string }) => ({
+              icon: i.icon === "MapPin" ? MapPin : i.icon === "BarChart3" ? BarChart3 : TrendingUp,
+              title: i.title,
+              value: i.value,
+              description: i.description,
+            }))
+          );
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <div className="pt-24 pb-20">
@@ -113,7 +146,14 @@ export default function MarketResearchPage() {
                   <h3 className="text-xl font-bold text-dark-900 mb-2">{report.title}</h3>
                   <p className="text-dark-600">{report.description}</p>
                 </div>
-                <button className="bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition flex items-center gap-2">
+                <button
+                  type="button"
+                  className="bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition flex items-center gap-2"
+                  onClick={() => {
+                    const fileUrl = (report as { fileUrl?: string }).fileUrl;
+                    if (fileUrl) window.open(fileUrl, "_blank");
+                  }}
+                >
                   <Download size={20} />
                   Download Report
                 </button>

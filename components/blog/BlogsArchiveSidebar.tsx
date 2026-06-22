@@ -4,7 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronRight } from "lucide-react";
-import { BLOG_POSTS, type BlogPostListItem } from "@/lib/blogPosts";
+import { formatBlogCardDate, type BlogPostListItem } from "@/lib/blogPosts";
+import { useBlogPosts } from "@/lib/blog/useBlogPosts";
 
 function postHref(post: BlogPostListItem) {
   return post.slug ? `/iapl-insider/blogs/${post.slug}` : `/iapl-insider/blogs/${post.id}`;
@@ -13,6 +14,7 @@ function postHref(post: BlogPostListItem) {
 export default function BlogsArchiveSidebar() {
   const router = useRouter();
   const [searchDraft, setSearchDraft] = useState("");
+  const { posts: BLOG_POSTS } = useBlogPosts();
 
   const latest = [...BLOG_POSTS]
     .sort((a, b) => b.date.localeCompare(a.date))

@@ -22,80 +22,7 @@ interface Property {
   status?: "available" | "ongoing" | "sold";
 }
 
-const featuredProperties: Property[] = [
-  {
-    id: 14,
-    title: "Tulivu Haven",
-    location: "Kibao Kiche, Mariakani, Kilifi County",
-    type: "Residential",
-    price: "KES 450,000",
-    size: "1/8 Acre",
-    image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1781934536/Tulivu_haven_2_huxl0k.jpg",
-    featured: true,
-  },
-  {
-    id: 13,
-    title: "Msabaha Phase 8",
-    location: "Msabaha, Malindi",
-    type: "Residential",
-    price: "From KES 395,000",
-    size: "1/8 & 1/4 Acre",
-    image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1774342011/Msabaha_phase_8_fc1tuh.jpg",
-    featured: true,
-  },
-  {
-    id: 12,
-    title: "Rafiki @10",
-    location: "Tezo, Kilifi County",
-    type: "Residential",
-    price: "KES 650,000",
-    size: "10 Acres (72 Units)",
-    image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1771129318/Rafriki_10_Prime_plots_for_sale_s89vom.jpg",
-    featured: true,
-  },
-  {
-    id: 11,
-    title: "Mwanda Phase 3",
-    location: "Mariakani, Kilifi County",
-    type: "Residential",
-    price: "KES 325,000",
-    size: "1/8 Acre",
-    image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767330607/Mwanda_Phase_3_3_ejntad.jpg",
-    status: "sold",
-  },
-  {
-    id: 10,
-    title: "Kibao Kiche Haven",
-    location: "Mariakani, Kilifi County",
-    type: "Residential",
-    price: "KES 399,000",
-    size: "50x100 (1/8 Acre)",
-    image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767330214/Kibao_kiche_haven_3_syxxkx.jpg",
-    featured: true,
-  },
-  {
-    id: 1,
-    title: "Bofa Platinum",
-    location: "Bofa, Kilifi County",
-    type: "Beach",
-    price: "KES 5,990,000",
-    size: "1/4 Acre",
-    image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767284997/bofa_platinum_gf7vxw.jpg",
-    featured: true,
-  },
-  {
-    id: 2,
-    title: "Chumani Phase 6",
-    location: "Chumani, Kilifi County",
-    type: "Residential",
-    price: "KES 595,000",
-    size: "1/8 Acre",
-    image: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767285403/chumani_phase_6_y4smsw.jpg",
-  },
-];
-
-/** Only these show in the home featured section */
-const homeFeaturedProperties = featuredProperties.slice(0, 4);
+import { STATIC_PROPERTY_CATALOG } from "@/lib/properties/catalog";
 
 function PropertyCarousel({ properties }: { properties: Property[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -164,6 +91,23 @@ function PropertyCarousel({ properties }: { properties: Property[] }) {
 }
 
 function PropertyCardsSection() {
+  const [homeFeaturedProperties, setHomeFeaturedProperties] = useState<Property[]>(
+    STATIC_PROPERTY_CATALOG.filter((p) => p.featured).slice(0, 4) as Property[]
+  );
+
+  useEffect(() => {
+    fetch("/api/content/properties")
+      .then((r) => r.json())
+      .then((data) => {
+        if (!data.properties?.length) return;
+        const featured = data.properties
+          .filter((p: Property) => p.featured && p.status !== "sold")
+          .slice(0, 4);
+        if (featured.length) setHomeFeaturedProperties(featured);
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <section className="py-20 bg-dark-50">
       <div className="w-full px-4 md:px-6 lg:px-8">

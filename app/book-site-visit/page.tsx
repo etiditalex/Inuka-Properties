@@ -16,9 +16,26 @@ export default function BookSiteVisitPage() {
   });
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real application, this would send the form data to a backend service
+    try {
+      await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          property_name: formData.property,
+          preferred_date: formData.preferredDate,
+          preferred_time: formData.preferredTime,
+          message: formData.message,
+          source: "site_visit",
+        }),
+      });
+    } catch {
+      // Still show success for offline mode
+    }
     setSubmitted(true);
     setTimeout(() => {
       setSubmitted(false);

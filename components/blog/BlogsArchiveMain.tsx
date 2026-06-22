@@ -6,11 +6,11 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Clock, FolderOpen, MessageCircle } from "lucide-react";
 import {
-  BLOG_POSTS,
   formatBlogCardDate,
   type BlogPostListItem,
 } from "@/lib/blogPosts";
 import { estimateReadMinutes } from "@/lib/blogReadTime";
+import { useBlogPosts } from "@/lib/blog/useBlogPosts";
 
 function postHref(post: BlogPostListItem) {
   return post.slug ? `/iapl-insider/blogs/${post.slug}` : `/iapl-insider/blogs/${post.id}`;
@@ -19,6 +19,7 @@ function postHref(post: BlogPostListItem) {
 export default function BlogsArchiveMain() {
   const searchParams = useSearchParams();
   const q = (searchParams.get("q") ?? "").trim().toLowerCase();
+  const { posts: BLOG_POSTS } = useBlogPosts();
 
   const filtered = useMemo(() => {
     if (!q) return BLOG_POSTS;
@@ -28,7 +29,7 @@ export default function BlogsArchiveMain() {
         b.excerpt.toLowerCase().includes(q) ||
         b.category.toLowerCase().includes(q)
     );
-  }, [q]);
+  }, [q, BLOG_POSTS]);
 
   return (
     <div>
