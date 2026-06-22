@@ -63,7 +63,20 @@ export async function POST(request: Request) {
     });
 
     if (insertError) {
-      return NextResponse.json({ error: "Could not start verification" }, { status: 500 });
+      console.error("[admin login] insert:", insertError.message, insertError.code);
+      const hint =
+        insertError.code === "42P01" || insertError.message?.includes("admin_login_codes")
+          ? " Run supabase/migrations/admin_login_codes.sql in the Supabase SQL Editor."
+          : "";
+      return NextResponse.json(
+        {
+          error:
+            process.env.NODE_ENV === "development"
+              ? `Could not start verification: ${insertError.message}.${hint}`
+              : `Could not start verification.${hint}`,
+        },
+        { status: 500 }
+      );
     }
 
     const sent = await sendLoginVerificationEmail(data.user.email, code);

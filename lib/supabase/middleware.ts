@@ -41,11 +41,12 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (isLoginPage && user) {
-    const url = request.nextUrl.clone();
-    url.pathname = adminPath();
-    return NextResponse.redirect(url);
-  }
+    if (isLoginPage && user) {
+      const url = request.nextUrl.clone();
+      url.pathname = adminPath();
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
 
   return supabaseResponse;
 }

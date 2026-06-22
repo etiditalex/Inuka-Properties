@@ -1,5 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { adminPath } from "@/lib/admin/path";
 import { createServiceClient } from "@/lib/supabase/service";
 import { authConfigError } from "@/lib/admin/auth-config";
 import {
@@ -66,20 +68,24 @@ export async function POST(request: Request) {
     }
 
     const session = decryptSession(row.session_encrypted);
-    const response = NextResponse.json({ success: true });
+    const redirectTo =
+      typeof body.redirect === "string" && body.redirect.startsWith("/")
+        ? body.redirect
+        : adminPath();
 
+    const cookieStore = await cookies();
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
           getAll() {
-            return [];
+            return cookieStore.getAll();
           },
           setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              response.cookies.set(name, value, options)
-            );
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options);
+            });
           },
         },
       }
@@ -87,12 +93,21 @@ export async function POST(request: Request) {
 
     const { error: sessionError } = await supabase.auth.setSession(session);
     if (sessionError) {
-      return NextResponse.json({ error: "Could not complete sign-in" }, { status: 500 });
+      console.error("[admin login verify] setSession:", sessionError.message);
+      return NextResponse.json(
+        { error: sessionError.message || "Could not complete sign-in" },
+        { status: 500 }
+      );
     }
 
     await serviceClient.from("admin_login_codes").delete().eq("id", verificationId);
 
-    return response;
+    // Also return session so the browser client can persist auth cookies reliably.
+    return NextResponse.json({
+      success: true,
+      redirect: redirectTo,
+      session,
+    });
   } catch (err) {
     console.error("[admin login verify]", err);
     return NextResponse.json({ error: "Verification failed" }, { status: 500 });

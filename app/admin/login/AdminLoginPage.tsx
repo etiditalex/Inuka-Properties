@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { adminPath } from "@/lib/admin/path";
 
@@ -24,7 +24,6 @@ function UserAvatarIcon() {
 }
 
 export default function AdminLoginPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || adminPath();
 
@@ -46,6 +45,7 @@ export default function AdminLoginPage() {
     try {
       const res = await fetch("/api/admin/login", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
@@ -53,6 +53,11 @@ export default function AdminLoginPage() {
 
       if (!res.ok) {
         setError(data.error || "Login failed");
+        return;
+      }
+
+      if (!data.verificationId) {
+        setError("Could not start verification. Check server logs.");
         return;
       }
 
@@ -76,8 +81,9 @@ export default function AdminLoginPage() {
     try {
       const res = await fetch("/api/admin/login/verify", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ verificationId, email, code }),
+        body: JSON.stringify({ verificationId, email, code, redirect }),
       });
       const data = await res.json();
 
@@ -86,8 +92,19 @@ export default function AdminLoginPage() {
         return;
       }
 
-      router.push(redirect);
-      router.refresh();
+      if (data.session?.access_token && data.session?.refresh_token) {
+        const supabase = createClient();
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
+        if (sessionError) {
+          setError(sessionError.message || "Could not save your session. Try again.");
+          return;
+        }
+      }
+
+      window.location.assign(data.redirect || redirect);
     } catch {
       setError("Verification failed. Please try again.");
     } finally {
@@ -103,6 +120,7 @@ export default function AdminLoginPage() {
     try {
       const res = await fetch("/api/admin/login/verify", {
         method: "PUT",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ verificationId, email }),
       });
