@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import { authConfigError } from "@/lib/admin/auth-config";
 import {
   CODE_TTL_MS,
   MAX_VERIFY_ATTEMPTS,
@@ -28,10 +29,7 @@ export async function POST(request: Request) {
 
     const serviceClient = createServiceClient();
     if (!serviceClient) {
-      return NextResponse.json(
-        { error: "Authentication service is not configured" },
-        { status: 503 }
-      );
+      return NextResponse.json({ error: authConfigError() }, { status: 503 });
     }
 
     const { data: row, error: fetchError } = await serviceClient
@@ -115,10 +113,7 @@ export async function PUT(request: Request) {
 
     const serviceClient = createServiceClient();
     if (!serviceClient) {
-      return NextResponse.json(
-        { error: "Authentication service is not configured" },
-        { status: 503 }
-      );
+      return NextResponse.json({ error: authConfigError() }, { status: 503 });
     }
 
     const { data: row, error: fetchError } = await serviceClient
