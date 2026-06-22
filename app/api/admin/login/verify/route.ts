@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { adminPath } from "@/lib/admin/path";
 import { createServiceClient } from "@/lib/supabase/service";
 import { authConfigError } from "@/lib/admin/auth-config";
+import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabase/env";
 import {
   CODE_TTL_MS,
   MAX_VERIFY_ATTEMPTS,
@@ -12,6 +13,8 @@ import {
   hashLoginCode,
   sendLoginVerificationEmail,
 } from "@/lib/admin/login-verification";
+
+export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   try {
@@ -75,8 +78,8 @@ export async function POST(request: Request) {
 
     const cookieStore = await cookies();
     const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      getSupabaseUrl(),
+      getSupabaseAnonKey(),
       {
         cookies: {
           getAll() {

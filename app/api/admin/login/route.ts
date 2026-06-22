@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { authConfigError } from "@/lib/admin/auth-config";
+import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabase/env";
 import {
   CODE_TTL_MS,
   encryptSession,
@@ -11,9 +12,11 @@ import {
   sendLoginVerificationEmail,
 } from "@/lib/admin/login-verification";
 
+export const dynamic = "force-dynamic";
+
 function getAuthClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const url = getSupabaseUrl();
+  const key = getSupabaseAnonKey();
   if (!url || !key) return null;
   return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }

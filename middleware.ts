@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
+import { isSupabaseServerConfigured } from "@/lib/supabase/env";
 import {
   getAdminBasePath,
   isAdminPath,
@@ -49,10 +50,7 @@ export async function middleware(request: NextRequest) {
   if (isAdminPath(pathname)) {
     let response: NextResponse;
 
-    if (
-      process.env.NEXT_PUBLIC_SUPABASE_URL &&
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    ) {
+    if (isSupabaseServerConfigured()) {
       response = await updateSession(request);
     } else {
       response = NextResponse.next({ request });
