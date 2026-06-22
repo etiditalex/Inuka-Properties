@@ -247,7 +247,43 @@ CREATE POLICY "Public insert inquiries" ON inquiries
 CREATE POLICY "Public insert leads" ON property_leads
   FOR INSERT WITH CHECK (TRUE);
 
--- Authenticated admin full access
+-- Auto-create profile on signup (runs when users are created in Dashboard or via auth)
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  INSERT INTO public.profiles (id, email, full_name)
+  VALUES (
+    NEW.id,
+    NEW.email,
+    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', '')
+  )
+  ON CONFLICT (id) DO UPDATE SET
+    email = EXCLUDED.email,
+    full_name = COALESCE(EXCLUDED.full_name, public.profiles.full_name),
+    updated_at = NOW();
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Profile policies (trigger uses SECURITY DEFINER; users read/update own row)
+DROP POLICY IF EXISTS "Users read own profile" ON profiles;
+CREATE POLICY "Users read own profile" ON profiles
+  FOR SELECT USING (auth.uid() = id);
+
+DROP POLICY IF EXISTS "Users update own profile" ON profiles;
+CREATE POLICY "Users update own profile" ON profiles
+  FOR UPDATE USING (auth.uid() = id);
+
+DROP POLICY IF EXISTS "Admin full access profiles" ON profiles;
 CREATE POLICY "Admin full access profiles" ON profiles
   FOR ALL USING (auth.role() = 'authenticated');
 
@@ -274,21 +310,6 @@ CREATE POLICY "Admin full access leads" ON property_leads
 
 CREATE POLICY "Admin full access settings" ON site_settings
   FOR ALL USING (auth.role() = 'authenticated');
-
--- Auto-create profile on signup
-CREATE OR REPLACE FUNCTION handle_new_user()
-RETURNS TRIGGER AS $$
-BEGIN
-  INSERT INTO profiles (id, email, full_name)
-  VALUES (NEW.id, NEW.email, NEW.raw_user_meta_data->>'full_name');
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION handle_new_user();
 
 -- ─── Storage bucket for uploads ────────────────────────────────────────────────
 -- Create bucket "admin-uploads" in Supabase Dashboard (public read)

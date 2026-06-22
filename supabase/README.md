@@ -6,8 +6,24 @@ Run in order in the Supabase SQL Editor:
 2. `supabase/storage.sql`
 3. `supabase/seed.sql` (optional sample data)
 
-## 2. Auth
-Create an admin user in **Authentication → Users**.
+## 2. Auth — create an admin user
+
+1. Run `supabase/migrations/fix_handle_new_user.sql` in the SQL Editor if user creation fails with **"Database error saving new user"**.
+2. In **Authentication → Users → Add user**:
+   - Choose **Create new user**
+   - Enter a valid email and a **strong password** (8+ characters)
+   - Turn on **Auto Confirm User**
+3. Click **Create user**
+
+If it still fails, open **Authentication → Logs** and note the exact error message.
+
+Common causes:
+| Error | Fix |
+|-------|-----|
+| Database error saving new user | Run `fix_handle_new_user.sql` — the profile trigger failed |
+| User already registered | Use a different email or delete the old user first |
+| Password should be at least 6 characters | Use a longer, stronger password |
+| relation "profiles" does not exist | Run `supabase/schema.sql` first |
 
 ## 3. Environment variables
 Copy `.env.example` to `.env.local` and fill in:
