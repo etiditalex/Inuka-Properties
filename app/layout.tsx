@@ -126,6 +126,12 @@ export default function RootLayout({
       <head>
         <link rel="icon" type="image/jpeg" href={DEFAULT_OG_IMAGE} />
         <link rel="apple-touch-icon" href={DEFAULT_OG_IMAGE} />
+        <link
+          rel="sitemap"
+          type="application/xml"
+          title="Sitemap"
+          href={`${SITE_ORIGIN}/sitemap.xml`}
+        />
         <JsonLd data={organizationSchema} />
         <JsonLd data={websiteSchema} />
       </head>
