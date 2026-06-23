@@ -51,7 +51,7 @@ function BookSiteVisitForm() {
           preferred_date: formData.preferredDate,
           preferred_time: formData.preferredTime,
           message: formData.message,
-          source: propertyIdParam ? "facebook_ad" : "site_visit",
+          source: "site_visit",
         }),
       });
     } catch {

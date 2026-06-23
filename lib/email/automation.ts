@@ -61,7 +61,8 @@ async function resolveProperty(
   supabase: SupabaseClient,
   propertyId: number | null | undefined,
   propertyName: string | null | undefined,
-  settings: EmailAutomationSettings
+  settings: EmailAutomationSettings,
+  source?: string | null
 ): Promise<Property | null> {
   if (propertyId) {
     const { data } = await supabase.from("properties").select("*").eq("id", propertyId).single();
@@ -79,10 +80,13 @@ async function resolveProperty(
     if (data) return data as Property;
   }
 
-  const fallbackId = settings.default_property_id ?? settings.facebook_landing_property_id;
-  if (fallbackId) {
-    const { data } = await supabase.from("properties").select("*").eq("id", fallbackId).single();
-    if (data) return data as Property;
+  // Only use campaign fallback for Facebook ad traffic — not general contact forms.
+  if (source === "facebook_ad") {
+    const fallbackId = settings.default_property_id ?? settings.facebook_landing_property_id;
+    if (fallbackId) {
+      const { data } = await supabase.from("properties").select("*").eq("id", fallbackId).single();
+      if (data) return data as Property;
+    }
   }
 
   return null;
@@ -220,7 +224,8 @@ export async function runLeadAutomation(
     supabase,
     input.propertyId,
     input.propertyName,
-    settings
+    settings,
+    input.source
   );
 
   let propertyEmailSent = false;
