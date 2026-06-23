@@ -209,7 +209,10 @@ export async function POST(request: Request) {
       error_message: result.error ?? null,
     });
 
-    return NextResponse.json({ success: result.ok, error: result.error });
+    if (!result.ok) {
+      return NextResponse.json({ success: false, error: result.error || "SMS send failed" }, { status: 502 });
+    }
+    return NextResponse.json({ success: true });
   }
 
   const settings: SmsAutomationSettings = {

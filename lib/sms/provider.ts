@@ -6,6 +6,15 @@ export type SmsSendResult = {
   error?: string;
 };
 
+function normalizeApiKey(raw?: string): string | undefined {
+  if (!raw) return undefined;
+  const trimmed = raw.trim();
+  if (trimmed.toLowerCase().startsWith("bearer ")) {
+    return trimmed.slice(7).trim();
+  }
+  return trimmed;
+}
+
 function getSmsConfig() {
   const apiBase =
     process.env.OKAYSMS_API_URL ||
@@ -15,11 +24,12 @@ function getSmsConfig() {
   return {
     provider: (process.env.SMS_PROVIDER || "okaysms").toLowerCase(),
     username: process.env.AFRICAS_TALKING_USERNAME || process.env.SMS_API_USERNAME,
-    apiKey:
+    apiKey: normalizeApiKey(
       process.env.OKAYSMS_API_KEY ||
-      process.env.SMS_API_KEY ||
-      process.env.AFRICAS_TALKING_API_KEY ||
-      process.env.BULKSMS_API_KEY,
+        process.env.SMS_API_KEY ||
+        process.env.AFRICAS_TALKING_API_KEY ||
+        process.env.BULKSMS_API_KEY
+    ),
     senderId:
       process.env.SMS_SENDER_ID ||
       process.env.OKAYSMS_SENDER_ID ||
@@ -38,31 +48,58 @@ function getOkaySmsSendUrl(): string {
   return `${base}/sms/send`;
 }
 
-function parseOkaySmsResponse(data: unknown): SmsSendResult {
+function parseOkaySmsResponse(data: unknown, httpStatus: number): SmsSendResult {
+  if (!data || typeof data !== "object") {
+    return { ok: false, error: `Okay SMS returned empty response (HTTP ${httpStatus})` };
+  }
+
   const body = data as {
     status?: string;
     message?: string;
     message_id?: string;
-    data?: { uid?: string; id?: string; status?: string };
+    errors?: Record<string, string[]>;
+    data?: { uid?: string; id?: string; status?: string } | string | Array<{ uid?: string; id?: string }>;
     uid?: string;
     id?: string;
   };
 
-  const messageId =
-    body.data?.uid ||
-    body.data?.id ||
-    body.message_id ||
-    body.uid ||
-    body.id;
+  const status = (body.status || "").toLowerCase();
+  if (status === "error") {
+    const validation =
+      body.errors &&
+      Object.entries(body.errors)
+        .map(([k, v]) => `${k}: ${v.join(", ")}`)
+        .join("; ");
+    return {
+      ok: false,
+      error: body.message || validation || "Okay SMS rejected the request",
+    };
+  }
 
-  const status = (body.status || body.data?.status || "").toLowerCase();
-  if (status === "success" || status === "sent" || messageId) {
+  if (status === "success") {
+    let messageId: string | undefined;
+    if (typeof body.data === "string") {
+      messageId = body.data;
+    } else if (Array.isArray(body.data)) {
+      messageId = body.data[0]?.uid || body.data[0]?.id;
+    } else if (body.data && typeof body.data === "object") {
+      messageId = body.data.uid || body.data.id;
+    }
+    messageId = messageId || body.message_id || body.uid || body.id;
     return { ok: true, providerMessageId: messageId ? String(messageId) : undefined };
+  }
+
+  // Laravel-style validation without status field
+  if (body.message && body.errors) {
+    const validation = Object.entries(body.errors)
+      .map(([k, v]) => `${k}: ${v.join(", ")}`)
+      .join("; ");
+    return { ok: false, error: `${body.message} (${validation})` };
   }
 
   return {
     ok: false,
-    error: body.message || (typeof data === "object" ? JSON.stringify(data) : "Okay SMS send failed"),
+    error: body.message || JSON.stringify(body),
   };
 }
 
@@ -95,16 +132,29 @@ async function sendViaOkaySms(
     }),
   });
 
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    const err =
-      (data as { message?: string }).message ||
-      (data as { error?: string }).error ||
-      `Okay SMS HTTP ${res.status}`;
-    return { ok: false, error: err };
+  const rawText = await res.text();
+  let data: unknown = {};
+  try {
+    data = rawText ? JSON.parse(rawText) : {};
+  } catch {
+    return {
+      ok: false,
+      error: `Okay SMS non-JSON response (HTTP ${res.status}): ${rawText.slice(0, 200)}`,
+    };
   }
 
-  return parseOkaySmsResponse(data);
+  if (!res.ok) {
+    const parsed = parseOkaySmsResponse(data, res.status);
+    return {
+      ok: false,
+      error:
+        parsed.error ||
+        (data as { message?: string }).message ||
+        `Okay SMS HTTP ${res.status}`,
+    };
+  }
+
+  return parseOkaySmsResponse(data, res.status);
 }
 
 async function sendViaAfricasTalking(

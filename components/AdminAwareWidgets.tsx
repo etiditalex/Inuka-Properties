@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { isAdminPath } from "@/lib/admin/path";
 import Chatbot from "./Chatbot";
 import CookieBanner from "./CookieBanner";
+import SmsFloatWidget from "./SmsFloatWidget";
 
 export default function AdminAwareWidgets() {
   const pathname = usePathname();
@@ -11,6 +12,7 @@ export default function AdminAwareWidgets() {
 
   return (
     <>
+      <SmsFloatWidget />
       <Chatbot />
       <CookieBanner />
     </>

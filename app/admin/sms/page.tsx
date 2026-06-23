@@ -31,6 +31,7 @@ type SmsLog = {
   sms_type: string;
   status: string;
   message_body: string;
+  error_message: string | null;
   created_at: string;
 };
 
@@ -170,8 +171,12 @@ export default function AdminSmsPage() {
     });
     const data = await res.json();
     setSending(false);
-    setMessage(res.ok ? "Test SMS sent!" : data.error || "Test failed");
-    if (res.ok) load();
+    if (data.success) {
+      setMessage("Test SMS sent!");
+      load();
+    } else {
+      setMessage(data.error || "Test failed — check Sender ID and API key in Vercel.");
+    }
   };
 
   const propertyOptions = [
@@ -365,7 +370,7 @@ export default function AdminSmsPage() {
                   label="Sender ID"
                   value={settings.sender_id}
                   onChange={(e) => setSettings((s) => ({ ...s, sender_id: e.target.value.toUpperCase().slice(0, 11) }))}
-                  hint="Registered bulk SMS sender (e.g. INUKA)"
+                  hint="Must match your registered Okay SMS sender ID exactly (max 11 chars)"
                 />
                 <AdminInput
                   label="Admin SMS number"
@@ -451,6 +456,11 @@ export default function AdminSmsPage() {
                       <p className="mt-2 font-medium text-dark-900">{log.recipient_phone}</p>
                       {log.recipient_name && <p className="text-dark-600">{log.recipient_name}</p>}
                       <p className="mt-2 line-clamp-2 text-xs text-dark-500">{log.message_body}</p>
+                      {log.status === "failed" && log.error_message && (
+                        <p className="mt-2 rounded-lg bg-red-50 px-2 py-1.5 text-xs text-red-700">
+                          {log.error_message}
+                        </p>
+                      )}
                     </div>
                   ))}
                 </div>
