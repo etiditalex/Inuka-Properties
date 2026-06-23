@@ -409,15 +409,21 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <div className="text-sm font-semibold text-primary-700 mb-1">Deposit:</div>
-                      <div className="text-2xl font-bold text-primary-600">{property.paymentPlan.Deposit}</div>
+                      <div className="text-2xl font-bold text-primary-600">
+                        {property.paymentPlan.Deposit}
+                      </div>
                     </div>
                     <div>
                       <div className="text-sm font-semibold text-primary-700 mb-1">Balance:</div>
-                      <div className="text-2xl font-bold text-primary-600">{property.paymentPlan.Balance}</div>
+                      <div className="text-2xl font-bold text-primary-600">
+                        {property.paymentPlan.Balance ?? property.paymentPlan["Remaining Balance"]}
+                      </div>
                     </div>
                     <div>
                       <div className="text-sm font-semibold text-primary-700 mb-1">Installments:</div>
-                      <div className="text-xl font-bold text-dark-900">{property.paymentPlan.Installments}</div>
+                      <div className="text-xl font-bold text-dark-900">
+                        {property.paymentPlan.Installments ?? property.paymentPlan["Monthly Installments"]}
+                      </div>
                     </div>
                     <div>
                       <div className="text-sm font-semibold text-primary-700 mb-1">Monthly Payment:</div>

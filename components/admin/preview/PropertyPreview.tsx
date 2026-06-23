@@ -81,6 +81,21 @@ export default function PropertyPreview({ property }: PropertyPreviewProps) {
                 </div>
               </div>
             ) : null}
+            {(() => {
+              const plan =
+                typeof property.payment_plan === "object" && property.payment_plan
+                  ? property.payment_plan
+                  : null;
+              const deposit =
+                plan && typeof plan === "object"
+                  ? (plan as Record<string, string>).Deposit
+                  : undefined;
+              return deposit ? (
+                <p className="mt-3 text-sm text-primary-700">
+                  <span className="font-semibold">Deposit:</span> {deposit}
+                </p>
+              ) : null;
+            })()}
           </div>
         </div>
       </div>

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminShell from "@/components/admin/AdminShell";
 import { AdminInput, AdminTextarea, AdminSelect, AdminToggle } from "@/components/admin/AdminForm";
-import ImageUpload from "@/components/admin/ImageUpload";
+import GalleryUpload from "@/components/admin/GalleryUpload";
 import AdminButton from "@/components/admin/AdminButton";
 import PropertyPreview from "@/components/admin/preview/PropertyPreview";
 import { createClient } from "@/lib/supabase/client";
@@ -29,8 +29,71 @@ const emptyProperty: Partial<Property> = {
   auto_sold_out: true,
   published: true,
   pricing: {},
+  payment_plan: {},
   quick_info: {},
 };
+
+function parseRecordField(
+  value: Record<string, string> | string | null | undefined
+): Record<string, string> {
+  if (!value) return {};
+  if (typeof value === "object") return value;
+  try {
+    return JSON.parse(value) as Record<string, string>;
+  } catch {
+    return {};
+  }
+}
+
+function recordToLines(record: Record<string, string>) {
+  return Object.entries(record)
+    .map(([key, val]) => `${key}|${val}`)
+    .join("\n");
+}
+
+function linesToRecord(text: string) {
+  const result: Record<string, string> = {};
+  text.split("\n").forEach((line) => {
+    const pipe = line.indexOf("|");
+    if (pipe === -1) return;
+    const key = line.slice(0, pipe).trim();
+    const value = line.slice(pipe + 1).trim();
+    if (key && value) result[key] = value;
+  });
+  return result;
+}
+
+function paymentPlanFromForm(fields: {
+  totalPrice: string;
+  deposit: string;
+  balance: string;
+  installments: string;
+  monthlyPayment: string;
+}) {
+  const plan: Record<string, string> = {};
+  if (fields.totalPrice.trim()) plan["Total Price"] = fields.totalPrice.trim();
+  if (fields.deposit.trim()) plan.Deposit = fields.deposit.trim();
+  if (fields.balance.trim()) plan.Balance = fields.balance.trim();
+  if (fields.installments.trim()) plan.Installments = fields.installments.trim();
+  if (fields.monthlyPayment.trim()) plan["Monthly Payment"] = fields.monthlyPayment.trim();
+  return plan;
+}
+
+function formFromPaymentPlan(plan: Record<string, string>) {
+  return {
+    totalPrice: plan["Total Price"] ?? "",
+    deposit: plan.Deposit ?? plan.deposit ?? "",
+    balance: plan.Balance ?? plan["Remaining Balance"] ?? "",
+    installments: plan.Installments ?? plan["Monthly Installments"] ?? "",
+    monthlyPayment: plan["Monthly Payment"] ?? "",
+  };
+}
+
+function resolveGallery(form: Partial<Property>) {
+  if (form.gallery?.length) return form.gallery;
+  if (form.image) return [form.image];
+  return [];
+}
 
 const typeOptions = [
   { value: "residential", label: "Residential" },
@@ -55,6 +118,15 @@ export default function PropertyFormPage({ propertyId }: PropertyFormPageProps) 
   const isEdit = Boolean(propertyId);
   const [form, setForm] = useState<Partial<Property>>(emptyProperty);
   const [featuresText, setFeaturesText] = useState("");
+  const [pricingText, setPricingText] = useState("");
+  const [quickInfoText, setQuickInfoText] = useState("");
+  const [paymentFields, setPaymentFields] = useState({
+    totalPrice: "",
+    deposit: "",
+    balance: "",
+    installments: "",
+    monthlyPayment: "",
+  });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -64,8 +136,17 @@ export default function PropertyFormPage({ propertyId }: PropertyFormPageProps) 
       const supabase = createClient();
       const { data } = await supabase.from("properties").select("*").eq("id", propertyId).single();
       if (data) {
-        setForm(data as Property);
-        setFeaturesText((data.features as string[]).join("\n"));
+        const property = data as Property;
+        const gallery = property.gallery?.length
+          ? property.gallery
+          : property.image
+            ? [property.image]
+            : [];
+        setForm({ ...property, gallery });
+        setFeaturesText((property.features as string[]).join("\n"));
+        setPricingText(recordToLines(parseRecordField(property.pricing)));
+        setQuickInfoText(recordToLines(parseRecordField(property.quick_info)));
+        setPaymentFields(formFromPaymentPlan(parseRecordField(property.payment_plan)));
       }
     }
     load();
@@ -76,12 +157,16 @@ export default function PropertyFormPage({ propertyId }: PropertyFormPageProps) 
     setError("");
     const supabase = createClient();
 
+    const gallery = resolveGallery(form);
+
     const payload = {
       ...form,
+      image: gallery[0] || form.image || "",
       features: featuresText.split("\n").map((f) => f.trim()).filter(Boolean),
-      gallery: form.gallery || [],
-      pricing: form.pricing || {},
-      quick_info: form.quick_info || {},
+      gallery,
+      pricing: linesToRecord(pricingText),
+      payment_plan: paymentPlanFromForm(paymentFields),
+      quick_info: linesToRecord(quickInfoText),
     };
 
     const { error: saveError } = isEdit
@@ -98,6 +183,16 @@ export default function PropertyFormPage({ propertyId }: PropertyFormPageProps) 
 
   const update = (key: keyof Property, value: unknown) =>
     setForm((f) => ({ ...f, [key]: value }));
+
+  const galleryImages = resolveGallery(form);
+
+  const updateGallery = (urls: string[]) => {
+    setForm((f) => ({
+      ...f,
+      gallery: urls,
+      image: urls[0] || "",
+    }));
+  };
 
   return (
     <AdminShell
@@ -118,8 +213,13 @@ export default function PropertyFormPage({ propertyId }: PropertyFormPageProps) 
             <AdminInput label="Price" value={form.price || ""} onChange={(e) => update("price", e.target.value)} placeholder="KES 450,000" />
             <AdminInput label="Size" value={form.size || ""} onChange={(e) => update("size", e.target.value)} placeholder="1/8 Acre" />
           </div>
-          <AdminInput label="Hero Image URL" value={form.image || ""} onChange={(e) => update("image", e.target.value)} />
-          <ImageUpload label="Or upload hero image" value={form.image || ""} onChange={(url) => update("image", url)} folder="properties" />
+          <GalleryUpload
+            label="Property images"
+            value={galleryImages}
+            onChange={updateGallery}
+            folder="properties"
+            hint="First image is the cover on listings. Add more for the gallery on the property page."
+          />
           <AdminTextarea label="Description" value={form.description || ""} onChange={(e) => update("description", e.target.value)} rows={4} />
           <AdminTextarea
             label="Features (one per line)"
@@ -128,6 +228,58 @@ export default function PropertyFormPage({ propertyId }: PropertyFormPageProps) 
             rows={5}
             hint="Each line becomes a bullet point on the listing"
           />
+
+          <div className="space-y-4 rounded-xl border border-primary-100 bg-primary-50/40 p-4">
+            <h4 className="font-bold text-dark-900 font-montserrat">Pricing & Payment</h4>
+            <AdminTextarea
+              label="Sizes & pricing (one per line)"
+              value={pricingText}
+              onChange={(e) => setPricingText(e.target.value)}
+              rows={3}
+              hint="Format: 1/8 Acre|KES 450,000"
+              placeholder={"1/8 Acre|KES 450,000\n1/4 Acre|KES 950,000"}
+            />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <AdminInput
+                label="Total price"
+                value={paymentFields.totalPrice}
+                onChange={(e) => setPaymentFields((f) => ({ ...f, totalPrice: e.target.value }))}
+                placeholder="KES 450,000"
+              />
+              <AdminInput
+                label="Deposit"
+                value={paymentFields.deposit}
+                onChange={(e) => setPaymentFields((f) => ({ ...f, deposit: e.target.value }))}
+                placeholder="KES 150,000"
+              />
+              <AdminInput
+                label="Balance"
+                value={paymentFields.balance}
+                onChange={(e) => setPaymentFields((f) => ({ ...f, balance: e.target.value }))}
+                placeholder="KES 300,000"
+              />
+              <AdminInput
+                label="Installments"
+                value={paymentFields.installments}
+                onChange={(e) => setPaymentFields((f) => ({ ...f, installments: e.target.value }))}
+                placeholder="12 months"
+              />
+              <AdminInput
+                label="Monthly payment"
+                value={paymentFields.monthlyPayment}
+                onChange={(e) => setPaymentFields((f) => ({ ...f, monthlyPayment: e.target.value }))}
+                placeholder="KES 25,000"
+              />
+            </div>
+            <AdminTextarea
+              label="Quick information (one per line)"
+              value={quickInfoText}
+              onChange={(e) => setQuickInfoText(e.target.value)}
+              rows={4}
+              hint="Format: Deposit|KES 150,000"
+              placeholder={"Deposit|KES 150,000\nPayment Plan|12 monthly installments"}
+            />
+          </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <AdminInput
@@ -163,7 +315,16 @@ export default function PropertyFormPage({ propertyId }: PropertyFormPageProps) 
         </div>
 
         <div className="space-y-4">
-          <PropertyPreview property={form} />
+          <PropertyPreview
+            property={{
+              ...form,
+              image: galleryImages[0] || form.image || "",
+              gallery: galleryImages,
+              payment_plan: paymentPlanFromForm(paymentFields),
+              pricing: linesToRecord(pricingText),
+              quick_info: linesToRecord(quickInfoText),
+            }}
+          />
           {form.auto_sold_out && form.total_units && form.total_units > 0 && (
             <div className="rounded-xl border border-secondary-200 bg-secondary-50 p-4 text-sm text-secondary-800">
               <strong>Auto Sold Out:</strong> When sold units reach {form.total_units}, this property
