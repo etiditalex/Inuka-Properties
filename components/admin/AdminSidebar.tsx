@@ -21,6 +21,7 @@ import {
   Download,
   Play,
   Mail,
+  Send,
 } from "lucide-react";
 import { cn } from "@/lib/admin/utils";
 import { adminPath } from "@/lib/admin/path";
@@ -39,6 +40,7 @@ const navItems = [
   { segment: "downloads", label: "Downloads", icon: Download },
   { segment: "videos", label: "Video Gallery", icon: Play },
   { segment: "newsletters", label: "Newsletters", icon: Mail },
+  { segment: "email", label: "Email Automation", icon: Send },
   { segment: "inquiries", label: "Inquiries", icon: MessageSquare, badge: "inquiries" as const },
   { segment: "leads", label: "Lead Generation", icon: Users, badge: "leads" as const },
   { segment: "settings", label: "Settings", icon: Settings },

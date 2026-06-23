@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { sendAdminNotification, shouldNotify } from "@/lib/notifications";
+import { runLeadAutomation } from "@/lib/email/automation";
 
 function getServiceClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -12,7 +12,7 @@ function getServiceClient() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, phone, subject, message, source } = body;
+    const { name, email, phone, subject, message, source, property_id, property_name } = body;
 
     if (!name || !email || !message) {
       return NextResponse.json({ error: "Name, email, and message are required" }, { status: 400 });
@@ -23,31 +23,40 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, offline: true });
     }
 
-    const { error } = await supabase.from("inquiries").insert({
-      name,
-      email,
-      phone: phone || null,
-      subject: subject || null,
-      message,
-      source: source || "contact_form",
-    });
+    const { data: inserted, error } = await supabase
+      .from("inquiries")
+      .insert({
+        name,
+        email,
+        phone: phone || null,
+        subject: subject || null,
+        message,
+        source: source || "contact_form",
+      })
+      .select("id")
+      .single();
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    if (await shouldNotify(supabase, "notify_new_inquiries")) {
-      await sendAdminNotification({
-        type: "inquiry",
-        name,
-        email,
-        phone,
-        subject,
-        message,
-      });
-    }
+    const isPropertyInquiry =
+      subject === "property-inquiry" || source === "facebook_ad" || Boolean(property_id);
 
-    return NextResponse.json({ success: true });
+    const automation = await runLeadAutomation(supabase, {
+      leadType: "inquiry",
+      leadId: inserted?.id,
+      name,
+      email,
+      phone,
+      propertyId: property_id || null,
+      propertyName: property_name || null,
+      message,
+      subject,
+      source: source || "contact_form",
+    });
+
+    return NextResponse.json({ success: true, automation, propertyInquiry: isPropertyInquiry });
   } catch {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }

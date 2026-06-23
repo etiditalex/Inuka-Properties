@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { sendAdminNotification, shouldNotify } from "@/lib/notifications";
+import { runLeadAutomation } from "@/lib/email/automation";
 
 function getServiceClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -33,36 +33,41 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, offline: true });
     }
 
-    const { error } = await supabase.from("property_leads").insert({
-      name,
-      email,
-      phone,
-      property_id: property_id || null,
-      property_name: property_name || null,
-      preferred_date: preferred_date || null,
-      preferred_time: preferred_time || null,
-      message: message || null,
-      source: source || "site_visit",
-    });
+    const { data: inserted, error } = await supabase
+      .from("property_leads")
+      .insert({
+        name,
+        email,
+        phone,
+        property_id: property_id || null,
+        property_name: property_name || null,
+        preferred_date: preferred_date || null,
+        preferred_time: preferred_time || null,
+        message: message || null,
+        source: source || "site_visit",
+      })
+      .select("id")
+      .single();
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    if (await shouldNotify(supabase, "notify_new_leads")) {
-      await sendAdminNotification({
-        type: "lead",
-        name,
-        email,
-        phone,
-        propertyName: property_name,
-        preferredDate: preferred_date,
-        preferredTime: preferred_time,
-        message,
-      });
-    }
+    const automation = await runLeadAutomation(supabase, {
+      leadType: "lead",
+      leadId: inserted?.id,
+      name,
+      email,
+      phone,
+      propertyId: property_id || null,
+      propertyName: property_name || null,
+      message,
+      preferredDate: preferred_date,
+      preferredTime: preferred_time,
+      source: source || "site_visit",
+    });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, automation });
   } catch {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }

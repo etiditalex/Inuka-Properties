@@ -1,10 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Calendar, Clock, MapPin, User, Phone, Mail, Send, CheckCircle } from "lucide-react";
 
-export default function BookSiteVisitPage() {
+function BookSiteVisitForm() {
+  const searchParams = useSearchParams();
+  const propertyIdParam = searchParams.get("property_id");
+
+  const [propertyId, setPropertyId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -16,6 +21,21 @@ export default function BookSiteVisitPage() {
   });
   const [submitted, setSubmitted] = useState(false);
 
+  useEffect(() => {
+    if (!propertyIdParam) return;
+    const id = Number(propertyIdParam);
+    if (Number.isNaN(id)) return;
+    setPropertyId(id);
+    fetch(`/api/content/properties/${id}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.property?.title) {
+          setFormData((prev) => ({ ...prev, property: data.property.title }));
+        }
+      })
+      .catch(() => {});
+  }, [propertyIdParam]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -26,11 +46,12 @@ export default function BookSiteVisitPage() {
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
+          property_id: propertyId,
           property_name: formData.property,
           preferred_date: formData.preferredDate,
           preferred_time: formData.preferredTime,
           message: formData.message,
-          source: "site_visit",
+          source: propertyIdParam ? "facebook_ad" : "site_visit",
         }),
       });
     } catch {
@@ -280,6 +301,14 @@ export default function BookSiteVisitPage() {
         </div>
       </section>
     </div>
+  );
+}
+
+export default function BookSiteVisitPage() {
+  return (
+    <Suspense fallback={<div className="pt-32 text-center text-dark-500">Loading...</div>}>
+      <BookSiteVisitForm />
+    </Suspense>
   );
 }
 
