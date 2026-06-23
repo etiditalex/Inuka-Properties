@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Download } from "lucide-react";
 import AdminShell from "@/components/admin/AdminShell";
 import AdminButton from "@/components/admin/AdminButton";
 import { createClient } from "@/lib/supabase/client";
@@ -21,6 +21,8 @@ export default function AdminPropertiesPage() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [importing, setImporting] = useState(false);
+  const [importMessage, setImportMessage] = useState("");
 
   const load = async () => {
     const supabase = createClient();
@@ -36,6 +38,39 @@ export default function AdminPropertiesPage() {
     const supabase = createClient();
     await supabase.from("properties").delete().eq("id", id);
     load();
+  };
+
+  const handleImportFromWebsite = async () => {
+    if (
+      !confirm(
+        "Import all land listings from the public website into the dashboard? Existing listings with the same ID will be updated."
+      )
+    ) {
+      return;
+    }
+
+    setImporting(true);
+    setImportMessage("");
+
+    try {
+      const res = await fetch("/api/admin/import-properties", {
+        method: "POST",
+        credentials: "include",
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setImportMessage(data.error || "Import failed");
+        return;
+      }
+
+      setImportMessage(data.message || `Imported ${data.imported} listings.`);
+      await load();
+    } catch {
+      setImportMessage("Import failed. Please try again.");
+    } finally {
+      setImporting(false);
+    }
   };
 
   const filtered = properties.filter(
@@ -57,10 +92,25 @@ export default function AdminPropertiesPage() {
             className="w-full rounded-xl border border-dark-200 bg-white py-2.5 pl-10 pr-4 text-sm outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
           />
         </div>
-        <Link href={adminPath("properties/new")}>
-          <AdminButton><Plus size={16} /> Add Property</AdminButton>
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <AdminButton variant="secondary" onClick={handleImportFromWebsite} loading={importing}>
+            <Download size={16} /> Import from website
+          </AdminButton>
+          <Link href={adminPath("properties/new")}>
+            <AdminButton>
+              <Plus size={16} /> Add Property
+            </AdminButton>
+          </Link>
+        </div>
       </div>
+
+      {importMessage && (
+        <div
+          className={`mb-6 rounded-xl px-4 py-3 text-sm ${importMessage.includes("failed") || importMessage.includes("Failed") ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700"}`}
+        >
+          {importMessage}
+        </div>
+      )}
 
       {loading ? (
         <div className="flex h-48 items-center justify-center">
@@ -69,9 +119,14 @@ export default function AdminPropertiesPage() {
       ) : filtered.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-dark-200 bg-white py-16 text-center">
           <p className="text-dark-500">No properties found</p>
-          <Link href={adminPath("properties/new")} className="mt-4 inline-block">
-            <AdminButton size="sm">Add your first property</AdminButton>
-          </Link>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+            <AdminButton size="sm" variant="secondary" onClick={handleImportFromWebsite} loading={importing}>
+              <Download size={14} /> Import from website
+            </AdminButton>
+            <Link href={adminPath("properties/new")}>
+              <AdminButton size="sm">Add your first property</AdminButton>
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="overflow-hidden rounded-2xl border border-dark-200/60 bg-white shadow-sm">
