@@ -27,9 +27,9 @@ export async function fetchPublishedProperties(): Promise<CatalogProperty[]> {
 
   const { data } = await supabase
     .from("properties")
-    .select("id, title, location, type, price, size, bedrooms, image, featured, status, features")
+    .select("id, title, location, type, price, size, bedrooms, image, featured, status, features, created_at")
     .eq("published", true)
-    .order("id", { ascending: false });
+    .order("created_at", { ascending: false });
 
   if (!data?.length) return STATIC_PROPERTY_CATALOG;
 
@@ -61,4 +61,10 @@ export async function fetchFeaturedProperties(limit = 4): Promise<CatalogPropert
   const all = await fetchPublishedProperties();
   const featured = all.filter((p) => p.featured && p.status !== "sold");
   return (featured.length ? featured : all.filter((p) => p.status !== "sold")).slice(0, limit);
+}
+
+/** Latest published listings (newest first) for homepage and highlights */
+export async function fetchLatestProperties(limit = 4): Promise<CatalogProperty[]> {
+  const all = await fetchPublishedProperties();
+  return all.filter((p) => p.status !== "sold").slice(0, limit);
 }

@@ -92,7 +92,7 @@ function PropertyCarousel({ properties }: { properties: Property[] }) {
 
 function PropertyCardsSection() {
   const [homeFeaturedProperties, setHomeFeaturedProperties] = useState<Property[]>(
-    STATIC_PROPERTY_CATALOG.filter((p) => p.featured).slice(0, 4) as Property[]
+    STATIC_PROPERTY_CATALOG.filter((p) => p.status !== "sold").slice(0, 4) as Property[]
   );
 
   useEffect(() => {
@@ -100,10 +100,10 @@ function PropertyCardsSection() {
       .then((r) => r.json())
       .then((data) => {
         if (!data.properties?.length) return;
-        const featured = data.properties
-          .filter((p: Property) => p.featured && p.status !== "sold")
+        const latest = data.properties
+          .filter((p: Property) => p.status !== "sold")
           .slice(0, 4);
-        if (featured.length) setHomeFeaturedProperties(featured);
+        if (latest.length) setHomeFeaturedProperties(latest);
       })
       .catch(() => {});
   }, []);

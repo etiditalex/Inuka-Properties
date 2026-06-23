@@ -23,6 +23,7 @@ export default function GalleryUpload({
 }: GalleryUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null);
   const [urlInput, setUrlInput] = useState("");
   const [error, setError] = useState("");
 
@@ -38,25 +39,52 @@ export default function GalleryUpload({
     setUrlInput("");
   };
 
-  const handleFile = async (file: File) => {
-    if (!file.type.startsWith("image/")) {
-      setError("Please select an image file");
+  const handleFiles = async (files: FileList | File[]) => {
+    const list = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    if (!list.length) {
+      setError("Please select image files");
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      setError("Image must be under 10MB");
+
+    const oversized = list.filter((f) => f.size > 10 * 1024 * 1024);
+    if (oversized.length === list.length) {
+      setError("All selected images must be under 10MB");
       return;
     }
+
     setError("");
     setUploading(true);
-    try {
-      const url = await uploadImage(file, folder);
-      onChange([...value, url]);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Upload failed");
-    } finally {
-      setUploading(false);
+    setUploadProgress({ current: 0, total: list.length });
+
+    const newUrls: string[] = [];
+    let completed = 0;
+
+    for (const file of list) {
+      if (file.size > 10 * 1024 * 1024) {
+        completed += 1;
+        setUploadProgress({ current: completed, total: list.length });
+        continue;
+      }
+
+      try {
+        const url = await uploadImage(file, folder);
+        if (!value.includes(url) && !newUrls.includes(url)) {
+          newUrls.push(url);
+        }
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Upload failed");
+      }
+
+      completed += 1;
+      setUploadProgress({ current: completed, total: list.length });
     }
+
+    if (newUrls.length) {
+      onChange([...value, ...newUrls]);
+    }
+
+    setUploading(false);
+    setUploadProgress(null);
   };
 
   const removeAt = (index: number) => {
@@ -77,6 +105,10 @@ export default function GalleryUpload({
     const [img] = next.splice(index, 1);
     onChange([img, ...next]);
   };
+
+  const uploadLabel = uploading && uploadProgress
+    ? `Uploading ${uploadProgress.current} of ${uploadProgress.total}...`
+    : "Upload images from device (select multiple)";
 
   return (
     <div className="space-y-3">
@@ -157,19 +189,20 @@ export default function GalleryUpload({
         ) : (
           <Upload size={22} className="text-primary-600" />
         )}
-        <span className="text-sm font-medium text-dark-600">
-          {uploading ? "Uploading..." : "Upload image from device"}
-        </span>
+        <span className="text-sm font-medium text-dark-600">{uploadLabel}</span>
+        {!uploading && (
+          <span className="text-xs text-dark-400">PNG, JPG, WebP up to 10MB each</span>
+        )}
       </button>
 
       <input
         ref={inputRef}
         type="file"
         accept="image/*"
+        multiple
         className="hidden"
         onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) handleFile(file);
+          if (e.target.files?.length) handleFiles(e.target.files);
           e.target.value = "";
         }}
       />

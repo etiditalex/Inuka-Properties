@@ -218,7 +218,7 @@ export default function PropertyFormPage({ propertyId }: PropertyFormPageProps) 
             value={galleryImages}
             onChange={updateGallery}
             folder="properties"
-            hint="First image is the cover on listings. Add more for the gallery on the property page."
+            hint="First image is the cover on listings. Select multiple images at once when uploading. New listings go live immediately when Published is on."
           />
           <AdminTextarea label="Description" value={form.description || ""} onChange={(e) => update("description", e.target.value)} rows={4} />
           <AdminTextarea
