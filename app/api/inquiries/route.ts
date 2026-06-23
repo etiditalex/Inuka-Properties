@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { runLeadAutomation } from "@/lib/email/automation";
+import { runLeadSmsAutomation } from "@/lib/sms/automation";
 
 function getServiceClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -56,7 +57,22 @@ export async function POST(request: Request) {
       source: source || "contact_form",
     });
 
-    return NextResponse.json({ success: true, automation, propertyInquiry: isPropertyInquiry });
+    const smsAutomation = phone
+      ? await runLeadSmsAutomation(supabase, {
+          leadType: "inquiry",
+          leadId: inserted?.id,
+          name,
+          email,
+          phone,
+          propertyId: property_id || null,
+          propertyName: property_name || null,
+          message,
+          subject,
+          source: source || "contact_form",
+        })
+      : { propertySmsSent: false, adminSmsSent: false };
+
+    return NextResponse.json({ success: true, automation, smsAutomation, propertyInquiry: isPropertyInquiry });
   } catch {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
