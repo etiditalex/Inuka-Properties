@@ -16,10 +16,17 @@ export const DEFAULT_EMAIL_AUTOMATION: EmailAutomationSettings = {
   auto_send_property_details: true,
   default_property_id: null,
   notify_admin_email: true,
-  notify_admin_whatsapp: true,
+  notify_admin_whatsapp: false,
   admin_whatsapp_number: WHATSAPP_NUMBER,
   facebook_landing_property_id: null,
 };
+
+const PROPERTY_EMAIL_SOURCES = new Set([
+  "facebook_ad",
+  "homepage_email_widget",
+  "homepage_sms_widget",
+  "get_property_details",
+]);
 
 export type LeadAutomationInput = {
   leadType: "lead" | "inquiry";
@@ -80,13 +87,21 @@ async function resolveProperty(
     if (data) return data as Property;
   }
 
-  // Only use campaign fallback for Facebook ad traffic — not general contact forms.
-  if (source === "facebook_ad") {
+  // Campaign / homepage widgets: use configured property or latest listing.
+  if (source && PROPERTY_EMAIL_SOURCES.has(source)) {
     const fallbackId = settings.default_property_id ?? settings.facebook_landing_property_id;
     if (fallbackId) {
       const { data } = await supabase.from("properties").select("*").eq("id", fallbackId).single();
       if (data) return data as Property;
     }
+    const { data: latest } = await supabase
+      .from("properties")
+      .select("*")
+      .eq("published", true)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (latest) return latest as Property;
   }
 
   return null;
@@ -111,7 +126,15 @@ async function sendResendEmail(to: string, subject: string, html: string): Promi
     body: JSON.stringify({ from: fromEmail, to: [to], subject, html }),
   });
 
-  return res.ok;
+  if (!res.ok) {
+    const errBody = await res.text().catch(() => "");
+    if (process.env.NODE_ENV === "development") {
+      console.error("[email] Resend failed:", res.status, errBody);
+    }
+    return false;
+  }
+
+  return true;
 }
 
 async function logEmail(

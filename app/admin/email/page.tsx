@@ -116,10 +116,10 @@ export default function AdminEmailPage() {
                   description="Sends alert to NOTIFY_EMAIL with lead details and WhatsApp reply link"
                 />
                 <AdminToggle
-                  label="WhatsApp admin alerts"
+                  label="WhatsApp admin alerts (optional)"
                   checked={settings.notify_admin_whatsapp}
                   onChange={(v) => setSettings((s) => ({ ...s, notify_admin_whatsapp: v }))}
-                  description="Uses WhatsApp Cloud API or WHATSAPP_WEBHOOK_URL if configured"
+                  description="Optional — requires Meta Business API. Email alerts work without this."
                 />
               </div>
             </div>
@@ -177,8 +177,7 @@ export default function AdminEmailPage() {
                 hint="Default: 254711082084 (0711 082 084)"
               />
               <p className="mt-3 text-xs text-dark-500">
-                For automatic WhatsApp push notifications, set WHATSAPP_ACCESS_TOKEN and WHATSAPP_PHONE_NUMBER_ID
-                in Vercel, or WHATSAPP_WEBHOOK_URL for Zapier/Make.com integration.
+                WhatsApp push is optional. Email automation only needs RESEND_API_KEY, NOTIFY_EMAIL, and EMAIL_FROM in Vercel.
               </p>
             </div>
 

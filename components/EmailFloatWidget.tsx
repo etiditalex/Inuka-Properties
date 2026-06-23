@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Smartphone, X, Send, CheckCircle, User, Phone, Mail } from "lucide-react";
+import { Mail, X, Send, CheckCircle, User, Phone } from "lucide-react";
 
-export default function SmsFloatWidget() {
+export default function EmailFloatWidget() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [showHint, setShowHint] = useState(false);
@@ -18,7 +18,7 @@ export default function SmsFloatWidget() {
 
   useEffect(() => {
     if (!isHomepage) return;
-    const hintShown = sessionStorage.getItem("iapl-sms-hint-shown");
+    const hintShown = sessionStorage.getItem("iapl-email-hint-shown");
     if (!hintShown) {
       const timer = setTimeout(() => setShowHint(true), 2500);
       return () => clearTimeout(timer);
@@ -44,19 +44,19 @@ export default function SmsFloatWidget() {
           name: form.name,
           email: form.email,
           phone: form.phone,
-          message: "Requested property details via homepage SMS widget",
-          source: "homepage_sms_widget",
+          message: "Requested property details via homepage email widget",
+          source: "homepage_email_widget",
         }),
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Could not send. Please try again.");
+        setError(data.error || "Could not submit. Please try again.");
         return;
       }
       setSubmitted(true);
-      sessionStorage.setItem("iapl-sms-hint-shown", "true");
+      sessionStorage.setItem("iapl-email-hint-shown", "true");
     } catch {
-      setError("Could not send. Please try again.");
+      setError("Could not submit. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -72,7 +72,6 @@ export default function SmsFloatWidget() {
 
   return (
     <>
-      {/* Hint bubble */}
       <AnimatePresence>
         {showHint && !isOpen && (
           <motion.div
@@ -81,8 +80,8 @@ export default function SmsFloatWidget() {
             exit={{ opacity: 0, x: -12 }}
             className="fixed left-[4.5rem] top-1/2 z-40 max-w-[200px] -translate-y-1/2 rounded-xl border border-primary-100 bg-white px-4 py-3 shadow-xl md:left-20 md:max-w-[220px]"
           >
-            <p className="text-sm font-semibold text-dark-900 font-montserrat">Get property details by SMS</p>
-            <p className="mt-1 text-xs text-dark-600">Tap the icon — we&apos;ll text you instantly</p>
+            <p className="text-sm font-semibold text-dark-900 font-montserrat">Get property details by email</p>
+            <p className="mt-1 text-xs text-dark-600">Tap here — we&apos;ll email you project info instantly</p>
             <button
               type="button"
               onClick={() => setShowHint(false)}
@@ -96,7 +95,6 @@ export default function SmsFloatWidget() {
         )}
       </AnimatePresence>
 
-      {/* Hanging SMS tab — left edge */}
       <div className="fixed left-0 top-1/2 z-50 -translate-y-1/2">
         <motion.button
           type="button"
@@ -104,38 +102,38 @@ export default function SmsFloatWidget() {
           className="group relative flex items-center gap-0"
           whileHover={{ x: 4 }}
           whileTap={{ scale: 0.97 }}
-          aria-label={isOpen ? "Close SMS panel" : "Get property details by SMS"}
+          aria-label={isOpen ? "Close email panel" : "Get property details by email"}
         >
-          {/* Pulse ring */}
           {!isOpen && (
-            <span className="absolute inset-0 animate-ping rounded-r-2xl bg-secondary-400/30" />
+            <span className="absolute inset-0 animate-ping rounded-r-2xl bg-primary-400/25" />
           )}
           <span
-            className={`relative flex flex-col items-center gap-1 rounded-r-2xl border border-l-0 border-secondary-300/40 px-3 py-4 shadow-lg transition ${
+            className={`relative flex flex-col items-center gap-1 rounded-r-2xl border border-l-0 border-primary-400/30 px-3 py-4 shadow-lg transition ${
               isOpen
                 ? "bg-dark-900 text-white"
-                : "bg-gradient-to-br from-secondary-500 to-secondary-600 text-white hover:from-secondary-600 hover:to-secondary-700"
+                : "bg-gradient-to-br from-primary-600 to-primary-800 text-white hover:from-primary-700 hover:to-primary-900"
             }`}
           >
-            {isOpen ? <X size={22} /> : (
+            {isOpen ? (
+              <X size={22} />
+            ) : (
               <motion.span
-                animate={{ rotate: [0, -10, 10, 0] }}
-                transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
+                animate={{ y: [0, -2, 0] }}
+                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
                 className="inline-flex"
               >
-                <Smartphone size={22} />
+                <Mail size={22} />
               </motion.span>
             )}
             {!isOpen && (
               <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat [writing-mode:vertical-rl] rotate-180">
-                SMS
+                Email
               </span>
             )}
           </span>
         </motion.button>
       </div>
 
-      {/* Slide-out panel */}
       <AnimatePresence>
         {isOpen && (
           <>
@@ -146,7 +144,7 @@ export default function SmsFloatWidget() {
               exit={{ opacity: 0 }}
               className="fixed inset-0 z-40 bg-dark-900/20 backdrop-blur-[1px] md:bg-transparent md:backdrop-blur-none"
               onClick={close}
-              aria-label="Close SMS panel"
+              aria-label="Close email panel"
             />
             <motion.aside
               initial={{ opacity: 0, x: -320 }}
@@ -155,13 +153,13 @@ export default function SmsFloatWidget() {
               transition={{ type: "spring", bounce: 0.15, duration: 0.45 }}
               className="fixed left-0 top-0 z-50 flex h-full w-full max-w-sm flex-col border-r border-dark-200 bg-white shadow-2xl"
             >
-              <div className="bg-gradient-to-r from-secondary-500 to-secondary-600 px-5 py-5 text-white">
+              <div className="bg-gradient-to-r from-primary-600 to-primary-800 px-5 py-5 text-white">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-secondary-100">Inuka Afrika</p>
-                    <h2 className="text-xl font-bold font-montserrat">Property details via SMS</h2>
-                    <p className="mt-1 text-sm text-secondary-50">
-                      Enter your number and receive project info on your phone instantly.
+                    <p className="text-xs font-semibold uppercase tracking-wide text-primary-100">Inuka Afrika</p>
+                    <h2 className="text-xl font-bold font-montserrat">Property details by email</h2>
+                    <p className="mt-1 text-sm text-primary-50">
+                      Enter your details and receive project information in your inbox instantly.
                     </p>
                   </div>
                   <button
@@ -183,9 +181,10 @@ export default function SmsFloatWidget() {
                     className="flex h-full flex-col items-center justify-center text-center"
                   >
                     <CheckCircle size={56} className="text-emerald-500" />
-                    <h3 className="mt-4 text-xl font-bold text-dark-900 font-montserrat">SMS on its way!</h3>
+                    <h3 className="mt-4 text-xl font-bold text-dark-900 font-montserrat">Check your inbox!</h3>
                     <p className="mt-2 text-sm text-dark-600">
-                      Property details have been sent to <strong>{form.phone}</strong>.
+                      Property details have been sent to <strong>{form.email}</strong>.
+                      Our team has also been notified.
                     </p>
                     <button
                       type="button"
@@ -205,27 +204,13 @@ export default function SmsFloatWidget() {
                           required
                           value={form.name}
                           onChange={(e) => setForm({ ...form, name: e.target.value })}
-                          className="w-full rounded-xl border border-dark-200 py-2.5 pl-10 pr-4 text-sm outline-none focus:border-secondary-400 focus:ring-2 focus:ring-secondary-100"
+                          className="w-full rounded-xl border border-dark-200 py-2.5 pl-10 pr-4 text-sm outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
                           placeholder="Your name"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="mb-1.5 block text-sm font-medium text-dark-800">Phone number</label>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-3 text-dark-400" size={16} />
-                        <input
-                          type="tel"
-                          required
-                          value={form.phone}
-                          onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                          className="w-full rounded-xl border border-dark-200 py-2.5 pl-10 pr-4 text-sm outline-none focus:border-secondary-400 focus:ring-2 focus:ring-secondary-100"
-                          placeholder="0712 345 678"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="mb-1.5 block text-sm font-medium text-dark-800">Email</label>
+                      <label className="mb-1.5 block text-sm font-medium text-dark-800">Email address</label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-3 text-dark-400" size={16} />
                         <input
@@ -233,8 +218,22 @@ export default function SmsFloatWidget() {
                           required
                           value={form.email}
                           onChange={(e) => setForm({ ...form, email: e.target.value })}
-                          className="w-full rounded-xl border border-dark-200 py-2.5 pl-10 pr-4 text-sm outline-none focus:border-secondary-400 focus:ring-2 focus:ring-secondary-100"
+                          className="w-full rounded-xl border border-dark-200 py-2.5 pl-10 pr-4 text-sm outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
                           placeholder="your@email.com"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-sm font-medium text-dark-800">Phone / WhatsApp</label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-3 text-dark-400" size={16} />
+                        <input
+                          type="tel"
+                          required
+                          value={form.phone}
+                          onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                          className="w-full rounded-xl border border-dark-200 py-2.5 pl-10 pr-4 text-sm outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
+                          placeholder="0712 345 678"
                         />
                       </div>
                     </div>
@@ -244,14 +243,14 @@ export default function SmsFloatWidget() {
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-secondary-600 py-3.5 text-sm font-bold text-white transition hover:bg-secondary-700 disabled:opacity-60"
+                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary-600 py-3.5 text-sm font-bold text-white transition hover:bg-primary-700 disabled:opacity-60"
                     >
                       <Send size={16} />
-                      {submitting ? "Sending…" : "Send me property details"}
+                      {submitting ? "Sending…" : "Email me property details"}
                     </button>
 
                     <p className="text-center text-xs text-dark-500">
-                      Free SMS · Reply STOP to opt out ·{" "}
+                      Free · No spam ·{" "}
                       <a href="/get-property-details" className="text-primary-600 underline">
                         Full form
                       </a>

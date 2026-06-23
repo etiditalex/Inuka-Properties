@@ -27,8 +27,8 @@ export const DEFAULT_ADMIN_SMS_TEMPLATE =
   "New {{type}}: {{name}} | {{phone}} | Property: {{property}}. Check admin dashboard.";
 
 export const DEFAULT_SMS_AUTOMATION: SmsAutomationSettings = {
-  auto_send_property_details_sms: true,
-  notify_admin_sms: true,
+  auto_send_property_details_sms: false,
+  notify_admin_sms: false,
   admin_sms_number: WHATSAPP_NUMBER,
   sender_id: "INUKA",
   property_template: DEFAULT_PROPERTY_SMS_TEMPLATE,
