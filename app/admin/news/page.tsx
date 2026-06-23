@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Download } from "lucide-react";
 import AdminShell from "@/components/admin/AdminShell";
 import AdminButton from "@/components/admin/AdminButton";
 import { AdminInput, AdminTextarea, AdminSelect, AdminToggle } from "@/components/admin/AdminForm";
@@ -10,6 +10,7 @@ import NewsPreview from "@/components/admin/preview/NewsPreview";
 import { createClient } from "@/lib/supabase/client";
 import type { NewsItem, ContentStatus } from "@/lib/supabase/types";
 import { formatIsoDate } from "@/lib/admin/utils";
+import { useWebsiteImport } from "@/lib/admin/useWebsiteImport";
 
 const empty: Partial<NewsItem> = {
   title: "",
@@ -37,6 +38,11 @@ export default function AdminNewsPage() {
   };
 
   useEffect(() => { load(); }, []);
+
+  const { importing, importMessage, runImport } = useWebsiteImport(
+    "/api/admin/import-news",
+    "Import all news updates from the public website? Existing items with the same ID will be updated."
+  );
 
   const openNew = () => {
     setEditing({ ...empty });
@@ -74,9 +80,19 @@ export default function AdminNewsPage() {
     <AdminShell title="News Update" subtitle="Manage IAPL Insider news — matches frontend layout">
       {!editing ? (
         <>
-          <div className="mb-6 flex justify-end">
+          <div className="mb-6 flex flex-wrap justify-end gap-2">
+            <AdminButton variant="secondary" loading={importing} onClick={() => runImport(load)}>
+              <Download size={16} /> Import from website
+            </AdminButton>
             <AdminButton onClick={openNew}><Plus size={16} /> Add News</AdminButton>
           </div>
+          {importMessage && (
+            <div
+              className={`mb-6 rounded-xl px-4 py-3 text-sm ${importMessage.toLowerCase().includes("failed") ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700"}`}
+            >
+              {importMessage}
+            </div>
+          )}
           {loading ? (
             <div className="flex h-48 items-center justify-center">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />

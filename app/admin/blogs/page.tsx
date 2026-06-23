@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Download } from "lucide-react";
 import AdminShell from "@/components/admin/AdminShell";
 import AdminButton from "@/components/admin/AdminButton";
 import { createClient } from "@/lib/supabase/client";
 import type { BlogPost } from "@/lib/supabase/types";
 import { formatIsoDate } from "@/lib/admin/utils";
 import { adminPath } from "@/lib/admin/path";
+import { useWebsiteImport } from "@/lib/admin/useWebsiteImport";
 
 export default function AdminBlogsPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -24,6 +25,11 @@ export default function AdminBlogsPage() {
 
   useEffect(() => { load(); }, []);
 
+  const { importing, importMessage, runImport } = useWebsiteImport(
+    "/api/admin/import-blogs",
+    "Import all blog posts from the public website? Existing posts with the same ID will be updated."
+  );
+
   const handleDelete = async (id: number) => {
     if (!confirm("Delete this blog post?")) return;
     const supabase = createClient();
@@ -33,11 +39,22 @@ export default function AdminBlogsPage() {
 
   return (
     <AdminShell title="Blogs" subtitle="Manage IAPL Insider blog articles">
-      <div className="mb-6 flex justify-end">
+      <div className="mb-6 flex flex-wrap justify-end gap-2">
+        <AdminButton variant="secondary" loading={importing} onClick={() => runImport(load)}>
+          <Download size={16} /> Import from website
+        </AdminButton>
         <Link href={adminPath("blogs/new")}>
           <AdminButton><Plus size={16} /> New Blog Post</AdminButton>
         </Link>
       </div>
+
+      {importMessage && (
+        <div
+          className={`mb-6 rounded-xl px-4 py-3 text-sm ${importMessage.toLowerCase().includes("failed") ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700"}`}
+        >
+          {importMessage}
+        </div>
+      )}
 
       {loading ? (
         <div className="flex h-48 items-center justify-center">
@@ -46,6 +63,14 @@ export default function AdminBlogsPage() {
       ) : posts.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-dark-200 bg-white py-16 text-center">
           <p className="text-dark-500">No blog posts yet</p>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+            <AdminButton size="sm" variant="secondary" loading={importing} onClick={() => runImport(load)}>
+              <Download size={14} /> Import from website
+            </AdminButton>
+            <Link href={adminPath("blogs/new")}>
+              <AdminButton size="sm">Create first post</AdminButton>
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

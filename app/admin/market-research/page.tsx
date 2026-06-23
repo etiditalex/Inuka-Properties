@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Download } from "lucide-react";
 import AdminShell from "@/components/admin/AdminShell";
 import AdminButton from "@/components/admin/AdminButton";
 import { AdminInput, AdminTextarea, AdminSelect } from "@/components/admin/AdminForm";
 import MarketResearchPreview from "@/components/admin/preview/MarketResearchPreview";
 import { createClient } from "@/lib/supabase/client";
 import type { MarketResearchInsight, MarketResearchReport } from "@/lib/supabase/types";
+import { useWebsiteImport } from "@/lib/admin/useWebsiteImport";
 
 const reportTypes = [
   { value: "Market Report", label: "Market Report" },
@@ -41,6 +42,11 @@ export default function AdminMarketResearchPage() {
   };
 
   useEffect(() => { load(); }, []);
+
+  const { importing, importMessage, runImport } = useWebsiteImport(
+    "/api/admin/import-market-research",
+    "Import all market research reports and insights from the public website? Existing items with the same ID will be updated."
+  );
 
   const saveReport = async () => {
     if (!editingReport) return;
@@ -82,6 +88,20 @@ export default function AdminMarketResearchPage() {
 
   return (
     <AdminShell title="Market Research" subtitle="Manage reports and insight stat cards">
+      <div className="mb-6 flex flex-wrap justify-end gap-2">
+        <AdminButton variant="secondary" loading={importing} onClick={() => runImport(load)}>
+          <Download size={16} /> Import from website
+        </AdminButton>
+      </div>
+
+      {importMessage && (
+        <div
+          className={`mb-6 rounded-xl px-4 py-3 text-sm ${importMessage.toLowerCase().includes("failed") ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700"}`}
+        >
+          {importMessage}
+        </div>
+      )}
+
       <div className="mb-6 grid gap-6 xl:grid-cols-2">
         <MarketResearchPreview insights={insights} reports={reports} />
       </div>

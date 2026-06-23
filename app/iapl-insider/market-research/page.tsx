@@ -3,6 +3,10 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { BarChart3, TrendingUp, MapPin, Download } from "lucide-react";
+import {
+  STATIC_MARKET_INSIGHTS,
+  STATIC_MARKET_REPORTS,
+} from "@/lib/market-research/catalog";
 
 const formatIsoDate = (isoDate: string) => {
   const parts = isoDate.split("-");
@@ -13,47 +17,25 @@ const formatIsoDate = (isoDate: string) => {
 };
 
 export default function MarketResearchPage() {
-  const staticReports = [
-    {
-      title: "Kilifi County Real Estate Market Report 2024",
-      description: "Comprehensive analysis of property trends, prices, and investment opportunities in Kilifi County.",
-      date: "2024-01-15",
-      type: "Market Report",
-    },
-    {
-      title: "Coastal Property Investment Guide",
-      description: "Detailed guide on investing in coastal properties, including beachfront and residential developments.",
-      date: "2024-01-10",
-      type: "Investment Guide",
-    },
-    {
-      title: "Affordable Housing Market Analysis",
-      description: "In-depth analysis of the affordable housing sector and emerging opportunities.",
-      date: "2024-01-05",
-      type: "Sector Analysis",
-    },
-  ];
+  const iconMap = {
+    MapPin,
+    BarChart3,
+    TrendingUp,
+  } as const;
 
-  const staticInsights = [
-    {
-      icon: TrendingUp,
-      title: "Market Growth",
-      value: "15%",
-      description: "Year-over-year growth in coastal property values",
-    },
-    {
-      icon: MapPin,
-      title: "Hot Locations",
-      value: "9",
-      description: "Prime locations we serve across Kilifi County",
-    },
-    {
-      icon: BarChart3,
-      title: "Investment Returns",
-      value: "12-18%",
-      description: "Average annual returns on coastal properties",
-    },
-  ];
+  const staticReports = STATIC_MARKET_REPORTS.map((r) => ({
+    title: r.title,
+    description: r.description,
+    date: r.report_date,
+    type: r.report_type,
+  }));
+
+  const staticInsights = STATIC_MARKET_INSIGHTS.map((i) => ({
+    icon: iconMap[i.icon as keyof typeof iconMap] ?? TrendingUp,
+    title: i.title,
+    value: i.value,
+    description: i.description,
+  }));
 
   const [reports, setReports] = useState(staticReports);
   const [insights, setInsights] = useState(staticInsights);
