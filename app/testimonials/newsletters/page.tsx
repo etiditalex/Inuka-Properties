@@ -1,30 +1,69 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, CheckCircle, Send } from "lucide-react";
+import { Mail, CheckCircle, Send, FileText } from "lucide-react";
+import { STATIC_NEWSLETTER_BENEFITS } from "@/lib/newsletters/catalog";
+
+type NewsletterIssue = {
+  id: number;
+  title: string;
+  description: string | null;
+  file_url: string | null;
+  published_at: string;
+};
 
 export default function NewslettersPage() {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [issues, setIssues] = useState<NewsletterIssue[]>([]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    fetch("/api/content/newsletters")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.issues?.length) setIssues(data.issues);
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real application, this would send the email to a backend service
-    setSubscribed(true);
-    setTimeout(() => {
-      setSubscribed(false);
-      setEmail("");
-    }, 3000);
+    setSubmitting(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/content/newsletters", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Could not subscribe. Please try again.");
+        return;
+      }
+
+      setSubscribed(true);
+      setTimeout(() => {
+        setSubscribed(false);
+        setEmail("");
+      }, 3000);
+    } catch {
+      setError("Could not subscribe. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const benefits = [
-    "Latest property listings",
-    "Exclusive offers and promotions",
-    "Market insights and trends",
-    "Company news and updates",
-    "Investment tips and guides",
-  ];
+  const formatDate = (iso: string) => {
+    const parts = iso.split("-");
+    if (parts.length !== 3) return iso;
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  };
 
   return (
     <div className="pt-24 pb-20">
@@ -74,7 +113,7 @@ export default function NewslettersPage() {
                   Successfully Subscribed!
                 </h3>
                 <p className="text-cyan-700">
-                  Thank you for subscribing. You'll receive our newsletter soon.
+                  Thank you for subscribing. You&apos;ll receive our newsletter soon.
                 </p>
               </motion.div>
             ) : (
@@ -93,20 +132,22 @@ export default function NewslettersPage() {
                     className="w-full px-4 py-3 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
                 </div>
+                {error && <p className="text-sm text-red-600">{error}</p>}
                 <button
                   type="submit"
-                  className="w-full bg-primary-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-primary-700 transition flex items-center justify-center gap-2"
+                  disabled={submitting}
+                  className="w-full bg-primary-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-primary-700 transition flex items-center justify-center gap-2 disabled:opacity-60"
                 >
                   <Send size={20} />
-                  Subscribe Now
+                  {submitting ? "Subscribing..." : "Subscribe Now"}
                 </button>
               </form>
             )}
 
             <div className="mt-8 pt-8 border-t border-dark-200">
-              <h3 className="font-semibold text-dark-900 mb-4">What You'll Receive:</h3>
+              <h3 className="font-semibold text-dark-900 mb-4">What You&apos;ll Receive:</h3>
               <ul className="space-y-2">
-                {benefits.map((benefit, index) => (
+                {STATIC_NEWSLETTER_BENEFITS.map((benefit, index) => (
                   <li key={index} className="flex items-center gap-3 text-dark-600">
                     <CheckCircle size={20} className="text-primary-600 flex-shrink-0" />
                     <span>{benefit}</span>
@@ -115,10 +156,36 @@ export default function NewslettersPage() {
               </ul>
             </div>
           </motion.div>
+
+          {issues.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="mt-10 bg-white rounded-xl shadow-lg p-8"
+            >
+              <h2 className="text-2xl font-bold text-dark-900 mb-6 font-serif">Past Newsletters</h2>
+              <ul className="space-y-4">
+                {issues.map((issue) => (
+                  <li key={issue.id} className="flex items-start gap-3 border-b border-dark-100 pb-4 last:border-0">
+                    <FileText className="mt-1 shrink-0 text-primary-600" size={20} />
+                    <div>
+                      <h3 className="font-semibold text-dark-900">{issue.title}</h3>
+                      <p className="text-xs text-dark-400">{formatDate(issue.published_at)}</p>
+                      {issue.description && <p className="mt-1 text-sm text-dark-600">{issue.description}</p>}
+                      {issue.file_url && (
+                        <a href={issue.file_url} className="mt-2 inline-block text-sm font-semibold text-primary-700 hover:underline">
+                          Read newsletter
+                        </a>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          )}
         </div>
       </section>
     </div>
   );
 }
-
-

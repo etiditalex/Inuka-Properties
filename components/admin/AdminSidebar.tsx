@@ -17,6 +17,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Building2,
+  Quote,
+  Download,
+  Play,
+  Mail,
 } from "lucide-react";
 import { cn } from "@/lib/admin/utils";
 import { adminPath } from "@/lib/admin/path";
@@ -31,6 +35,10 @@ const navItems = [
   { segment: "blogs", label: "Blogs", icon: FileText },
   { segment: "news", label: "News Update", icon: Newspaper },
   { segment: "market-research", label: "Market Research", icon: BarChart3 },
+  { segment: "testimonials", label: "Client Testimonials", icon: Quote },
+  { segment: "downloads", label: "Downloads", icon: Download },
+  { segment: "videos", label: "Video Gallery", icon: Play },
+  { segment: "newsletters", label: "Newsletters", icon: Mail },
   { segment: "inquiries", label: "Inquiries", icon: MessageSquare, badge: "inquiries" as const },
   { segment: "leads", label: "Lead Generation", icon: Users, badge: "leads" as const },
   { segment: "settings", label: "Settings", icon: Settings },

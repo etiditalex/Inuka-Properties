@@ -136,6 +136,63 @@ export interface SiteSetting {
   updated_at: string;
 }
 
+export interface ClientTestimonial {
+  id: number;
+  name: string;
+  location: string;
+  property: string;
+  rating: number;
+  text: string;
+  image: string;
+  sort_order: number;
+  published: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DownloadItem {
+  id: number;
+  title: string;
+  file_url: string;
+  parent_id: number | null;
+  sort_order: number;
+  published: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GalleryVideo {
+  id: number;
+  youtube_id: string;
+  title: string;
+  sort_order: number;
+  published: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NewsletterIssue {
+  id: number;
+  title: string;
+  description: string | null;
+  file_url: string | null;
+  published_at: string;
+  sort_order: number;
+  published: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export type NewsletterSubscriberStatus = "active" | "unsubscribed";
+
+export interface NewsletterSubscriber {
+  id: string;
+  email: string;
+  status: NewsletterSubscriberStatus;
+  subscribed_at: string;
+  updated_at: string;
+}
+
 export interface DashboardStats {
   properties: number;
   availableProperties: number;

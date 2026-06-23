@@ -1,56 +1,38 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { Play } from "lucide-react";
+import { STATIC_GALLERY_VIDEOS } from "@/lib/videos/catalog";
+
+type Video = { id: string; title: string };
 
 export default function VideoGalleryPage() {
-  // YouTube video IDs extracted from the provided URLs
-  const videos = [
-    {
-      id: "tzpf-j4iRb8",
-      title: "Inuka Afrika Properties Video 1",
-    },
-    {
-      id: "yIVaqWlA8KQ",
-      title: "Inuka Afrika Properties Video 2",
-    },
-    {
-      id: "NCWIKuiWPHw",
-      title: "Inuka Afrika Properties Video 3",
-    },
-    {
-      id: "Grsg6A6nxZE",
-      title: "Inuka Afrika Properties Video 4",
-    },
-    {
-      id: "b3wHkx4mcEA",
-      title: "Inuka Afrika Properties Video 5",
-    },
-    {
-      id: "TBxysoRTTBg",
-      title: "Inuka Afrika Properties Video 6",
-    },
-    {
-      id: "hJQBbWnZ3B8",
-      title: "Inuka Afrika Properties Video 7",
-    },
-    {
-      id: "BsKdFMn-YHQ",
-      title: "Inuka Afrika Properties Video 8",
-    },
-    {
-      id: "DIUg9SSr8Hk",
-      title: "Inuka Afrika Properties Video 9",
-    },
-    {
-      id: "NCMbXeWeL_c",
-      title: "Inuka Afrika Properties Video 10",
-    },
-  ];
+  const staticVideos: Video[] = STATIC_GALLERY_VIDEOS.map((v) => ({
+    id: v.youtube_id,
+    title: v.title,
+  }));
+
+  const [videos, setVideos] = useState<Video[]>(staticVideos);
+
+  useEffect(() => {
+    fetch("/api/content/videos")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.items?.length) {
+          setVideos(
+            data.items.map((v: { youtube_id: string; title: string }) => ({
+              id: v.youtube_id,
+              title: v.title,
+            }))
+          );
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-24 pb-20">
-      {/* Hero Section */}
       <div className="bg-gradient-to-r from-primary-700 to-primary-800 text-white py-16">
         <div className="container mx-auto px-4">
           <motion.div
@@ -72,7 +54,6 @@ export default function VideoGalleryPage() {
         </div>
       </div>
 
-      {/* Video Grid */}
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {videos.map((video, index) => (
@@ -83,7 +64,6 @@ export default function VideoGalleryPage() {
               transition={{ duration: 0.5, delay: index * 0.1 }}
               className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
             >
-              {/* YouTube Video Embed */}
               <div className="relative w-full pb-[56.25%] bg-gray-900">
                 <iframe
                   className="absolute top-0 left-0 w-full h-full"
@@ -94,8 +74,7 @@ export default function VideoGalleryPage() {
                   loading="lazy"
                 />
               </div>
-              
-              {/* Video Title */}
+
               <div className="p-4">
                 <h3 className="text-lg font-semibold text-dark-800 font-montserrat">
                   {video.title}
@@ -106,7 +85,6 @@ export default function VideoGalleryPage() {
         </div>
       </div>
 
-      {/* Call to Action */}
       <div className="container mx-auto px-4 py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -140,5 +118,3 @@ export default function VideoGalleryPage() {
     </div>
   );
 }
-
-

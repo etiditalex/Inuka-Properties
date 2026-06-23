@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Search, MapPin, Square, Home, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { buildDownloadTree, STATIC_DOWNLOAD_ITEMS } from "@/lib/downloads/catalog";
 
 const HERO_BG_IMAGE =
   "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767330607/Mwanda_Phase_3_3_ejntad.jpg";
@@ -66,152 +67,45 @@ const featuredProperties: Property[] = [
   },
 ];
 
+type DownloadEntry = {
+  id: number;
+  title: string;
+  file: string;
+  subItems?: { id: number; title: string; file: string }[];
+};
+
 export default function DownloadsPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [downloads, setDownloads] = useState<DownloadEntry[]>(
+    buildDownloadTree(STATIC_DOWNLOAD_ITEMS)
+  );
 
-  // Helper function to properly encode file paths for downloads
+  useEffect(() => {
+    fetch("/api/content/downloads")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.items?.length) {
+          setDownloads(
+            buildDownloadTree(
+              data.items.map((i: { id: number; title: string; file_url: string; parent_id: number | null }) => ({
+                id: i.id,
+                title: i.title,
+                file_url: i.file_url,
+                parent_id: i.parent_id,
+              }))
+            )
+          );
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const getDownloadUrl = (filePath: string) => {
     if (filePath === "#") return "#";
-    // For Next.js static files, encode the entire path but preserve slashes
-    return filePath.split("/").map(part => 
+    return filePath.split("/").map((part) =>
       part ? encodeURIComponent(part) : part
     ).join("/");
   };
-
-  const downloads = [
-    {
-      id: 1,
-      title: "Inuka Afrika Company Profile",
-      file: "/downloads/Inuka-Afrika-Company-Profile.pdf",
-    },
-    {
-      id: 2,
-      title: "Property Listings",
-      file: "/downloads/inuka-12-13-25.pdf",
-      subItems: [
-        {
-          id: 6,
-          title: "Ridge View Map",
-          file: "/downloads/RIDGE VIEW (10).pdf",
-        },
-        {
-          id: 7,
-          title: "Chumani 3 Ext Map",
-          file: "/downloads/CHUMANI 3 EXT (7).pdf",
-        },
-        {
-          id: 8,
-          title: "Ridgeview Phase 3 Map",
-          file: "/downloads/RIDGEVIEW PHASE 3 (5).pdf",
-        },
-        {
-          id: 9,
-          title: "Mariakani 6 Map",
-          file: "/downloads/MARIAKANI 6.pdf",
-        },
-        {
-          id: 10,
-          title: "Mwanda Phase 3 Map",
-          file: "/downloads/MWANDA PHASE 3.pdf",
-        },
-        {
-          id: 11,
-          title: "Ridgeview Phase 4 Map",
-          file: "/downloads/RIDGEVIEW PHASE 4 (9) (1).pdf",
-        },
-        {
-          id: 12,
-          title: "Tezo Nerenya Map",
-          file: "/downloads/TEZO NERENYA (3).pdf",
-        },
-        {
-          id: 13,
-          title: "Ridgeview Phase 2 Map",
-          file: "/downloads/RIDGEVIEW PHASE 2 (5).pdf",
-        },
-        {
-          id: 14,
-          title: "Chumani 3 Ext Map (Alt)",
-          file: "/downloads/CHUMANI 3 EXT (8).pdf",
-        },
-        {
-          id: 15,
-          title: "Tezo Nerenya Map (Alt)",
-          file: "/downloads/TEZO NERENYA (2).pdf",
-        },
-        {
-          id: 16,
-          title: "Oceanview Gardens Map",
-          file: "/downloads/OCEANVIEW GARDENS (1) (3).pdf",
-        },
-        {
-          id: 17,
-          title: "Chumani Map",
-          file: "/downloads/CHUMANI (2).pdf",
-        },
-        {
-          id: 18,
-          title: "Bofa Phase 3 Map",
-          file: "/downloads/BOFA PHASE 3.pdf",
-        },
-        {
-          id: 19,
-          title: "Bofa Phase 9 Map",
-          file: "/downloads/BOFA PHASE 9 (1).pdf",
-        },
-        {
-          id: 20,
-          title: "Inuka Chumani Phase 3 Map",
-          file: "/downloads/INUKA_CHUMANI PHASE 3 (3).pdf",
-        },
-        {
-          id: 21,
-          title: "Majaoni 2 Map",
-          file: "/downloads/MAJAONI 2 (3).pdf",
-        },
-        {
-          id: 22,
-          title: "Rafiki Phase 5 Map",
-          file: "/downloads/RAFIKI PHASE 5 (3).pdf",
-        },
-        {
-          id: 23,
-          title: "Msabaha Phase 6 Map",
-          file: "/downloads/MSABAHA PHASE 6 (2).pdf",
-        },
-        {
-          id: 24,
-          title: "New Rafiki 4Ext Map",
-          file: "/downloads/NEW RAFIKI 4EXT MAP (3).pdf",
-        },
-        {
-          id: 25,
-          title: "Ridgeview 5 Extension Map",
-          file: "/downloads/RIDGEVIEW 5 EXTENSION (1) (1) (3).pdf",
-        },
-        {
-          id: 26,
-          title: "Mwanda Phase 3 Map (Alt)",
-          file: "/downloads/MWANDA PHASE 3 (3).pdf",
-        },
-        {
-          id: 27,
-          title: "Mida Parkview Phase 1 Map",
-          file: "/downloads/MIDA PARKVIEW PHASE 1 (2) (1).pdf",
-        },
-        {
-          id: 28,
-          title: "Matsangoni Map",
-          file: "/downloads/MATSANGONI (1).pdf",
-        },
-        {
-          id: 29,
-          title: "Mida Haven Phase 2 Map",
-          file: "/downloads/MIDA HAVEN PHASE 2 (1).pdf",
-        },
-      ],
-    },
-  ];
 
   const filteredProperties = featuredProperties.filter((property) =>
     property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -220,26 +114,21 @@ export default function DownloadsPage() {
 
   return (
     <div className="pt-24 pb-20">
-      {/* Hero Section (image background) */}
       <section className="relative overflow-hidden py-16 md:py-20 text-white">
-        {/* Background image */}
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${HERO_BG_IMAGE})` }}
           aria-hidden="true"
         />
-        {/* Overlay for readability */}
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/80" aria-hidden="true" />
 
         <div className="container mx-auto px-4 relative z-10">
           <div className="grid lg:grid-cols-2 gap-10 items-center">
-            {/* Left Side - Content */}
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
-              {/* Breadcrumb */}
               <div className="flex items-center gap-2 mb-6 text-white/80">
                 <Link href="/" className="flex items-center hover:text-white transition">
                   <Home size={18} className="stroke-2" />
@@ -252,18 +141,15 @@ export default function DownloadsPage() {
                 <span className="text-white font-montserrat">Downloads</span>
               </div>
 
-              {/* Main Heading */}
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 font-montserrat">
                 Downloads
               </h1>
 
-              {/* Subheading */}
               <p className="text-lg md:text-xl text-white/80 font-montserrat max-w-2xl">
                 Access our company profile, property listings, and project maps
               </p>
             </motion.div>
 
-            {/* Right Side - Quick Info Card */}
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
@@ -292,7 +178,6 @@ export default function DownloadsPage() {
 
       <section className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Downloads */}
           <div className="lg:col-span-2">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -302,7 +187,7 @@ export default function DownloadsPage() {
               <h2 className="text-2xl md:text-3xl font-bold text-dark-900 mb-6 font-montserrat">
                 Available Documents
               </h2>
-              
+
               <ul className="space-y-3 list-disc list-inside">
                 {downloads.map((item, index) => (
                   <motion.li
@@ -331,7 +216,6 @@ export default function DownloadsPage() {
                         <span className="text-dark-400">Coming Soon</span>
                       </>
                     )}
-                    {/* Sub-items */}
                     {item.subItems && item.subItems.length > 0 && (
                       <ul className="ml-8 mt-2 space-y-2 list-disc list-inside">
                         {item.subItems.map((subItem) => (
@@ -365,10 +249,8 @@ export default function DownloadsPage() {
             </motion.div>
           </div>
 
-          {/* Right Column - Sidebar */}
           <aside className="lg:col-span-1">
             <div className="sticky top-24 space-y-6">
-              {/* Search Bar */}
               <div className="bg-white rounded-xl shadow-lg p-4">
                 <div className="flex gap-2">
                   <input
@@ -384,7 +266,6 @@ export default function DownloadsPage() {
                 </div>
               </div>
 
-              {/* Properties on Sale Section */}
               <div className="bg-primary-50 rounded-lg p-6">
                 <h2 className="text-2xl font-bold text-primary-700 mb-4 font-montserrat">
                   Properties on Sale
@@ -421,7 +302,7 @@ export default function DownloadsPage() {
                             {property.price}
                           </div>
                         </div>
-                  </div>
+                      </div>
                     </Link>
                   ))}
                 </div>
