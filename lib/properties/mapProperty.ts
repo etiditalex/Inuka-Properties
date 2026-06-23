@@ -1,4 +1,5 @@
 import type { Property } from "@/lib/supabase/types";
+import { parseGalleryUrls } from "@/lib/images";
 
 export type PropertyDetail = {
   id: number;
@@ -35,6 +36,9 @@ export function mapDbPropertyToDetail(db: Property): PropertyDetail {
     }
   }
 
+  const gallery = parseGalleryUrls(db.gallery, db.image);
+  const image = gallery[0] ?? db.image;
+
   return {
     id: db.id,
     title: db.title,
@@ -44,9 +48,9 @@ export function mapDbPropertyToDetail(db: Property): PropertyDetail {
     price: db.price,
     size: db.size,
     bedrooms: db.bedrooms ?? undefined,
-    image: db.image,
+    image,
     mapLink: db.map_link ?? undefined,
-    gallery: db.gallery?.length ? db.gallery : [db.image],
+    gallery,
     description: db.description ?? undefined,
     features: db.features ?? [],
     pricing: db.pricing ?? {},

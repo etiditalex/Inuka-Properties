@@ -13,6 +13,7 @@ export async function uploadImage(file: File, folder = "general"): Promise<strin
   const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
     cacheControl: "3600",
     upsert: false,
+    contentType: file.type || `image/${ext === "jpg" ? "jpeg" : ext}`,
   });
 
   if (error) throw new Error(error.message);

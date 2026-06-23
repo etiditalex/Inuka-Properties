@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { MapPin, Bed, Bath, Square, Heart, Home } from "lucide-react";
+import { propertyImageProps } from "@/lib/images";
 
 export interface PropertyListingCardData {
   id: number;
@@ -43,19 +44,27 @@ export default function PropertyListingCard({
   const [saved, setSaved] = useState(false);
   const typeLabel = formatTypeLabel(property.type);
   const isSold = property.status === "sold";
+  const imageProps = property.image ? propertyImageProps(property.image) : null;
 
   return (
     <article
       className={`flex flex-col rounded-xl border border-dark-200/70 bg-white shadow-sm transition-shadow hover:shadow-md min-h-0 min-w-0 ${isSold ? "opacity-[0.97]" : ""} ${className}`}
     >
       <div className={`relative w-full shrink-0 overflow-hidden rounded-t-xl ${imageHeightClass}`}>
-        <Image
-          src={property.image}
-          alt={property.title}
-          fill
-          className={`object-cover ${isSold ? "opacity-80 saturate-[0.65]" : ""}`}
-          sizes={imageSizes}
-        />
+        {imageProps ? (
+          <Image
+            src={imageProps.src}
+            alt={property.title}
+            fill
+            unoptimized={imageProps.unoptimized}
+            className={`object-cover ${isSold ? "opacity-80 saturate-[0.65]" : ""}`}
+            sizes={imageSizes}
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-dark-100 text-dark-400 text-sm">
+            No image
+          </div>
+        )}
         {isSold && (
           <div className="absolute left-3 top-3 z-10 rounded-md bg-dark-900 px-3 py-1.5 text-center text-xs font-bold uppercase tracking-wide text-white shadow-lg">
             Sold out

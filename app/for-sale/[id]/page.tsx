@@ -9,6 +9,7 @@ import Image from "next/image";
 import { propertySiteVisitWhatsAppUrl } from "@/lib/whatsapp";
 import { PROPERTY_DETAILS } from "@/lib/properties/detailFallback";
 import type { PropertyDetail } from "@/lib/properties/mapProperty";
+import { parseGalleryUrls, propertyImageProps } from "@/lib/images";
 
 export default function PropertyDetailPage({ params }: { params: { id: string } }) {
   const propertyId = parseInt(params.id, 10);
@@ -46,13 +47,15 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
     property.imageAltPrefix ??
     `${property.title} land for sale in ${property.location}`;
   const siteVisitWhatsAppUrl = propertySiteVisitWhatsAppUrl(property.title);
+  const galleryImages = parseGalleryUrls(property.gallery, property.image);
+  const heroImage = galleryImages[0] ?? property.image;
 
   // Image Gallery Modal
   const ImageGalleryModal = () => {
-    if (selectedImageIndex === null || !property.gallery) return null;
+    if (selectedImageIndex === null || !galleryImages.length) return null;
     
-    const currentImage = property.gallery[selectedImageIndex];
-    const totalImages = property.gallery.length;
+    const currentImage = galleryImages[selectedImageIndex];
+    const totalImages = galleryImages.length;
     
     const nextImage = () => {
       setSelectedImageIndex((prev) => (prev !== null && prev < totalImages - 1 ? prev + 1 : 0));
@@ -96,6 +99,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
               height={800}
               className="object-contain max-w-full max-h-full"
               quality={90}
+              unoptimized={propertyImageProps(currentImage).unoptimized}
             />
           </div>
           
@@ -154,27 +158,33 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
             {/* Main Image */}
             <div 
               className="relative h-[300px] sm:h-[400px] md:h-[500px] rounded-xl overflow-hidden cursor-pointer"
-              onClick={() => property.gallery ? setSelectedImageIndex(0) : null}
+              onClick={() => galleryImages.length ? setSelectedImageIndex(0) : null}
             >
-              <Image
-                src={property.image}
-                alt={imageAltBase}
-                fill
-                className="object-cover"
-              />
-              {property.gallery && property.gallery.length > 1 && (
+              {heroImage ? (
+                <Image
+                  src={heroImage}
+                  alt={imageAltBase}
+                  fill
+                  className="object-cover"
+                  unoptimized={propertyImageProps(heroImage).unoptimized}
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-dark-100 text-dark-400">
+                  No image
+                </div>
+              )}
+              {galleryImages.length > 1 && (
                 <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-lg text-sm font-montserrat">
-                  {property.gallery.length} Images - Click to view gallery
+                  {galleryImages.length} Images - Click to view gallery
                 </div>
               )}
             </div>
             
-            {/* Image Gallery Thumbnails */}
-            {property.gallery && property.gallery.length > 1 && (
+            {galleryImages.length > 1 && (
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                {property.gallery.map((img: string, index: number) => (
+                {galleryImages.map((img: string, index: number) => (
                   <div
-                    key={index}
+                    key={`${img}-${index}`}
                     className={`relative h-16 sm:h-20 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition border-2 ${
                       index === 0 ? 'border-primary-500' : 'border-transparent hover:border-primary-500'
                     }`}
@@ -185,6 +195,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
                       alt={`${imageAltBase} — thumbnail ${index + 1}`}
                       fill
                       className="object-cover"
+                      unoptimized={propertyImageProps(img).unoptimized}
                     />
                   </div>
                 ))}

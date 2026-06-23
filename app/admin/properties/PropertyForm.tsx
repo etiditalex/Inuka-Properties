@@ -10,6 +10,7 @@ import PropertyPreview from "@/components/admin/preview/PropertyPreview";
 import { createClient } from "@/lib/supabase/client";
 import type { Property, PropertyStatus } from "@/lib/supabase/types";
 import { adminPath } from "@/lib/admin/path";
+import { parseGalleryUrls } from "@/lib/images";
 import { Save } from "lucide-react";
 
 const emptyProperty: Partial<Property> = {
@@ -90,9 +91,7 @@ function formFromPaymentPlan(plan: Record<string, string>) {
 }
 
 function resolveGallery(form: Partial<Property>) {
-  if (form.gallery?.length) return form.gallery;
-  if (form.image) return [form.image];
-  return [];
+  return parseGalleryUrls(form.gallery, form.image);
 }
 
 const typeOptions = [
@@ -137,12 +136,8 @@ export default function PropertyFormPage({ propertyId }: PropertyFormPageProps) 
       const { data } = await supabase.from("properties").select("*").eq("id", propertyId).single();
       if (data) {
         const property = data as Property;
-        const gallery = property.gallery?.length
-          ? property.gallery
-          : property.image
-            ? [property.image]
-            : [];
-        setForm({ ...property, gallery });
+        const gallery = parseGalleryUrls(property.gallery, property.image);
+        setForm({ ...property, gallery, image: gallery[0] ?? property.image });
         setFeaturesText((property.features as string[]).join("\n"));
         setPricingText(recordToLines(parseRecordField(property.pricing)));
         setQuickInfoText(recordToLines(parseRecordField(property.quick_info)));
@@ -157,7 +152,7 @@ export default function PropertyFormPage({ propertyId }: PropertyFormPageProps) 
     setError("");
     const supabase = createClient();
 
-    const gallery = resolveGallery(form);
+    const gallery = resolveGallery(form).map((u) => u.trim()).filter(Boolean);
 
     const payload = {
       ...form,
