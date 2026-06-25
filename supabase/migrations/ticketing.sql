@@ -1,5 +1,10 @@
--- IAPL Ticketing — help desk tables, notes, inbound email support
+-- IAPL Ticketing — help desk tables, notes, inbound email & public support form
 -- Run in Supabase SQL Editor or via migration
+--
+-- Public form (/support) → POST /api/support/tickets → inserts into `tickets`
+--   source = 'contact_form', plus a row in `ticket_notes`
+-- Inbound email → POST /api/webhooks/inbound-email → inserts into `tickets`
+--   source = 'email', logged in `ticket_inbound_emails`
 
 -- ─── Ticket number sequence ───────────────────────────────────────────────────
 CREATE SEQUENCE IF NOT EXISTS ticket_number_seq START WITH 100;
@@ -53,6 +58,8 @@ CREATE INDEX IF NOT EXISTS idx_tickets_assignee ON tickets(assignee_id);
 CREATE INDEX IF NOT EXISTS idx_tickets_updated ON tickets(updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_tickets_flagged ON tickets(is_flagged) WHERE is_flagged = TRUE;
 CREATE INDEX IF NOT EXISTS idx_tickets_inbound_email ON tickets(inbound_email_id) WHERE inbound_email_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_tickets_source ON tickets(source);
+CREATE INDEX IF NOT EXISTS idx_tickets_requester_email ON tickets(requester_email);
 
 -- ─── Ticket notes / activity ──────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS ticket_notes (

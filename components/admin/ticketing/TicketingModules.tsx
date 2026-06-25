@@ -26,6 +26,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { Ticket, TicketingModule } from "@/lib/admin/ticketing/types";
 import { statusLabel, priorityLabel, formatTicketDate } from "@/lib/admin/ticketing/utils";
 import AdminButton from "@/components/admin/AdminButton";
+import PublicSupportLink from "./PublicSupportLink";
 
 type ModulePanelProps = {
   module: TicketingModule;
@@ -514,6 +515,7 @@ function SetupPanel() {
   return (
     <PanelShell title="Setup" subtitle="Ticketing configuration and integrations">
       <div className="grid gap-4 md:grid-cols-2">
+        <PublicSupportLink />
         <div className="rounded-xl border border-slate-200 p-4">
           <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-slate-800">
             <Mail className="h-4 w-4 text-primary-600" />
@@ -575,8 +577,8 @@ function SetupPanel() {
 function HelpPanel({ onOpenTickets }: { onOpenTickets: () => void }) {
   const faqs = [
     {
-      q: "How do I create a new ticket?",
-      a: 'Go to Tickets → click "New Ticket" in the toolbar, fill in the requester details and submit.',
+      q: "How do clients submit tickets from outside the dashboard?",
+      a: "Go to Setup and copy the Public support form link. Clients fill the form at /support and receive an instant confirmation email with their ticket number.",
     },
     {
       q: "How do emails become tickets?",
