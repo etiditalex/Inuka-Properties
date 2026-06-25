@@ -22,11 +22,22 @@ export const PRIORITIES: { value: TicketPriority; label: string }[] = [
   { value: "urgent", label: "Urgent" },
 ];
 
-export function generateSupportReference(): string {
-  const d = new Date();
-  const date = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
-  const rand = Math.floor(1000 + Math.random() * 9000);
-  return `REQ-${date}-${rand}`;
+export const RELATED_SERVICES = [
+  { value: "wifi_issue", label: "Wifi Issue" },
+  { value: "laptop_computer_failure", label: "Laptop/Computer Failure" },
+  { value: "emails", label: "Emails" },
+  { value: "system_issue", label: "System Issue" },
+  { value: "crm_app", label: "CRM App" },
+  { value: "others", label: "Others" },
+] as const;
+
+export function resolveRelatedServiceLabel(value: string, otherText?: string): string | null {
+  if (!value || value === "none") return null;
+  if (value === "others") {
+    const detail = otherText?.trim();
+    return detail ? `Others: ${detail}` : "Others";
+  }
+  return RELATED_SERVICES.find((s) => s.value === value)?.label || value;
 }
 
 export function resolveDepartment(value: string) {
