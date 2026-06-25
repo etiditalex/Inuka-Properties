@@ -28,18 +28,22 @@ import {
   Settings2,
 } from "lucide-react";
 import { cn } from "@/lib/admin/utils";
-import type { TicketCounts, TicketView } from "@/lib/admin/ticketing/types";
+import type { TicketCounts, TicketView, TicketingModule } from "@/lib/admin/ticketing/types";
 
-const modules = [
-  { id: "tickets", label: "Tickets", icon: Ticket, active: true as const },
-  { id: "calendar", label: "Calendar", icon: Calendar, active: false as const },
-  { id: "clients", label: "Clients", icon: Users, active: false as const },
-  { id: "assets", label: "Assets", icon: Building2, active: false as const },
-  { id: "reports", label: "Reports", icon: BarChart3, active: false as const },
-  { id: "messages", label: "Messages", icon: MessageSquare, active: false as const },
-  { id: "setup", label: "Setup", icon: Settings, active: false as const },
-  { id: "help", label: "Help", icon: HelpCircle, active: false as const },
+const MODULE_IDS: TicketingModule[] = [
+  "tickets", "calendar", "clients", "assets", "reports", "messages", "setup", "help",
 ];
+
+const MODULE_META: Record<TicketingModule, { label: string; icon: typeof Ticket }> = {
+  tickets: { label: "Tickets", icon: Ticket },
+  calendar: { label: "Calendar", icon: Calendar },
+  clients: { label: "Clients", icon: Users },
+  assets: { label: "Assets", icon: Building2 },
+  reports: { label: "Reports", icon: BarChart3 },
+  messages: { label: "Messages", icon: MessageSquare },
+  setup: { label: "Setup", icon: Settings },
+  help: { label: "Help", icon: HelpCircle },
+};
 
 type SubNavItem = {
   id: TicketView;
@@ -61,18 +65,28 @@ function buildSubNavItems(counts: TicketCounts): SubNavItem[] {
 }
 
 type TicketingModuleBarProps = {
+  activeModule: TicketingModule;
+  onModuleChange: (module: TicketingModule) => void;
   activeView: TicketView;
   onViewChange: (view: TicketView) => void;
   counts: TicketCounts;
 };
 
-export function TicketingModuleBar({ activeView, onViewChange, counts }: TicketingModuleBarProps) {
+export function TicketingModuleBar({
+  activeModule,
+  onModuleChange,
+  activeView,
+  onViewChange,
+  counts,
+}: TicketingModuleBarProps) {
   const subNavItems = buildSubNavItems(counts);
   const messageBadge = counts.messages;
+  const showTicketSubNav = activeModule === "tickets";
+
   return (
     <div className="overflow-hidden rounded-t-xl border border-slate-700/50 bg-[#1a1f26] shadow-lg">
-      <div className="flex items-center gap-1 px-4 py-2">
-        <div className="mr-4 flex items-center gap-2 border-r border-white/10 pr-4">
+      <div className="flex items-center gap-1 overflow-x-auto px-4 py-2">
+        <div className="mr-4 flex shrink-0 items-center gap-2 border-r border-white/10 pr-4">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary-500 to-primary-700">
             <Ticket className="h-3.5 w-3.5 text-white" />
           </div>
@@ -80,22 +94,25 @@ export function TicketingModuleBar({ activeView, onViewChange, counts }: Ticketi
             IAPL Ticketing
           </span>
         </div>
-        {modules.map((mod) => {
+        {MODULE_IDS.map((id) => {
+          const mod = MODULE_META[id];
           const Icon = mod.icon;
+          const isActive = activeModule === id;
           return (
             <button
-              key={mod.id}
+              key={id}
               type="button"
+              onClick={() => onModuleChange(id)}
               className={cn(
-                "relative flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium transition",
-                mod.active
+                "relative flex shrink-0 items-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium transition",
+                isActive
                   ? "text-white after:absolute after:bottom-0 after:left-2 after:right-2 after:h-0.5 after:rounded-full after:bg-secondary-400"
                   : "text-white/50 hover:bg-white/5 hover:text-white/80"
               )}
             >
               <Icon className="h-3.5 w-3.5" />
               {mod.label}
-              {mod.id === "messages" && messageBadge > 0 ? (
+              {id === "messages" && messageBadge > 0 ? (
                 <span className="ml-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">
                   {messageBadge > 99 ? "99+" : messageBadge}
                 </span>
@@ -105,33 +122,41 @@ export function TicketingModuleBar({ activeView, onViewChange, counts }: Ticketi
         })}
       </div>
 
-      <div className="flex items-center gap-0.5 border-t border-white/5 bg-[#252b33] px-2">
-        {subNavItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeView === item.id;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => onViewChange(item.id)}
-              className={cn(
-                "flex items-center gap-1.5 rounded-t-md px-3 py-2.5 text-xs font-medium transition",
-                isActive
-                  ? "bg-[#3a4149] text-white"
-                  : "text-white/60 hover:bg-white/5 hover:text-white/90"
-              )}
-            >
-              <Icon className="h-3.5 w-3.5" />
-              {item.label}
-              {item.count !== undefined ? (
-                <span className={cn("text-[10px]", isActive ? "text-secondary-300" : "text-white/40")}>
-                  ({item.count})
-                </span>
-              ) : null}
-            </button>
-          );
-        })}
-      </div>
+      {showTicketSubNav ? (
+        <div className="flex items-center gap-0.5 overflow-x-auto border-t border-white/5 bg-[#252b33] px-2">
+          {subNavItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeView === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => onViewChange(item.id)}
+                className={cn(
+                  "flex shrink-0 items-center gap-1.5 rounded-t-md px-3 py-2.5 text-xs font-medium transition",
+                  isActive
+                    ? "bg-[#3a4149] text-white"
+                    : "text-white/60 hover:bg-white/5 hover:text-white/90"
+                )}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {item.label}
+                {item.count !== undefined ? (
+                  <span className={cn("text-[10px]", isActive ? "text-secondary-300" : "text-white/40")}>
+                    ({item.count})
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="border-t border-white/5 bg-[#252b33] px-4 py-2.5">
+          <p className="text-xs text-white/50">
+            {MODULE_META[activeModule].label} module — use the tabs above to switch sections
+          </p>
+        </div>
+      )}
     </div>
   );
 }

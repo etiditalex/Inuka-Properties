@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { mapTicketRow, mapTicketRows } from "@/lib/admin/ticketing/map";
-import type { Ticket as TicketType, TicketCounts, TicketView } from "@/lib/admin/ticketing/types";
+import type { Ticket as TicketType, TicketCounts, TicketView, TicketingModule } from "@/lib/admin/ticketing/types";
 import type { TicketRow } from "@/lib/supabase/types";
 import {
   TicketingFilterPanel,
@@ -20,6 +20,7 @@ import {
 import TicketTable from "./TicketTable";
 import TicketDetailPanel from "./TicketDetailPanel";
 import NewTicketModal from "./NewTicketModal";
+import { TicketingModulePanel } from "./TicketingModules";
 import StatCard from "@/components/admin/StatCard";
 
 const DEFAULT_COUNTS: TicketCounts = {
@@ -110,6 +111,7 @@ function TicketingDashboardView({ tickets }: { tickets: TicketType[] }) {
 export default function TicketingDashboard() {
   const [tickets, setTickets] = useState<TicketType[]>([]);
   const [counts, setCounts] = useState<TicketCounts>(DEFAULT_COUNTS);
+  const [activeModule, setActiveModule] = useState<TicketingModule>("tickets");
   const [activeView, setActiveView] = useState<TicketView>("group_tickets");
   const [query, setQuery] = useState("");
   const [showFilter, setShowFilter] = useState(false);
@@ -124,7 +126,7 @@ export default function TicketingDashboard() {
 
   const loadTickets = useCallback(async () => {
     setLoading(true);
-    const params = new URLSearchParams({ view: activeView });
+    const params = new URLSearchParams({ view: activeModule === "tickets" ? activeView : "group_tickets" });
     if (statusFilter !== "all") params.set("status", statusFilter);
     if (priorityFilter !== "all") params.set("priority", priorityFilter);
     if (query.trim()) params.set("q", query.trim());
@@ -142,7 +144,7 @@ export default function TicketingDashboard() {
       await loadTicketsDirect();
     }
     setLoading(false);
-  }, [activeView, statusFilter, priorityFilter, query]);
+  }, [activeModule, activeView, statusFilter, priorityFilter, query]);
 
   const loadTicketsDirect = async () => {
     const supabase = createClient();
@@ -233,12 +235,24 @@ export default function TicketingDashboard() {
   return (
     <div className="overflow-hidden rounded-xl shadow-xl ring-1 ring-slate-200/80">
       <TicketingModuleBar
+        activeModule={activeModule}
+        onModuleChange={(m) => { setActiveModule(m); setPage(1); }}
         activeView={activeView}
         counts={counts}
         onViewChange={(v) => { setActiveView(v); setPage(1); }}
       />
 
-      {activeView === "dashboard" ? (
+      {activeModule !== "tickets" ? (
+        <TicketingModulePanel
+          module={activeModule}
+          tickets={tickets}
+          onSelectTicket={(t) => {
+            setActiveModule("tickets");
+            handleSelectTicket(t);
+          }}
+          onOpenTickets={() => setActiveModule("tickets")}
+        />
+      ) : activeView === "dashboard" ? (
         <div className="border-x border-b border-slate-200 bg-white">
           {loading && tickets.length === 0 ? (
             <div className="flex h-48 items-center justify-center">

@@ -19,6 +19,16 @@ export type TicketView =
   | "search"
   | "approvals";
 
+export type TicketingModule =
+  | "tickets"
+  | "calendar"
+  | "clients"
+  | "assets"
+  | "reports"
+  | "messages"
+  | "setup"
+  | "help";
+
 export type Ticket = {
   id: string;
   number: number;
