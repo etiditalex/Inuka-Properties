@@ -113,8 +113,8 @@ export default function OpenTicketForm() {
     "w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-primary-400 focus:ring-2 focus:ring-primary-100";
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-primary-50/40 pt-24 pb-20">
-      <div className="container mx-auto max-w-4xl px-4">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-primary-50/40 px-4 py-10 md:py-14">
+      <div className="container mx-auto max-w-4xl">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
           <div className="mb-4 flex items-center gap-2 text-sm text-slate-500">
             <Link href="/" className="flex items-center text-slate-500 transition hover:text-primary-600">
