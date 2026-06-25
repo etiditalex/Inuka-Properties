@@ -508,7 +508,8 @@ function MessagesPanel({ tickets, onSelectTicket }: { tickets: Ticket[]; onSelec
 }
 
 function SetupPanel() {
-  const inboundEmail = process.env.NEXT_PUBLIC_TICKETS_INBOUND_EMAIL || "tickets@inukaproperties.co.ke";
+  const inboundEmail = process.env.NEXT_PUBLIC_TICKETS_INBOUND_EMAIL || "tickets@weugei.resend.app";
+  const inboundDomain = "weugei.resend.app";
 
   return (
     <PanelShell title="Setup" subtitle="Ticketing configuration and integrations">
@@ -519,13 +520,14 @@ function SetupPanel() {
             Inbound Email
           </h3>
           <p className="mb-2 text-xs text-slate-600">
-            Emails sent to this address are automatically converted into tickets.
+            Emails sent to any address at <strong>@{inboundDomain}</strong> are converted into tickets
+            (e.g. <code className="text-[10px]">support@{inboundDomain}</code>).
           </p>
           <code className="block rounded-lg bg-slate-100 px-3 py-2 text-sm font-medium text-slate-800">
             {inboundEmail}
           </code>
           <p className="mt-2 text-[10px] text-slate-400">
-            Configure in Resend → Domains → Inbound, webhook → /api/webhooks/inbound-email
+            Resend → Webhooks → <code>email.received</code> → /api/webhooks/inbound-email
           </p>
         </div>
         <div className="rounded-xl border border-slate-200 p-4">
@@ -578,7 +580,7 @@ function HelpPanel({ onOpenTickets }: { onOpenTickets: () => void }) {
     },
     {
       q: "How do emails become tickets?",
-      a: "When a client emails your support address (tickets@inukaproperties.co.ke), Resend forwards it to the inbound webhook and a ticket is created automatically.",
+      a: "When a client emails any address at weugei.resend.app (e.g. tickets@weugei.resend.app), Resend fires the inbound webhook and a ticket is created automatically.",
     },
     {
       q: "How do I assign or resolve a ticket?",

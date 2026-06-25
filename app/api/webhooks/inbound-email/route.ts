@@ -8,15 +8,15 @@ export const dynamic = "force-dynamic";
 /**
  * Inbound email webhook (Resend Inbound).
  *
- * Configure in Resend Dashboard → Domains → your domain → Inbound:
- *   Forward emails to: tickets@yourdomain.com (or support@)
+ * Configure in Resend Dashboard → Domains → Inbound (weugei.resend.app):
+ *   Clients can email anything@weugei.resend.app — all addresses route to your webhook.
  *   Webhook URL: https://your-site.com/api/webhooks/inbound-email
  *   Header: Authorization: Bearer YOUR_WEBHOOK_SECRET
  *
  * Set env vars:
  *   RESEND_WEBHOOK_SECRET — verify Resend webhook signature (optional but recommended)
  *   WEBHOOK_SECRET / SUPHOOK_SECRET — Bearer token for Authorization header
- *   TICKETS_INBOUND_EMAIL — e.g. tickets@inukaproperties.co.ke (for logging)
+ *   TICKETS_INBOUND_EMAIL — e.g. tickets@weugei.resend.app (Resend inbound domain)
  */
 export async function POST(request: Request) {
   const secret = process.env.WEBHOOK_SECRET || process.env.SUPHOOK_SECRET;
@@ -109,5 +109,5 @@ function extractToAddress(to: unknown): string {
       return String((first as { email: string }).email);
     }
   }
-  return process.env.TICKETS_INBOUND_EMAIL || "tickets@inukaproperties.co.ke";
+  return process.env.TICKETS_INBOUND_EMAIL || "tickets@weugei.resend.app";
 }
