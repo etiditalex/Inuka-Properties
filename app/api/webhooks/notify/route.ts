@@ -4,7 +4,7 @@ import { sendAdminNotification } from "@/lib/notifications";
 /**
  * Supabase Database Webhook endpoint.
  * Configure in Supabase Dashboard → Database → Webhooks:
- *   Table: inquiries | property_leads
+ *   Table: inquiries | property_leads | tickets
  *   Events: INSERT
  *   URL: https://your-site.com/api/webhooks/notify
  *   HTTP Headers: Authorization: Bearer YOUR_WEBHOOK_SECRET
@@ -23,7 +23,17 @@ export async function POST(request: Request) {
     const record = body.record ?? body;
     const table = body.table ?? record?.table;
 
-    if (table === "inquiries" || record?.message) {
+    if (table === "tickets") {
+      await sendAdminNotification({
+        type: "ticket",
+        name: record.requester_name,
+        email: record.requester_email,
+        phone: record.requester_phone,
+        subject: record.subject,
+        message: record.description,
+        ticketNumber: record.number,
+      });
+    } else if (table === "inquiries" || record?.message) {
       await sendAdminNotification({
         type: "inquiry",
         name: record.name,

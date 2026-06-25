@@ -491,3 +491,7 @@ ALTER TABLE sms_automation_log ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Admin full access sms automation log" ON sms_automation_log
   FOR ALL USING (auth.role() = 'authenticated');
+
+-- ─── IAPL Ticketing (see supabase/migrations/ticketing.sql for full migration) ─
+-- Tables: tickets, ticket_notes, ticket_categories, ticket_inbound_emails
+-- Run supabase/migrations/ticketing.sql in SQL Editor to enable ticketing.

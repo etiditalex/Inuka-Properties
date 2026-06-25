@@ -202,3 +202,72 @@ export interface DashboardStats {
   newInquiries: number;
   newLeads: number;
 }
+
+export type TicketStatus = "new" | "assigned" | "pending" | "approved" | "resolved" | "closed";
+export type TicketPriority = "low" | "medium" | "high" | "urgent";
+export type TicketAlertLevel = "on_track" | "due_soon" | "not_completed" | "overdue";
+export type TicketSource = "manual" | "email" | "contact_form" | "inquiry" | "api";
+
+export interface TicketRow {
+  id: string;
+  number: number;
+  requester_name: string;
+  requester_email: string;
+  requester_phone: string | null;
+  request_type: string;
+  request_category: string;
+  subject: string;
+  description: string;
+  status: TicketStatus;
+  priority: TicketPriority;
+  alert_level: TicketAlertLevel;
+  department: string | null;
+  assignee_id: string | null;
+  is_flagged: boolean;
+  is_unread: boolean;
+  latest_note: string | null;
+  source: TicketSource;
+  source_reference: string | null;
+  inbound_email_id: string | null;
+  due_at: string | null;
+  resolved_at: string | null;
+  created_at: string;
+  updated_at: string;
+  assignee?: { full_name: string | null } | null;
+}
+
+export interface TicketNoteRow {
+  id: string;
+  ticket_id: string;
+  author_id: string | null;
+  author_name: string | null;
+  body: string;
+  is_internal: boolean;
+  source: "admin" | "email" | "system";
+  created_at: string;
+}
+
+export interface TicketCategoryRow {
+  id: number;
+  parent_id: number | null;
+  name: string;
+  department: string | null;
+  sort_order: number;
+  active: boolean;
+  created_at: string;
+}
+
+export interface TicketInboundEmailRow {
+  id: string;
+  provider: string;
+  provider_message_id: string;
+  from_email: string;
+  to_email: string;
+  subject: string | null;
+  body_text: string | null;
+  body_html: string | null;
+  ticket_id: string | null;
+  status: "processed" | "duplicate" | "failed" | "ignored";
+  error_message: string | null;
+  created_at: string;
+}

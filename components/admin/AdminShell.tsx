@@ -11,9 +11,10 @@ type AdminShellProps = {
   children: React.ReactNode;
   title: string;
   subtitle?: string;
+  contentClassName?: string;
 };
 
-export default function AdminShell({ children, title, subtitle }: AdminShellProps) {
+export default function AdminShell({ children, title, subtitle, contentClassName }: AdminShellProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [badges, setBadges] = useState({ inquiries: 0, leads: 0 });
@@ -72,7 +73,8 @@ export default function AdminShell({ children, title, subtitle }: AdminShellProp
       <main
         className={cn(
           "min-h-[calc(100vh-4rem)] p-6 transition-all duration-300",
-          collapsed ? "ml-[72px]" : "ml-64"
+          collapsed ? "ml-[72px]" : "ml-64",
+          contentClassName
         )}
       >
         {children}
