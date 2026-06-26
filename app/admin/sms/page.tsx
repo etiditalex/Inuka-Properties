@@ -475,7 +475,9 @@ export default function AdminSmsPage() {
                   my.okaysms.com
                 </a>
                 ), <code className="rounded bg-white px-1">SMS_SENDER_ID</code> (your registered sender ID), and optionally{" "}
-                <code className="rounded bg-white px-1">OKAYSMS_API_URL</code> (default: https://my.okaysms.com/api/v3).
+                <code className="rounded bg-white px-1">OKAYSMS_API_URL</code> (default: https://my.okaysms.com/api/http).
+                Send endpoint: <code className="rounded bg-white px-1">POST /sms/send</code>. Status:{" "}
+                <code className="rounded bg-white px-1">GET /sms/&#123;uid&#125;</code>.
               </p>
             </div>
           </div>

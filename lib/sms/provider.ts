@@ -6,6 +6,14 @@ export type SmsSendResult = {
   error?: string;
 };
 
+export type OkaySmsApiResult<T = unknown> = {
+  ok: boolean;
+  data?: T;
+  error?: string;
+};
+
+const OKAYSMS_HTTP_BASE = "https://my.okaysms.com/api/http";
+
 function normalizeApiKey(raw?: string): string | undefined {
   if (!raw) return undefined;
   const trimmed = raw.trim();
@@ -15,11 +23,18 @@ function normalizeApiKey(raw?: string): string | undefined {
   return trimmed;
 }
 
+function normalizeOkaySmsBase(url?: string): string {
+  const raw = (url || OKAYSMS_HTTP_BASE).replace(/\/$/, "");
+  if (raw.includes("/api/v3")) {
+    return raw.replace("/api/v3", "/api/http");
+  }
+  return raw;
+}
+
 function getSmsConfig() {
-  const apiBase =
-    process.env.OKAYSMS_API_URL ||
-    process.env.SMS_API_URL ||
-    "https://my.okaysms.com/api/v3";
+  const apiBase = normalizeOkaySmsBase(
+    process.env.OKAYSMS_API_URL || process.env.SMS_API_URL
+  );
 
   return {
     provider: (process.env.SMS_PROVIDER || "okaysms").toLowerCase(),
@@ -42,10 +57,57 @@ function getSmsConfig() {
   };
 }
 
+function getOkaySmsHeaders(apiKey: string): Record<string, string> {
+  return {
+    Authorization: `Bearer ${apiKey}`,
+    Accept: "application/json",
+    "Content-Type": "application/json",
+  };
+}
+
 function getOkaySmsSendUrl(): string {
   const base = getSmsConfig().apiUrl.replace(/\/$/, "");
   if (base.endsWith("/sms/send")) return base;
+  if (base.endsWith("/sms")) return `${base}/send`;
   return `${base}/sms/send`;
+}
+
+function getOkaySmsMessageUrl(uid: string): string {
+  const base = getSmsConfig().apiUrl.replace(/\/$/, "");
+  if (base.endsWith("/sms")) return `${base}/${uid}`;
+  return `${base}/sms/${uid}`;
+}
+
+function getOkaySmsListUrl(): string {
+  const base = getSmsConfig().apiUrl.replace(/\/$/, "");
+  if (base.endsWith("/sms")) return base;
+  return `${base}/sms`;
+}
+
+function extractMessageId(data: unknown): string | undefined {
+  if (!data || typeof data !== "object") return undefined;
+
+  const body = data as {
+    uid?: string;
+    id?: string;
+    message_id?: string;
+    data?: unknown;
+  };
+
+  if (typeof body.data === "string" && body.data.trim()) {
+    return body.data.trim();
+  }
+
+  if (body.data && typeof body.data === "object") {
+    if (Array.isArray(body.data)) {
+      const first = body.data[0] as { uid?: string; id?: string } | undefined;
+      return first?.uid || first?.id;
+    }
+    const nested = body.data as { uid?: string; id?: string };
+    if (nested.uid || nested.id) return nested.uid || nested.id;
+  }
+
+  return body.uid || body.message_id || body.id;
 }
 
 function parseOkaySmsResponse(data: unknown, httpStatus: number): SmsSendResult {
@@ -58,7 +120,7 @@ function parseOkaySmsResponse(data: unknown, httpStatus: number): SmsSendResult 
     message?: string;
     message_id?: string;
     errors?: Record<string, string[]>;
-    data?: { uid?: string; id?: string; status?: string } | string | Array<{ uid?: string; id?: string }>;
+    data?: unknown;
     uid?: string;
     id?: string;
   };
@@ -77,19 +139,10 @@ function parseOkaySmsResponse(data: unknown, httpStatus: number): SmsSendResult 
   }
 
   if (status === "success") {
-    let messageId: string | undefined;
-    if (typeof body.data === "string") {
-      messageId = body.data;
-    } else if (Array.isArray(body.data)) {
-      messageId = body.data[0]?.uid || body.data[0]?.id;
-    } else if (body.data && typeof body.data === "object") {
-      messageId = body.data.uid || body.data.id;
-    }
-    messageId = messageId || body.message_id || body.uid || body.id;
+    const messageId = extractMessageId(body);
     return { ok: true, providerMessageId: messageId ? String(messageId) : undefined };
   }
 
-  // Laravel-style validation without status field
   if (body.message && body.errors) {
     const validation = Object.entries(body.errors)
       .map(([k, v]) => `${k}: ${v.join(", ")}`)
@@ -101,6 +154,16 @@ function parseOkaySmsResponse(data: unknown, httpStatus: number): SmsSendResult 
     ok: false,
     error: body.message || JSON.stringify(body),
   };
+}
+
+async function parseOkaySmsJson(res: Response): Promise<{ data: unknown; rawText: string }> {
+  const rawText = await res.text();
+  if (!rawText) return { data: {}, rawText };
+  try {
+    return { data: JSON.parse(rawText), rawText };
+  } catch {
+    return { data: null, rawText };
+  }
 }
 
 async function sendViaOkaySms(
@@ -119,11 +182,7 @@ async function sendViaOkaySms(
 
   const res = await fetch(getOkaySmsSendUrl(), {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
+    headers: getOkaySmsHeaders(apiKey),
     body: JSON.stringify({
       recipient: to,
       sender_id: senderId,
@@ -132,11 +191,8 @@ async function sendViaOkaySms(
     }),
   });
 
-  const rawText = await res.text();
-  let data: unknown = {};
-  try {
-    data = rawText ? JSON.parse(rawText) : {};
-  } catch {
+  const { data, rawText } = await parseOkaySmsJson(res);
+  if (data === null) {
     return {
       ok: false,
       error: `Okay SMS non-JSON response (HTTP ${res.status}): ${rawText.slice(0, 200)}`,
@@ -155,6 +211,59 @@ async function sendViaOkaySms(
   }
 
   return parseOkaySmsResponse(data, res.status);
+}
+
+/** GET https://my.okaysms.com/api/http/sms/{uid} */
+export async function getOkaySmsMessage(uid: string): Promise<OkaySmsApiResult> {
+  const { apiKey } = getSmsConfig();
+  if (!apiKey) {
+    return { ok: false, error: "Okay SMS API key not configured" };
+  }
+  if (!uid?.trim()) {
+    return { ok: false, error: "Message uid is required" };
+  }
+
+  const res = await fetch(getOkaySmsMessageUrl(uid.trim()), {
+    method: "GET",
+    headers: getOkaySmsHeaders(apiKey),
+  });
+
+  const { data, rawText } = await parseOkaySmsJson(res);
+  if (data === null) {
+    return { ok: false, error: `Non-JSON response (HTTP ${res.status}): ${rawText.slice(0, 200)}` };
+  }
+
+  const body = data as { status?: string; message?: string; data?: unknown };
+  if (!res.ok || body.status === "error") {
+    return { ok: false, error: body.message || `Okay SMS HTTP ${res.status}` };
+  }
+
+  return { ok: true, data: body.data ?? data };
+}
+
+/** GET https://my.okaysms.com/api/http/sms */
+export async function listOkaySmsMessages(): Promise<OkaySmsApiResult> {
+  const { apiKey } = getSmsConfig();
+  if (!apiKey) {
+    return { ok: false, error: "Okay SMS API key not configured" };
+  }
+
+  const res = await fetch(getOkaySmsListUrl(), {
+    method: "GET",
+    headers: getOkaySmsHeaders(apiKey),
+  });
+
+  const { data, rawText } = await parseOkaySmsJson(res);
+  if (data === null) {
+    return { ok: false, error: `Non-JSON response (HTTP ${res.status}): ${rawText.slice(0, 200)}` };
+  }
+
+  const body = data as { status?: string; message?: string; data?: unknown };
+  if (!res.ok || body.status === "error") {
+    return { ok: false, error: body.message || `Okay SMS HTTP ${res.status}` };
+  }
+
+  return { ok: true, data: body.data ?? data };
 }
 
 async function sendViaAfricasTalking(
@@ -298,7 +407,6 @@ export async function sendBulkSms(
     results.push(result);
     if (result.ok) sent++;
     else failed++;
-    // Small delay to respect provider rate limits
     await new Promise((r) => setTimeout(r, 120));
   }
 

@@ -7,7 +7,7 @@ import {
   getSmsInsights,
 } from "@/lib/sms/automation";
 import { renderSmsTemplate, smsStats } from "@/lib/sms/templates";
-import { sendBulkSms, sendSms } from "@/lib/sms/provider";
+import { sendBulkSms, sendSms, getOkaySmsMessage, listOkaySmsMessages } from "@/lib/sms/provider";
 import { formatPhoneKenyaE164 } from "@/lib/phone/kenya";
 
 export const dynamic = "force-dynamic";
@@ -185,6 +185,26 @@ export async function POST(request: Request) {
     });
   }
 
+  if (body.action === "message_status") {
+    const { uid } = body;
+    if (!uid?.trim()) {
+      return NextResponse.json({ error: "Message uid is required" }, { status: 400 });
+    }
+    const result = await getOkaySmsMessage(String(uid).trim());
+    if (!result.ok) {
+      return NextResponse.json({ success: false, error: result.error }, { status: 502 });
+    }
+    return NextResponse.json({ success: true, data: result.data });
+  }
+
+  if (body.action === "list_messages") {
+    const result = await listOkaySmsMessages();
+    if (!result.ok) {
+      return NextResponse.json({ success: false, error: result.error }, { status: 502 });
+    }
+    return NextResponse.json({ success: true, data: result.data });
+  }
+
   if (body.action === "send_test") {
     const { phone, message } = body;
     if (!phone || !message) {
@@ -212,7 +232,7 @@ export async function POST(request: Request) {
     if (!result.ok) {
       return NextResponse.json({ success: false, error: result.error || "SMS send failed" }, { status: 502 });
     }
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, provider_message_id: result.providerMessageId });
   }
 
   const settings: SmsAutomationSettings = {
