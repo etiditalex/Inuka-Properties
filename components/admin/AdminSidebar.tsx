@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
   User,
@@ -30,6 +30,7 @@ import { adminPath } from "@/lib/admin/path";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useAdminShell } from "./AdminShellContext";
 
 const navItems = [
   { segment: "", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -51,18 +52,13 @@ const navItems = [
 ];
 
 type AdminSidebarProps = {
-  collapsed: boolean;
-  onToggle: () => void;
   badges?: { inquiries?: number; leads?: number };
 };
 
-export default function AdminSidebar({
-  collapsed,
-  onToggle,
-  badges = {},
-}: AdminSidebarProps) {
+export default function AdminSidebar({ badges = {} }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { collapsed, toggleCollapsed, mobileOpen, setMobileOpen } = useAdminShell();
   const [loggingOut, setLoggingOut] = useState(false);
 
   const handleLogout = async () => {
@@ -73,44 +69,70 @@ export default function AdminSidebar({
     router.refresh();
   };
 
+  const handleNavClick = () => {
+    setMobileOpen(false);
+  };
+
   return (
     <aside
       className={cn(
         "fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-white/10 bg-gradient-to-b from-dark-900 via-[#0a1628] to-dark-900 transition-all duration-300",
-        collapsed ? "w-[72px]" : "w-64"
+        collapsed ? "lg:w-[72px]" : "lg:w-64",
+        mobileOpen ? "w-64 translate-x-0" : "-translate-x-full w-64",
+        "lg:translate-x-0"
       )}
     >
-      <div className="flex h-16 items-center justify-between border-b border-white/10 px-4">
-        <Link href={adminPath()} className="flex items-center gap-3 overflow-hidden">
+      <button
+        type="button"
+        onClick={toggleCollapsed}
+        className={cn(
+          "absolute top-7 z-50 hidden h-7 w-7 items-center justify-center rounded-full border border-white/15 bg-dark-800 text-white shadow-lg transition hover:border-primary-400 hover:bg-primary-600 lg:flex",
+          collapsed ? "-right-3.5" : "-right-3.5"
+        )}
+        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+      >
+        {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+      </button>
+
+      <div
+        className={cn(
+          "flex h-16 shrink-0 items-center border-b border-white/10",
+          collapsed ? "justify-center px-2 lg:px-2" : "justify-between px-4"
+        )}
+      >
+        <Link
+          href={adminPath()}
+          onClick={handleNavClick}
+          className={cn(
+            "flex items-center overflow-hidden",
+            collapsed ? "justify-center" : "gap-3"
+          )}
+        >
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 shadow-lg shadow-primary-900/50">
             <Building2 className="h-5 w-5 text-white" />
           </div>
-          {!collapsed && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="min-w-0"
-            >
-              <p className="truncate text-sm font-bold text-white font-montserrat">
-                IAPL Console
-              </p>
-              <p className="truncate text-[10px] text-primary-300/80">
-                Property Management
-              </p>
-            </motion.div>
-          )}
+          <AnimatePresence initial={false}>
+            {!collapsed && (
+              <motion.div
+                initial={{ opacity: 0, width: 0 }}
+                animate={{ opacity: 1, width: "auto" }}
+                exit={{ opacity: 0, width: 0 }}
+                transition={{ duration: 0.2 }}
+                className="min-w-0 overflow-hidden"
+              >
+                <p className="truncate text-sm font-bold text-white font-montserrat">
+                  IAPL Console
+                </p>
+                <p className="truncate text-[10px] text-primary-300/80">
+                  Property Management
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </Link>
-        <button
-          type="button"
-          onClick={onToggle}
-          className="rounded-lg p-1.5 text-white/50 transition hover:bg-white/10 hover:text-white"
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-        </button>
       </div>
 
-      <nav className="flex-1 space-y-1 overflow-y-auto p-3">
+      <nav className="flex-1 space-y-1 overflow-y-auto overflow-x-hidden p-3">
         {navItems.map((item) => {
           const href = adminPath(item.segment);
           const isActive = item.exact
@@ -128,9 +150,11 @@ export default function AdminSidebar({
             <Link
               key={item.segment}
               href={href}
+              onClick={handleNavClick}
               title={collapsed ? item.label : undefined}
               className={cn(
-                "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                "group relative flex items-center rounded-xl text-sm font-medium transition-all duration-200",
+                collapsed ? "justify-center px-2 py-2.5" : "gap-3 px-3 py-2.5",
                 isActive
                   ? "bg-gradient-to-r from-primary-600/90 to-primary-700/80 text-white shadow-lg shadow-primary-900/30"
                   : "text-white/60 hover:bg-white/5 hover:text-white"
@@ -150,11 +174,19 @@ export default function AdminSidebar({
                   isActive ? "text-secondary-300" : "text-white/50 group-hover:text-primary-300"
                 )}
               />
-              {!collapsed && (
-                <span className="relative flex-1 truncate font-montserrat">
-                  {item.label}
-                </span>
-              )}
+              <AnimatePresence initial={false}>
+                {!collapsed && (
+                  <motion.span
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: "auto" }}
+                    exit={{ opacity: 0, width: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="relative flex-1 truncate overflow-hidden font-montserrat"
+                  >
+                    {item.label}
+                  </motion.span>
+                )}
+              </AnimatePresence>
               {!collapsed && badgeCount ? (
                 <span className="relative flex h-5 min-w-5 items-center justify-center rounded-full bg-secondary-500 px-1.5 text-[10px] font-bold text-white">
                   {badgeCount > 99 ? "99+" : badgeCount}
@@ -173,8 +205,10 @@ export default function AdminSidebar({
           type="button"
           onClick={handleLogout}
           disabled={loggingOut}
+          title={collapsed ? "Sign Out" : undefined}
           className={cn(
-            "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/50 transition hover:bg-red-500/10 hover:text-red-400",
+            "flex w-full items-center rounded-xl px-3 py-2.5 text-sm font-medium text-white/50 transition hover:bg-red-500/10 hover:text-red-400",
+            collapsed ? "justify-center" : "gap-3",
             loggingOut && "opacity-50"
           )}
         >

@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import AdminSidebar from "./AdminSidebar";
 import AdminTopBar from "./AdminTopBar";
+import { useAdminShell } from "./AdminShellContext";
 import { cn } from "@/lib/admin/utils";
 import type { Profile } from "@/lib/supabase/types";
 
@@ -15,9 +17,14 @@ type AdminShellProps = {
 };
 
 export default function AdminShell({ children, title, subtitle, contentClassName }: AdminShellProps) {
-  const [collapsed, setCollapsed] = useState(false);
+  const pathname = usePathname();
+  const { collapsed, mobileOpen, setMobileOpen } = useAdminShell();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [badges, setBadges] = useState({ inquiries: 0, leads: 0 });
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname, setMobileOpen]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -57,23 +64,29 @@ export default function AdminShell({ children, title, subtitle, contentClassName
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-dark-50 via-white to-primary-50/30">
-      <AdminSidebar
-        collapsed={collapsed}
-        onToggle={() => setCollapsed((c) => !c)}
-        badges={badges}
-      />
+      {mobileOpen ? (
+        <button
+          type="button"
+          aria-label="Close navigation menu"
+          className="fixed inset-0 z-30 bg-dark-900/50 backdrop-blur-sm lg:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      ) : null}
+
+      <AdminSidebar badges={badges} />
+
       <AdminTopBar
         title={title}
         subtitle={subtitle}
-        sidebarCollapsed={collapsed}
         userName={profile?.full_name || undefined}
         userEmail={profile?.email || undefined}
         avatarUrl={profile?.avatar_url}
       />
+
       <main
         className={cn(
-          "min-h-[calc(100vh-4rem)] p-6 transition-all duration-300",
-          collapsed ? "ml-[72px]" : "ml-64",
+          "min-h-[calc(100vh-4rem)] p-4 transition-all duration-300 sm:p-6",
+          collapsed ? "lg:ml-[72px]" : "lg:ml-64",
           contentClassName
         )}
       >
