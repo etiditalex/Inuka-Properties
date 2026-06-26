@@ -54,6 +54,47 @@ export function buildPropertyDetailsEmail(params: {
   return { subject, html };
 }
 
+export function buildInquiryAcknowledgmentEmail(params: {
+  leadName: string;
+  propertyTitle?: string | null;
+  message?: string | null;
+  subject?: string | null;
+}): { subject: string; html: string } {
+  const topic = params.propertyTitle || params.subject || "your enquiry";
+  const subject = `We received your enquiry — Inuka Afrika Properties`;
+  const messageBlock = params.message
+    ? `<p style="margin:16px 0;padding:16px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;font-size:14px;line-height:1.7;color:#374151;white-space:pre-line">${escapeHtml(params.message)}</p>`
+    : "";
+
+  const html = `
+    <div style="font-family:Inter,Arial,sans-serif;max-width:640px;margin:0 auto;color:#111827">
+      <div style="background:linear-gradient(135deg,#0284c7,#075985);padding:28px 24px;border-radius:12px 12px 0 0">
+        <h1 style="color:#fff;margin:0;font-size:22px">Thank You for Contacting Us</h1>
+        <p style="color:#e0f2fe;margin:8px 0 0;font-size:14px">Inuka Afrika Properties Limited</p>
+      </div>
+      <div style="background:#fff;padding:24px;border:1px solid #e5e7eb;border-top:none">
+        <p style="font-size:16px;line-height:1.6">Dear ${escapeHtml(params.leadName)},</p>
+        <p style="font-size:15px;line-height:1.6;color:#374151">
+          We have received your enquiry about <strong>${escapeHtml(topic)}</strong>.
+          Our team will respond shortly — usually within a few hours during business days.
+        </p>
+        ${messageBlock}
+        <p style="font-size:15px;line-height:1.6;color:#374151;margin-top:20px">
+          For immediate assistance, chat with us on WhatsApp or call our sales line:
+        </p>
+        <a href="https://wa.me/254711082084?text=${encodeURIComponent(`Hi, I enquired about ${topic}. Please assist me.`)}" style="display:inline-block;background:#16a34a;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;margin:8px 8px 8px 0">Chat on WhatsApp</a>
+        <a href="tel:+254711082084" style="display:inline-block;background:#0284c7;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;margin:8px 0">Call 0711 082 084</a>
+        <p style="margin-top:24px;font-size:13px;color:#6b7280">
+          Email: <a href="mailto:info@inukaproperties.co.ke" style="color:#0284c7">info@inukaproperties.co.ke</a>
+        </p>
+      </div>
+      <p style="text-align:center;font-size:11px;color:#9ca3af;padding:16px">© Inuka Afrika Properties Limited</p>
+    </div>
+  `;
+
+  return { subject, html };
+}
+
 export function buildAdminLeadAlertEmail(params: {
   type: "lead" | "inquiry";
   name: string;

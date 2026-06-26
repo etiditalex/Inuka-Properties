@@ -99,15 +99,21 @@ export default function AdminEmailPage() {
                 <h3 className="text-lg font-bold font-montserrat text-dark-900">Automated Workflow</h3>
               </div>
               <p className="mb-4 text-sm text-dark-600">
-                When someone fills a form on your website (e.g. from a Facebook ad), their email is saved and
-                property details are sent automatically. Your team is notified by email and WhatsApp.
+                When someone submits a form or sends an email inquiry, they receive an instant auto-reply
+                and your team is notified by email and WhatsApp (0711 082 084).
               </p>
               <div className="space-y-3">
                 <AdminToggle
                   label="Auto-send property details to leads"
                   checked={settings.auto_send_property_details}
                   onChange={(v) => setSettings((s) => ({ ...s, auto_send_property_details: v }))}
-                  description="Sends project info, price, location, and WhatsApp link to the client's email"
+                  description="Sends project info, price, location, and WhatsApp link when a property is identified"
+                />
+                <AdminToggle
+                  label="Auto-reply to general enquiries"
+                  checked={settings.auto_send_inquiry_acknowledgment}
+                  onChange={(v) => setSettings((s) => ({ ...s, auto_send_inquiry_acknowledgment: v }))}
+                  description="Sends instant thank-you email with WhatsApp link when no specific property is matched"
                 />
                 <AdminToggle
                   label="Email admin on new leads"
@@ -116,10 +122,10 @@ export default function AdminEmailPage() {
                   description="Sends alert to NOTIFY_EMAIL with lead details and WhatsApp reply link"
                 />
                 <AdminToggle
-                  label="WhatsApp admin alerts (optional)"
+                  label="WhatsApp admin alerts"
                   checked={settings.notify_admin_whatsapp}
                   onChange={(v) => setSettings((s) => ({ ...s, notify_admin_whatsapp: v }))}
-                  description="Optional — requires Meta Business API. Email alerts work without this."
+                  description="Instant alert to 0711 082 084 via WhatsApp API, webhook, or SMS fallback"
                 />
               </div>
             </div>
@@ -177,7 +183,8 @@ export default function AdminEmailPage() {
                 hint="Default: 254711082084 (0711 082 084)"
               />
               <p className="mt-3 text-xs text-dark-500">
-                WhatsApp push is optional. Email automation only needs RESEND_API_KEY, NOTIFY_EMAIL, and EMAIL_FROM in Vercel.
+                Alerts go to this number instantly. Uses WhatsApp Business API if configured; otherwise SMS fallback.
+                Email automation needs RESEND_API_KEY, NOTIFY_EMAIL, and EMAIL_FROM in Vercel.
               </p>
             </div>
 

@@ -1,10 +1,16 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Property } from "@/lib/supabase/types";
-import { buildAdminLeadAlertEmail, buildPropertyDetailsEmail } from "@/lib/email/templates";
+import {
+  buildAdminLeadAlertEmail,
+  buildInquiryAcknowledgmentEmail,
+  buildPropertyDetailsEmail,
+} from "@/lib/email/templates";
+import { sendSms } from "@/lib/sms/provider";
 import { WHATSAPP_NUMBER } from "@/lib/whatsapp";
 
 export type EmailAutomationSettings = {
   auto_send_property_details: boolean;
+  auto_send_inquiry_acknowledgment: boolean;
   default_property_id: number | null;
   notify_admin_email: boolean;
   notify_admin_whatsapp: boolean;
@@ -14,9 +20,10 @@ export type EmailAutomationSettings = {
 
 export const DEFAULT_EMAIL_AUTOMATION: EmailAutomationSettings = {
   auto_send_property_details: true,
+  auto_send_inquiry_acknowledgment: true,
   default_property_id: null,
   notify_admin_email: true,
-  notify_admin_whatsapp: false,
+  notify_admin_whatsapp: true,
   admin_whatsapp_number: WHATSAPP_NUMBER,
   facebook_landing_property_id: null,
 };
@@ -181,31 +188,45 @@ function buildWhatsAppLeadUrl(phone: string, propertyTitle?: string | null): str
   return `https://wa.me/${formatted}?text=${encodeURIComponent(text)}`;
 }
 
-/** Notify admin team via WhatsApp Cloud API if configured, else webhook */
-async function sendAdminWhatsAppAlert(
-  settings: EmailAutomationSettings,
-  payload: LeadAutomationInput & { propertyTitle?: string | null }
-): Promise<void> {
-  if (!settings.notify_admin_whatsapp) return;
+function buildAdminAlertMessage(
+  payload: LeadAutomationInput & { propertyTitle?: string | null; ticketNumber?: number }
+): string {
+  const label =
+    payload.ticketNumber != null
+      ? `Ticket #${payload.ticketNumber}`
+      : payload.leadType === "inquiry"
+        ? "Inquiry"
+        : "Lead";
 
-  const adminNumber = settings.admin_whatsapp_number || WHATSAPP_NUMBER;
-  const message = [
-    `🆕 New ${payload.leadType === "inquiry" ? "Inquiry" : "Lead"} — Inuka Afrika Properties`,
+  return [
+    `🆕 New ${label} — Inuka Afrika Properties`,
     `Name: ${payload.name}`,
     `Email: ${payload.email}`,
     payload.phone ? `Phone: ${payload.phone}` : null,
     payload.propertyTitle ? `Property: ${payload.propertyTitle}` : null,
+    payload.subject ? `Subject: ${payload.subject}` : null,
     payload.message ? `Message: ${payload.message}` : null,
   ]
     .filter(Boolean)
     .join("\n");
+}
+
+/** Notify admin team via WhatsApp Cloud API, webhook, or SMS fallback to 0711 082084 */
+export async function sendAdminWhatsAppAlert(
+  settings: EmailAutomationSettings,
+  payload: LeadAutomationInput & { propertyTitle?: string | null; ticketNumber?: number }
+): Promise<boolean> {
+  if (!settings.notify_admin_whatsapp) return false;
+
+  const adminNumber = settings.admin_whatsapp_number || WHATSAPP_NUMBER;
+  const message = buildAdminAlertMessage(payload);
 
   const token = process.env.WHATSAPP_ACCESS_TOKEN;
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
 
   if (token && phoneNumberId) {
     try {
-      await fetch(`https://graph.facebook.com/v19.0/${phoneNumberId}/messages`, {
+      const res = await fetch(`https://graph.facebook.com/v19.0/${phoneNumberId}/messages`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -218,49 +239,49 @@ async function sendAdminWhatsAppAlert(
           text: { body: message },
         }),
       });
-      return;
+      if (res.ok) return true;
     } catch {
-      // fall through to webhook
+      // fall through
     }
   }
 
   const webhookUrl = process.env.WHATSAPP_WEBHOOK_URL;
   if (webhookUrl) {
     try {
-      await fetch(webhookUrl, {
+      const res = await fetch(webhookUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: payload.leadType, admin_whatsapp: adminNumber, ...payload }),
       });
+      if (res.ok) return true;
     } catch {
-      // silent — email is primary channel
+      // fall through
     }
   }
+
+  const smsResult = await sendSms(adminNumber, message.slice(0, 480));
+  if (smsResult.ok) return true;
+
+  if (process.env.NODE_ENV === "development") {
+    console.log("[whatsapp-alert]", adminNumber, message);
+    return true;
+  }
+
+  return false;
 }
 
-export async function runLeadAutomation(
+async function sendClientAutoReply(
   supabase: SupabaseClient,
-  input: LeadAutomationInput
-): Promise<{ propertyEmailSent: boolean; adminEmailSent: boolean }> {
-  const settings = await getEmailAutomationSettings(supabase);
-  const property = await resolveProperty(
-    supabase,
-    input.propertyId,
-    input.propertyName,
-    settings,
-    input.source
-  );
-
-  let propertyEmailSent = false;
-  let adminEmailSent = false;
-
+  settings: EmailAutomationSettings,
+  input: LeadAutomationInput,
+  property: Property | null
+): Promise<boolean> {
   if (settings.auto_send_property_details && property) {
     const { subject, html } = buildPropertyDetailsEmail({
       leadName: input.name,
       property,
     });
     const ok = await sendResendEmail(input.email, subject, html);
-    propertyEmailSent = ok;
     await logEmail(supabase, {
       leadType: input.leadType,
       leadId: input.leadId,
@@ -272,46 +293,93 @@ export async function runLeadAutomation(
       status: ok ? "sent" : "failed",
       errorMessage: ok ? undefined : "Resend send failed",
     });
+    return ok;
   }
 
-  if (settings.notify_admin_email) {
-    const { notifyEmail } = getEmailConfig();
-    if (notifyEmail) {
-      const whatsAppLeadUrl = input.phone
-        ? buildWhatsAppLeadUrl(input.phone, property?.title ?? input.propertyName)
-        : null;
-      const { subject, html } = buildAdminLeadAlertEmail({
-        type: input.leadType,
-        name: input.name,
-        email: input.email,
-        phone: input.phone,
-        propertyTitle: property?.title ?? input.propertyName,
-        propertyId: property?.id ?? input.propertyId,
-        message: input.message,
-        preferredDate: input.preferredDate,
-        preferredTime: input.preferredTime,
-        subject: input.subject,
-        whatsAppLeadUrl,
-      });
-      const ok = await sendResendEmail(notifyEmail, subject, html);
-      adminEmailSent = ok;
-      await logEmail(supabase, {
-        leadType: input.leadType,
-        leadId: input.leadId,
-        recipientEmail: notifyEmail,
-        recipientName: "Admin",
-        propertyId: property?.id ?? input.propertyId,
-        propertyTitle: property?.title ?? input.propertyName,
-        emailType: "admin_alert",
-        status: ok ? "sent" : "failed",
-      });
-    }
-  }
+  if (!settings.auto_send_inquiry_acknowledgment) return false;
 
-  await sendAdminWhatsAppAlert(settings, {
-    ...input,
+  const { subject, html } = buildInquiryAcknowledgmentEmail({
+    leadName: input.name,
     propertyTitle: property?.title ?? input.propertyName,
+    message: input.message,
+    subject: input.subject,
   });
+  const ok = await sendResendEmail(input.email, subject, html);
+  await logEmail(supabase, {
+    leadType: input.leadType,
+    leadId: input.leadId,
+    recipientEmail: input.email,
+    recipientName: input.name,
+    propertyId: property?.id ?? input.propertyId,
+    propertyTitle: property?.title ?? input.propertyName,
+    emailType: "property_details",
+    status: ok ? "sent" : "failed",
+    errorMessage: ok ? undefined : "Resend send failed",
+  });
+  return ok;
+}
 
-  return { propertyEmailSent, adminEmailSent };
+async function sendAdminEmailAlert(
+  supabase: SupabaseClient,
+  settings: EmailAutomationSettings,
+  input: LeadAutomationInput,
+  property: Property | null
+): Promise<boolean> {
+  if (!settings.notify_admin_email) return false;
+
+  const { notifyEmail } = getEmailConfig();
+  if (!notifyEmail) return false;
+
+  const whatsAppLeadUrl = input.phone
+    ? buildWhatsAppLeadUrl(input.phone, property?.title ?? input.propertyName)
+    : null;
+  const { subject, html } = buildAdminLeadAlertEmail({
+    type: input.leadType,
+    name: input.name,
+    email: input.email,
+    phone: input.phone,
+    propertyTitle: property?.title ?? input.propertyName,
+    propertyId: property?.id ?? input.propertyId,
+    message: input.message,
+    preferredDate: input.preferredDate,
+    preferredTime: input.preferredTime,
+    subject: input.subject,
+    whatsAppLeadUrl,
+  });
+  const ok = await sendResendEmail(notifyEmail, subject, html);
+  await logEmail(supabase, {
+    leadType: input.leadType,
+    leadId: input.leadId,
+    recipientEmail: notifyEmail,
+    recipientName: "Admin",
+    propertyId: property?.id ?? input.propertyId,
+    propertyTitle: property?.title ?? input.propertyName,
+    emailType: "admin_alert",
+    status: ok ? "sent" : "failed",
+  });
+  return ok;
+}
+
+export async function runLeadAutomation(
+  supabase: SupabaseClient,
+  input: LeadAutomationInput
+): Promise<{ clientEmailSent: boolean; adminEmailSent: boolean; whatsAppAlertSent: boolean }> {
+  const settings = await getEmailAutomationSettings(supabase);
+  const property = await resolveProperty(
+    supabase,
+    input.propertyId,
+    input.propertyName,
+    settings,
+    input.source
+  );
+
+  const propertyTitle = property?.title ?? input.propertyName;
+
+  const [clientEmailSent, adminEmailSent, whatsAppAlertSent] = await Promise.all([
+    sendClientAutoReply(supabase, settings, input, property),
+    sendAdminEmailAlert(supabase, settings, input, property),
+    sendAdminWhatsAppAlert(settings, { ...input, propertyTitle }),
+  ]);
+
+  return { clientEmailSent, adminEmailSent, whatsAppAlertSent };
 }

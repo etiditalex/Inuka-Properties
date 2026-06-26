@@ -4,6 +4,7 @@ import { createTicket } from "@/lib/ticketing/create-ticket";
 import { resolveDepartment } from "@/lib/ticketing/public-form";
 import { sendTicketConfirmationEmail } from "@/lib/email/ticket-confirmation";
 import { sendAdminNotification } from "@/lib/notifications";
+import { getEmailAutomationSettings, sendAdminWhatsAppAlert } from "@/lib/email/automation";
 import type { TicketPriority } from "@/lib/supabase/types";
 
 export const dynamic = "force-dynamic";
@@ -69,7 +70,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error || "Could not create ticket." }, { status: 500 });
     }
 
-    const [confirmationSent] = await Promise.all([
+    const settings = await getEmailAutomationSettings(supabase);
+
+    const [confirmationSent, , whatsAppAlertSent] = await Promise.all([
       sendTicketConfirmationEmail({
         to: email.trim(),
         name: name.trim(),
@@ -87,6 +90,15 @@ export async function POST(request: Request) {
         message: message.trim(),
         ticketNumber: ticket.number,
       }),
+      sendAdminWhatsAppAlert(settings, {
+        leadType: "inquiry",
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone?.trim(),
+        message: message.trim(),
+        subject: subject.trim(),
+        ticketNumber: ticket.number,
+      }),
     ]);
 
     return NextResponse.json({
@@ -94,6 +106,7 @@ export async function POST(request: Request) {
       ticket_number: ticket.number,
       ticket_id: ticket.id,
       confirmation_email_sent: confirmationSent,
+      whatsapp_alert_sent: whatsAppAlertSent,
     });
   } catch {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });

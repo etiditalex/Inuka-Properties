@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { createTicketFromInboundEmail } from "@/lib/ticketing/create-ticket";
 import { sendAdminNotification } from "@/lib/notifications";
+import { getEmailAutomationSettings, sendAdminWhatsAppAlert } from "@/lib/email/automation";
+import { sendTicketConfirmationEmail } from "@/lib/email/ticket-confirmation";
 
 export const dynamic = "force-dynamic";
 
@@ -60,16 +62,44 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error || "Failed to create ticket" }, { status: 500 });
     }
 
-    await sendAdminNotification({
-      type: "ticket",
-      name: ticket.requester_name,
-      email: ticket.requester_email,
-      subject: ticket.subject,
-      message: ticket.description,
-      ticketNumber: ticket.number,
-    });
+    const settings = await getEmailAutomationSettings(supabase);
 
-    return NextResponse.json({ success: true, ticket_id: ticket.id, ticket_number: ticket.number });
+    const [confirmationSent, , whatsAppAlertSent] = await Promise.all([
+      sendTicketConfirmationEmail({
+        to: ticket.requester_email,
+        name: ticket.requester_name,
+        ticketNumber: ticket.number,
+        subject: ticket.subject,
+        department: ticket.department || "Support",
+        priority: ticket.priority || "medium",
+      }),
+      sendAdminNotification({
+        type: "ticket",
+        name: ticket.requester_name,
+        email: ticket.requester_email,
+        subject: ticket.subject,
+        message: ticket.description,
+        ticketNumber: ticket.number,
+      }),
+      sendAdminWhatsAppAlert(settings, {
+        leadType: "inquiry",
+        name: ticket.requester_name,
+        email: ticket.requester_email,
+        phone: ticket.requester_phone,
+        message: ticket.description,
+        subject: ticket.subject,
+        propertyTitle: null,
+        ticketNumber: ticket.number,
+      }),
+    ]);
+
+    return NextResponse.json({
+      success: true,
+      ticket_id: ticket.id,
+      ticket_number: ticket.number,
+      confirmation_email_sent: confirmationSent,
+      whatsapp_alert_sent: whatsAppAlertSent,
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Invalid payload";
     return NextResponse.json({ error: message }, { status: 400 });
