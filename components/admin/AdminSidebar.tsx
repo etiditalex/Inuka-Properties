@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -16,7 +17,6 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Building2,
   Quote,
   Download,
   Play,
@@ -31,6 +31,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAdminShell } from "./AdminShellContext";
+import { DEFAULT_OG_IMAGE } from "@/lib/seo";
 
 const navItems = [
   { segment: "", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -53,9 +54,10 @@ const navItems = [
 
 type AdminSidebarProps = {
   badges?: { inquiries?: number; leads?: number };
+  logoUrl?: string | null;
 };
 
-export default function AdminSidebar({ badges = {} }: AdminSidebarProps) {
+export default function AdminSidebar({ badges = {}, logoUrl }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { collapsed, toggleCollapsed, mobileOpen, setMobileOpen } = useAdminShell();
@@ -72,6 +74,8 @@ export default function AdminSidebar({ badges = {} }: AdminSidebarProps) {
   const handleNavClick = () => {
     setMobileOpen(false);
   };
+
+  const brandLogo = logoUrl || DEFAULT_OG_IMAGE;
 
   return (
     <aside
@@ -108,8 +112,14 @@ export default function AdminSidebar({ badges = {} }: AdminSidebarProps) {
             collapsed ? "justify-center" : "gap-3"
           )}
         >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-lg ring-1 ring-white/20">
-            <Building2 className="h-5 w-5 text-white" />
+          <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-white/20">
+            <Image
+              src={brandLogo}
+              alt="Inuka Afrika Properties"
+              fill
+              className="object-contain p-1"
+              unoptimized
+            />
           </div>
           <AnimatePresence initial={false}>
             {!collapsed && (

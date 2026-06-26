@@ -73,7 +73,7 @@ export default function AdminShell({ children, title, subtitle, contentClassName
         />
       ) : null}
 
-      <AdminSidebar badges={badges} />
+      <AdminSidebar badges={badges} logoUrl={profile?.avatar_url} />
 
       <AdminTopBar
         title={title}
