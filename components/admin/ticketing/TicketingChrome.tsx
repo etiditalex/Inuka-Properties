@@ -84,10 +84,10 @@ export function TicketingModuleBar({
   const showTicketSubNav = activeModule === "tickets";
 
   return (
-    <div className="overflow-hidden rounded-t-xl border border-slate-700/50 bg-[#1a1f26] shadow-lg">
+    <div className="overflow-hidden rounded-t-xl border border-primary-600/40 bg-gradient-to-r from-primary-700 via-primary-800 to-primary-900 shadow-lg">
       <div className="flex items-center gap-1 overflow-x-auto px-4 py-2">
-        <div className="mr-4 flex shrink-0 items-center gap-2 border-r border-white/10 pr-4">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary-500 to-primary-700">
+        <div className="mr-4 flex shrink-0 items-center gap-2 border-r border-white/15 pr-4">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/15 ring-1 ring-white/20">
             <Ticket className="h-3.5 w-3.5 text-white" />
           </div>
           <span className="text-sm font-bold tracking-tight text-white font-montserrat">
@@ -106,8 +106,8 @@ export function TicketingModuleBar({
               className={cn(
                 "relative flex shrink-0 items-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium transition",
                 isActive
-                  ? "text-white after:absolute after:bottom-0 after:left-2 after:right-2 after:h-0.5 after:rounded-full after:bg-secondary-400"
-                  : "text-white/50 hover:bg-white/5 hover:text-white/80"
+                  ? "text-white after:absolute after:bottom-0 after:left-2 after:right-2 after:h-0.5 after:rounded-full after:bg-secondary-300"
+                  : "text-white/70 hover:bg-white/10 hover:text-white"
               )}
             >
               <Icon className="h-3.5 w-3.5" />
@@ -123,7 +123,7 @@ export function TicketingModuleBar({
       </div>
 
       {showTicketSubNav ? (
-        <div className="flex items-center gap-0.5 overflow-x-auto border-t border-white/5 bg-[#252b33] px-2">
+        <div className="flex items-center gap-0.5 overflow-x-auto border-t border-white/10 bg-primary-900/70 px-2">
           {subNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeView === item.id;
@@ -135,8 +135,8 @@ export function TicketingModuleBar({
                 className={cn(
                   "flex shrink-0 items-center gap-1.5 rounded-t-md px-3 py-2.5 text-xs font-medium transition",
                   isActive
-                    ? "bg-[#3a4149] text-white"
-                    : "text-white/60 hover:bg-white/5 hover:text-white/90"
+                    ? "bg-primary-600 text-white shadow-sm"
+                    : "text-white/75 hover:bg-white/10 hover:text-white"
                 )}
               >
                 <Icon className="h-3.5 w-3.5" />
@@ -151,8 +151,8 @@ export function TicketingModuleBar({
           })}
         </div>
       ) : (
-        <div className="border-t border-white/5 bg-[#252b33] px-4 py-2.5">
-          <p className="text-xs text-white/50">
+        <div className="border-t border-white/10 bg-primary-900/70 px-4 py-2.5">
+          <p className="text-xs text-white/70">
             {MODULE_META[activeModule].label} module — use the tabs above to switch sections
           </p>
         </div>

@@ -76,7 +76,7 @@ export default function AdminSidebar({ badges = {} }: AdminSidebarProps) {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-white/10 bg-gradient-to-b from-dark-900 via-[#0a1628] to-dark-900 transition-all duration-300",
+        "fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-primary-600/40 bg-gradient-to-b from-primary-700 via-primary-800 to-primary-900 transition-all duration-300",
         collapsed ? "lg:w-[72px]" : "lg:w-64",
         mobileOpen ? "w-64 translate-x-0" : "-translate-x-full w-64",
         "lg:translate-x-0"
@@ -86,7 +86,7 @@ export default function AdminSidebar({ badges = {} }: AdminSidebarProps) {
         type="button"
         onClick={toggleCollapsed}
         className={cn(
-          "absolute top-7 z-50 hidden h-7 w-7 items-center justify-center rounded-full border border-white/15 bg-dark-800 text-white shadow-lg transition hover:border-primary-400 hover:bg-primary-600 lg:flex",
+          "absolute top-7 z-50 hidden h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-primary-900 text-white shadow-lg transition hover:border-white/40 hover:bg-primary-600 lg:flex",
           collapsed ? "-right-3.5" : "-right-3.5"
         )}
         aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -108,7 +108,7 @@ export default function AdminSidebar({ badges = {} }: AdminSidebarProps) {
             collapsed ? "justify-center" : "gap-3"
           )}
         >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 shadow-lg shadow-primary-900/50">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-lg ring-1 ring-white/20">
             <Building2 className="h-5 w-5 text-white" />
           </div>
           <AnimatePresence initial={false}>
@@ -123,7 +123,7 @@ export default function AdminSidebar({ badges = {} }: AdminSidebarProps) {
                 <p className="truncate text-sm font-bold text-white font-montserrat">
                   IAPL Console
                 </p>
-                <p className="truncate text-[10px] text-primary-300/80">
+                <p className="truncate text-[10px] text-primary-100/80">
                   Property Management
                 </p>
               </motion.div>
@@ -156,14 +156,14 @@ export default function AdminSidebar({ badges = {} }: AdminSidebarProps) {
                 "group relative flex items-center rounded-xl text-sm font-medium transition-all duration-200",
                 collapsed ? "justify-center px-2 py-2.5" : "gap-3 px-3 py-2.5",
                 isActive
-                  ? "bg-gradient-to-r from-primary-600/90 to-primary-700/80 text-white shadow-lg shadow-primary-900/30"
-                  : "text-white/60 hover:bg-white/5 hover:text-white"
+                  ? "bg-white/15 text-white shadow-sm ring-1 ring-white/10"
+                  : "text-white/75 hover:bg-white/10 hover:text-white"
               )}
             >
               {isActive && (
                 <motion.div
                   layoutId="sidebar-active"
-                  className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary-600/20 to-secondary-600/10"
+                  className="absolute inset-0 rounded-xl bg-white/5"
                   transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                 />
               )}
@@ -171,7 +171,7 @@ export default function AdminSidebar({ badges = {} }: AdminSidebarProps) {
                 size={20}
                 className={cn(
                   "relative shrink-0",
-                  isActive ? "text-secondary-300" : "text-white/50 group-hover:text-primary-300"
+                  isActive ? "text-secondary-200" : "text-white/70 group-hover:text-white"
                 )}
               />
               <AnimatePresence initial={false}>
@@ -207,7 +207,7 @@ export default function AdminSidebar({ badges = {} }: AdminSidebarProps) {
           disabled={loggingOut}
           title={collapsed ? "Sign Out" : undefined}
           className={cn(
-            "flex w-full items-center rounded-xl px-3 py-2.5 text-sm font-medium text-white/50 transition hover:bg-red-500/10 hover:text-red-400",
+            "flex w-full items-center rounded-xl px-3 py-2.5 text-sm font-medium text-white/75 transition hover:bg-red-500/20 hover:text-red-100",
             collapsed ? "justify-center" : "gap-3",
             loggingOut && "opacity-50"
           )}
