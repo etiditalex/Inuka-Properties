@@ -4,6 +4,7 @@ import { STATIC_PROPERTY_CATALOG, type CatalogProperty } from "./catalog";
 import { PROPERTY_DETAILS } from "./detailFallback";
 import { mapDbPropertyToDetail, type PropertyDetail } from "./mapProperty";
 import { parseGalleryUrls } from "@/lib/images";
+import { getAvailableProperties, getHomepageProperties, sortPropertiesNewestFirst } from "./sortProperties";
 
 function getPublicClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -13,7 +14,7 @@ function getPublicClient() {
 }
 
 export function getStaticCatalog(): CatalogProperty[] {
-  return STATIC_PROPERTY_CATALOG;
+  return sortPropertiesNewestFirst(STATIC_PROPERTY_CATALOG);
 }
 
 export function getStaticPropertyDetail(id: number): PropertyDetail | null {
@@ -24,17 +25,17 @@ export function getStaticPropertyDetail(id: number): PropertyDetail | null {
 
 export async function fetchPublishedProperties(): Promise<CatalogProperty[]> {
   const supabase = getPublicClient();
-  if (!supabase) return STATIC_PROPERTY_CATALOG;
+  if (!supabase) return getStaticCatalog();
 
   const { data } = await supabase
     .from("properties")
     .select("id, title, location, type, price, size, bedrooms, image, gallery, featured, status, features, created_at")
     .eq("published", true)
-    .order("created_at", { ascending: false });
+    .order("id", { ascending: false });
 
-  if (!data?.length) return STATIC_PROPERTY_CATALOG;
+  if (!data?.length) return getStaticCatalog();
 
-  return data.map((p) => {
+  const mapped = data.map((p) => {
     const image = parseGalleryUrls(p.gallery, p.image)[0] ?? p.image;
     return {
       id: p.id,
@@ -50,6 +51,8 @@ export async function fetchPublishedProperties(): Promise<CatalogProperty[]> {
       features: (p.features as string[]) ?? [],
     };
   });
+
+  return sortPropertiesNewestFirst(mapped);
 }
 
 export async function fetchPropertyDetail(id: number): Promise<PropertyDetail | null> {
@@ -62,13 +65,10 @@ export async function fetchPropertyDetail(id: number): Promise<PropertyDetail | 
 }
 
 export async function fetchFeaturedProperties(limit = 4): Promise<CatalogProperty[]> {
-  const all = await fetchPublishedProperties();
-  const featured = all.filter((p) => p.featured && p.status !== "sold");
-  return (featured.length ? featured : all.filter((p) => p.status !== "sold")).slice(0, limit);
+  return getHomepageProperties(await fetchPublishedProperties(), limit);
 }
 
 /** Latest published listings (newest first) for homepage and highlights */
 export async function fetchLatestProperties(limit = 4): Promise<CatalogProperty[]> {
-  const all = await fetchPublishedProperties();
-  return all.filter((p) => p.status !== "sold").slice(0, limit);
+  return getHomepageProperties(await fetchPublishedProperties(), limit);
 }

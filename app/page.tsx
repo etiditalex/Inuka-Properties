@@ -23,6 +23,11 @@ interface Property {
 }
 
 import { STATIC_PROPERTY_CATALOG } from "@/lib/properties/catalog";
+import {
+  getHomepageProperties,
+  getLatestProject,
+  LATEST_PROJECT_ID,
+} from "@/lib/properties/sortProperties";
 
 function PropertyCarousel({ properties }: { properties: Property[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -51,6 +56,9 @@ function PropertyCarousel({ properties }: { properties: Property[] }) {
                 property={properties[currentIndex]}
                 imageHeightClass="h-[220px] sm:h-[260px]"
                 imageSizes="100vw"
+                badge={
+                  properties[currentIndex].id === LATEST_PROJECT_ID ? "New" : undefined
+                }
               />
             </motion.div>
           </AnimatePresence>
@@ -90,9 +98,76 @@ function PropertyCarousel({ properties }: { properties: Property[] }) {
   );
 }
 
+function FeaturedProjectSpotlight({ property }: { property: Property }) {
+  return (
+    <section className="py-12 md:py-16 bg-gradient-to-br from-primary-50 via-white to-primary-50/30">
+      <div className="container mx-auto px-4 md:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="overflow-hidden rounded-2xl border border-primary-200/80 bg-white shadow-xl shadow-primary-900/5"
+        >
+          <div className="grid lg:grid-cols-2">
+            <div className="relative min-h-[260px] lg:min-h-[360px]">
+              <Image
+                src={property.image}
+                alt={property.title}
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                priority
+                unoptimized
+              />
+              <span className="absolute left-4 top-4 rounded-full bg-primary-600 px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-white shadow-lg">
+                Latest Project
+              </span>
+            </div>
+            <div className="flex flex-col justify-center p-8 md:p-10 lg:p-12">
+              <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-primary-600">
+                Featured listing
+              </p>
+              <h2 className="text-2xl font-bold text-dark-900 font-montserrat md:text-3xl lg:text-4xl">
+                {property.title}
+              </h2>
+              <p className="mt-3 flex items-start gap-2 text-dark-600">
+                <MapPin size={18} className="mt-0.5 shrink-0 text-primary-600" />
+                <span>{property.location}</span>
+              </p>
+              <p className="mt-4 text-2xl font-bold text-primary-700 md:text-3xl">{property.price}</p>
+              <p className="mt-1 text-sm text-dark-500">{property.size}</p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link
+                  href={`/for-sale/${property.id}`}
+                  className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-6 py-3 font-semibold text-white transition hover:bg-primary-700"
+                >
+                  View {property.title}
+                  <ArrowRight size={18} />
+                </Link>
+                <Link
+                  href="/for-sale"
+                  className="inline-flex items-center rounded-lg border border-primary-600 px-6 py-3 font-semibold text-primary-700 transition hover:bg-primary-50"
+                >
+                  All properties
+                </Link>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
 function PropertyCardsSection() {
-  const [homeFeaturedProperties, setHomeFeaturedProperties] = useState<Property[]>(
-    STATIC_PROPERTY_CATALOG.filter((p) => p.status !== "sold").slice(0, 4) as Property[]
+  const initialHomepage = getHomepageProperties(
+    STATIC_PROPERTY_CATALOG.filter((p) => p.status !== "sold") as Property[],
+    4
+  );
+  const [homeFeaturedProperties, setHomeFeaturedProperties] = useState<Property[]>(initialHomepage);
+  const [latestProject, setLatestProject] = useState<Property | undefined>(
+    getLatestProject<Property>(initialHomepage) ??
+      getLatestProject<Property>(STATIC_PROPERTY_CATALOG as Property[])
   );
 
   useEffect(() => {
@@ -100,36 +175,50 @@ function PropertyCardsSection() {
       .then((r) => r.json())
       .then((data) => {
         if (!data.properties?.length) return;
-        const latest = data.properties
-          .filter((p: Property) => p.status !== "sold")
-          .slice(0, 4);
-        if (latest.length) setHomeFeaturedProperties(latest);
+        const homepage = getHomepageProperties(data.properties, 4);
+        if (homepage.length) setHomeFeaturedProperties(homepage);
+        const latest = getLatestProject<Property>(data.properties);
+        if (latest) setLatestProject(latest);
       })
       .catch(() => {});
   }, []);
 
   return (
-    <section className="py-20 bg-dark-50">
-      <div className="w-full px-4 md:px-6 lg:px-8">
-        {/* Desktop Grid - 4 columns */}
-        <div className="hidden lg:grid lg:grid-cols-4 gap-6">
-          {homeFeaturedProperties.map((property, index) => (
-            <motion.div
-              key={property.id}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <PropertyListingCard property={property} />
-            </motion.div>
-          ))}
-        </div>
+    <>
+      {latestProject ? <FeaturedProjectSpotlight property={latestProject} /> : null}
+      <section className="py-20 bg-dark-50">
+        <div className="w-full px-4 md:px-6 lg:px-8">
+          <div className="mb-10">
+            <h2 className="text-2xl font-bold text-dark-900 font-montserrat md:text-3xl">
+              Latest properties
+            </h2>
+            <p className="mt-2 text-dark-600">
+              Newest projects first — explore our latest land listings across Kilifi County.
+            </p>
+          </div>
+          {/* Desktop Grid - 4 columns */}
+          <div className="hidden lg:grid lg:grid-cols-4 gap-6">
+            {homeFeaturedProperties.map((property, index) => (
+              <motion.div
+                key={property.id}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <PropertyListingCard
+                  property={property}
+                  badge={property.id === LATEST_PROJECT_ID ? "New" : undefined}
+                />
+              </motion.div>
+            ))}
+          </div>
 
-        {/* Mobile Carousel */}
-        <PropertyCarousel properties={homeFeaturedProperties} />
-      </div>
-    </section>
+          {/* Mobile Carousel */}
+          <PropertyCarousel properties={homeFeaturedProperties} />
+        </div>
+      </section>
+    </>
   );
 }
 

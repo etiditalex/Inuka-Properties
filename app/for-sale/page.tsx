@@ -6,13 +6,16 @@ import { Search, Home, ChevronRight, X, SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
 import PropertyListingCard from "@/components/PropertyListingCard";
 import { STATIC_PROPERTY_CATALOG, type CatalogProperty } from "@/lib/properties/catalog";
+import { sortPropertiesNewestFirst, LATEST_PROJECT_ID } from "@/lib/properties/sortProperties";
 
 type PropertyType = "all" | "residential" | "commercial" | "beach" | "farm" | "affordable";
 
 type Property = CatalogProperty & { type: PropertyType | string };
 
 export default function ForSalePage() {
-  const [properties, setProperties] = useState<Property[]>(STATIC_PROPERTY_CATALOG as Property[]);
+  const [properties, setProperties] = useState<Property[]>(
+    sortPropertiesNewestFirst(STATIC_PROPERTY_CATALOG) as Property[]
+  );
   const [filter, setFilter] = useState<PropertyType>("all");
   useEffect(() => {
     fetch("/api/content/properties")
@@ -354,6 +357,7 @@ export default function ForSalePage() {
                       status: property.status,
                     }}
                     imageSizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                    badge={property.id === LATEST_PROJECT_ID ? "New" : undefined}
                   />
                 </motion.div>
               ))}

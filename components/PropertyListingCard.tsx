@@ -35,11 +35,13 @@ export default function PropertyListingCard({
   imageHeightClass = "h-[200px] sm:h-[220px] md:h-[240px]",
   imageSizes = "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw",
   className = "",
+  badge,
 }: {
   property: PropertyListingCardData;
   imageHeightClass?: string;
   imageSizes?: string;
   className?: string;
+  badge?: string;
 }) {
   const [saved, setSaved] = useState(false);
   const typeLabel = formatTypeLabel(property.type);
@@ -68,6 +70,11 @@ export default function PropertyListingCard({
         {isSold && (
           <div className="absolute left-3 top-3 z-10 rounded-md bg-dark-900 px-3 py-1.5 text-center text-xs font-bold uppercase tracking-wide text-white shadow-lg">
             Sold out
+          </div>
+        )}
+        {!isSold && badge && (
+          <div className="absolute left-3 top-3 z-10 rounded-md bg-primary-600 px-3 py-1.5 text-center text-xs font-bold uppercase tracking-wide text-white shadow-lg">
+            {badge}
           </div>
         )}
         <button
