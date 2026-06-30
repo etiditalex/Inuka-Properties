@@ -12,6 +12,7 @@ import type { PropertyDetail } from "@/lib/properties/mapProperty";
 import { parseGalleryUrls, propertyImageProps } from "@/lib/images";
 import { FACEBOOK_CAMPAIGN_PROPERTY_ID } from "@/lib/facebook/pixel";
 import { trackFacebookEvent } from "@/lib/facebook/trackClient";
+import PropertyDetailsForm from "@/components/property/PropertyDetailsForm";
 
 export default function PropertyDetailPage({ params }: { params: { id: string } }) {
   const propertyId = parseInt(params.id, 10);
@@ -340,6 +341,14 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
               <p className="text-dark-700 leading-relaxed whitespace-pre-line break-words [overflow-wrap:anywhere]">
                 {property.description}
               </p>
+              <div className="mt-8 border-t border-dark-100 pt-8">
+                <PropertyDetailsForm
+                  propertyId={property.id}
+                  propertyTitle={property.title}
+                  source={trackCampaignEvent ? "facebook_ad" : "property_page"}
+                  trackLead={trackCampaignEvent}
+                />
+              </div>
             </div>
 
             {property.pricing && (
