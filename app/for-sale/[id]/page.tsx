@@ -10,6 +10,8 @@ import { propertySiteVisitWhatsAppUrl } from "@/lib/whatsapp";
 import { PROPERTY_DETAILS } from "@/lib/properties/detailFallback";
 import type { PropertyDetail } from "@/lib/properties/mapProperty";
 import { parseGalleryUrls, propertyImageProps } from "@/lib/images";
+import { FACEBOOK_CAMPAIGN_PROPERTY_ID } from "@/lib/facebook/pixel";
+import { trackFacebookEvent } from "@/lib/facebook/trackClient";
 
 export default function PropertyDetailPage({ params }: { params: { id: string } }) {
   const propertyId = parseInt(params.id, 10);
@@ -29,6 +31,54 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
       })
       .finally(() => setLoading(false));
   }, [propertyId]);
+
+  const trackCampaignEvent = propertyId === FACEBOOK_CAMPAIGN_PROPERTY_ID;
+
+  useEffect(() => {
+    if (!trackCampaignEvent || !property) return;
+    trackFacebookEvent(
+      "ViewContent",
+      {
+        property_id: property.id,
+        property_name: property.title,
+        page_path: `/for-sale/${property.id}`,
+      },
+      {
+        customData: {
+          content_name: property.title,
+          content_ids: [String(property.id)],
+          content_type: "product",
+          value: property.price,
+        },
+      }
+    );
+  }, [trackCampaignEvent, property]);
+
+  const trackContact = (action: string) => {
+    if (!trackCampaignEvent || !property) return;
+    trackFacebookEvent(
+      "Contact",
+      {
+        property_id: property.id,
+        property_name: property.title,
+        event_data: { action },
+      },
+      { customData: { content_name: property.title } }
+    );
+  };
+
+  const trackSiteVisit = () => {
+    if (!trackCampaignEvent || !property) return;
+    trackFacebookEvent(
+      "Schedule",
+      {
+        property_id: property.id,
+        property_name: property.title,
+        event_data: { action: "book_site_visit" },
+      },
+      { customData: { content_name: property.title } }
+    );
+  };
 
   if (loading) {
     return (
@@ -256,6 +306,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
               )}
               <a
                 href="tel:+254711082084"
+                onClick={() => trackContact("phone_call")}
                 className="block w-full bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition text-center flex items-center justify-center gap-2"
               >
                 <Phone size={20} />
@@ -263,6 +314,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
               </a>
               <a
                 href="mailto:info@inukaproperties.co.ke"
+                onClick={() => trackContact("email")}
                 className="block w-full bg-white text-primary-700 px-6 py-3 rounded-lg font-semibold hover:bg-primary-50 transition text-center border-2 border-primary-600 flex items-center justify-center gap-2"
               >
                 <Mail size={20} />
@@ -272,6 +324,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
                 href={siteVisitWhatsAppUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={trackSiteVisit}
                 className="block w-full bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition text-center"
               >
                 Book Site Visit
@@ -481,12 +534,14 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
               <div className="space-y-3">
                 <a
                   href="tel:+254711082084"
+                  onClick={() => trackContact("phone_call_sidebar")}
                   className="block text-center bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition"
                 >
                   0711 082084
                 </a>
                 <a
                   href="mailto:info@inukaproperties.co.ke"
+                  onClick={() => trackContact("email_sidebar")}
                   className="block text-center bg-white text-primary-700 px-6 py-3 rounded-lg font-semibold hover:bg-primary-50 transition border-2 border-primary-600"
                 >
                   info@inukaproperties.co.ke

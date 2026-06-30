@@ -5,6 +5,9 @@ import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Mail, Phone, User, Send, CheckCircle, MapPin } from "lucide-react";
 import Image from "next/image";
+import FacebookPixel from "@/components/FacebookPixel";
+import { FACEBOOK_CAMPAIGN_PROPERTY_ID } from "@/lib/facebook/pixel";
+import { trackFacebookEvent } from "@/lib/facebook/trackClient";
 
 type PropertyPreview = {
   id: number;
@@ -19,6 +22,10 @@ type PropertyPreview = {
 function GetPropertyDetailsForm() {
   const searchParams = useSearchParams();
   const propertyIdParam = searchParams.get("property_id");
+  const campaignPropertyId = propertyIdParam
+    ? Number(propertyIdParam)
+    : FACEBOOK_CAMPAIGN_PROPERTY_ID;
+  const isCampaignPage = campaignPropertyId === FACEBOOK_CAMPAIGN_PROPERTY_ID;
 
   const [property, setProperty] = useState<PropertyPreview | null>(null);
   const [form, setForm] = useState({ name: "", email: "", phone: "" });
@@ -70,6 +77,23 @@ function GetPropertyDetailsForm() {
         setError(data.error || "Could not submit. Please try again.");
         return;
       }
+      if (isCampaignPage) {
+        trackFacebookEvent(
+          "Lead",
+          {
+            property_id: property?.id || campaignPropertyId,
+            property_name: property?.title || null,
+            page_path: window.location.pathname,
+            event_data: { source: "facebook_ad_form" },
+          },
+          {
+            customData: {
+              content_name: property?.title,
+              content_ids: [String(property?.id || campaignPropertyId)],
+            },
+          }
+        );
+      }
       setSubmitted(true);
     } catch {
       setError("Could not submit. Please try again.");
@@ -80,6 +104,12 @@ function GetPropertyDetailsForm() {
 
   return (
     <div className="pt-24 pb-20 min-h-screen bg-gradient-to-b from-primary-50 to-white">
+      {isCampaignPage ? (
+        <FacebookPixel
+          propertyId={FACEBOOK_CAMPAIGN_PROPERTY_ID}
+          pagePath="/get-property-details"
+        />
+      ) : null}
       <div className="container mx-auto px-4 max-w-4xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

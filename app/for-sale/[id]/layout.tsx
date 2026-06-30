@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import FacebookPixel from "@/components/FacebookPixel";
 import JsonLd from "@/components/JsonLd";
 import PropertySeoBlock from "@/components/property/PropertySeoBlock";
+import { FACEBOOK_CAMPAIGN_PROPERTY_ID } from "@/lib/facebook/pixel";
 import {
   getAllPropertyIds,
   getPropertySeo,
@@ -98,8 +100,13 @@ export default function PropertyDetailLayout({ children, params }: Props) {
       ? buildFaqSchema(property.faq)
       : null;
 
+  const trackFacebookPixel = id === FACEBOOK_CAMPAIGN_PROPERTY_ID;
+
   return (
     <>
+      {trackFacebookPixel ? (
+        <FacebookPixel propertyId={id} pagePath={path} />
+      ) : null}
       {listingSchema ? <JsonLd data={listingSchema} /> : null}
       {breadcrumbSchema ? <JsonLd data={breadcrumbSchema} /> : null}
       {faqSchema ? <JsonLd data={faqSchema} /> : null}
