@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import FacebookPixel from "@/components/FacebookPixel";
+import FacebookAdLandingCapture from "@/components/FacebookAdLandingCapture";
 import JsonLd from "@/components/JsonLd";
 import PropertySeoBlock from "@/components/property/PropertySeoBlock";
 import { FACEBOOK_CAMPAIGN_PROPERTY_ID } from "@/lib/facebook/pixel";
@@ -104,6 +105,7 @@ export default function PropertyDetailLayout({ children, params }: Props) {
 
   return (
     <>
+      <FacebookAdLandingCapture />
       {trackFacebookPixel ? (
         <FacebookPixel propertyId={id} pagePath={path} />
       ) : null}

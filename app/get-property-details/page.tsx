@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { MapPin } from "lucide-react";
 import Image from "next/image";
 import FacebookPixel from "@/components/FacebookPixel";
+import FacebookAdLandingCapture from "@/components/FacebookAdLandingCapture";
 import PropertyDetailsForm from "@/components/property/PropertyDetailsForm";
 import { FACEBOOK_CAMPAIGN_PROPERTY_ID } from "@/lib/facebook/pixel";
 
@@ -54,6 +55,7 @@ function GetPropertyDetailsForm() {
 
   return (
     <div className="pt-24 pb-20 min-h-screen bg-gradient-to-b from-primary-50 to-white">
+      <FacebookAdLandingCapture />
       {isCampaignPage ? (
         <FacebookPixel
           propertyId={FACEBOOK_CAMPAIGN_PROPERTY_ID}

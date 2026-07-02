@@ -1,13 +1,15 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Mail, Phone, User, Send, CheckCircle } from "lucide-react";
 import { FACEBOOK_CAMPAIGN_PROPERTY_ID } from "@/lib/facebook/pixel";
 import { trackFacebookEvent } from "@/lib/facebook/trackClient";
 import {
-  hasContactDetails,
-  resolveContactPrefill,
+  hasContactFormFields,
+  isFacebookAdTraffic,
+  joinFullName,
+  resolveContactFormPrefill,
   saveContact,
 } from "@/lib/leads/contactAutofill";
 
@@ -32,16 +34,27 @@ function PropertyDetailsFormInner({
   className = "",
 }: PropertyDetailsFormProps) {
   const searchParams = useSearchParams();
-  const [form, setForm] = useState({ name: "", email: "", phone: "" });
+  const fromFacebookAd = useMemo(
+    () => isFacebookAdTraffic(searchParams),
+    [searchParams]
+  );
+  const leadSource = fromFacebookAd ? "facebook_ad" : source;
+
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+  });
   const [autofilled, setAutofilled] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const prefill = resolveContactPrefill(searchParams);
+    const prefill = resolveContactFormPrefill(searchParams);
     setForm(prefill);
-    setAutofilled(hasContactDetails(prefill));
+    setAutofilled(hasContactFormFields(prefill));
   }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -49,12 +62,14 @@ function PropertyDetailsFormInner({
     setSubmitting(true);
     setError("");
 
+    const fullName = joinFullName(form.firstName, form.lastName);
+
     try {
       const res = await fetch("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: form.name,
+          name: fullName,
           email: form.email,
           phone: form.phone,
           property_id: propertyId,
@@ -62,7 +77,7 @@ function PropertyDetailsFormInner({
           message:
             message ??
             `Requested property details for ${propertyTitle} via property page`,
-          source,
+          source: leadSource,
         }),
       });
       const data = await res.json();
@@ -71,10 +86,10 @@ function PropertyDetailsFormInner({
         return;
       }
 
-      saveContact(form);
+      saveContact({ name: fullName, email: form.email, phone: form.phone });
 
       const shouldTrackLead =
-        trackLead || propertyId === FACEBOOK_CAMPAIGN_PROPERTY_ID;
+        trackLead || fromFacebookAd || propertyId === FACEBOOK_CAMPAIGN_PROPERTY_ID;
       if (shouldTrackLead) {
         trackFacebookEvent(
           "Lead",
@@ -82,7 +97,7 @@ function PropertyDetailsFormInner({
             property_id: propertyId,
             property_name: propertyTitle,
             page_path: window.location.pathname,
-            event_data: { source },
+            event_data: { source: leadSource, from_facebook_ad: fromFacebookAd },
           },
           {
             customData: {
@@ -129,32 +144,66 @@ function PropertyDetailsFormInner({
           </p>
         </>
       )}
-      {autofilled && (
+      {fromFacebookAd && (
+        <p className="mb-4 rounded-lg bg-blue-50 border border-blue-100 px-3 py-2 text-xs text-blue-900">
+          Welcome from Facebook — your details should fill in automatically if you&apos;re signed in
+          on this device. You can edit them before submitting.
+        </p>
+      )}
+      {autofilled && !fromFacebookAd && (
         <p className="mb-4 rounded-lg bg-primary-50 border border-primary-100 px-3 py-2 text-xs text-primary-800">
           Your details were filled in automatically. You can edit them before submitting.
         </p>
       )}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor={`property-name-${propertyId}`} className="block text-sm font-semibold text-dark-900 mb-1.5">
-            Full Name
-          </label>
-          <div className="relative">
-            <User className="absolute left-3 top-3 text-dark-400" size={18} />
-            <input
-              id={`property-name-${propertyId}`}
-              name="name"
-              required
-              autoComplete="name"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="w-full pl-10 pr-4 py-3 border border-dark-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
-              placeholder="Your name"
-            />
+      <form onSubmit={handleSubmit} autoComplete="on" className="space-y-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label
+              htmlFor={`property-first-name-${propertyId}`}
+              className="block text-sm font-semibold text-dark-900 mb-1.5"
+            >
+              First Name
+            </label>
+            <div className="relative">
+              <User className="absolute left-3 top-3 text-dark-400" size={18} />
+              <input
+                id={`property-first-name-${propertyId}`}
+                name="given-name"
+                required
+                autoComplete="given-name"
+                value={form.firstName}
+                onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+                className="w-full pl-10 pr-4 py-3 border border-dark-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                placeholder="First name"
+              />
+            </div>
+          </div>
+          <div>
+            <label
+              htmlFor={`property-last-name-${propertyId}`}
+              className="block text-sm font-semibold text-dark-900 mb-1.5"
+            >
+              Last Name
+            </label>
+            <div className="relative">
+              <User className="absolute left-3 top-3 text-dark-400" size={18} />
+              <input
+                id={`property-last-name-${propertyId}`}
+                name="family-name"
+                autoComplete="family-name"
+                value={form.lastName}
+                onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+                className="w-full pl-10 pr-4 py-3 border border-dark-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                placeholder="Last name"
+              />
+            </div>
           </div>
         </div>
         <div>
-          <label htmlFor={`property-email-${propertyId}`} className="block text-sm font-semibold text-dark-900 mb-1.5">
+          <label
+            htmlFor={`property-email-${propertyId}`}
+            className="block text-sm font-semibold text-dark-900 mb-1.5"
+          >
             Email Address
           </label>
           <div className="relative">
@@ -165,6 +214,7 @@ function PropertyDetailsFormInner({
               type="email"
               required
               autoComplete="email"
+              inputMode="email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               className="w-full pl-10 pr-4 py-3 border border-dark-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
@@ -173,17 +223,21 @@ function PropertyDetailsFormInner({
           </div>
         </div>
         <div>
-          <label htmlFor={`property-phone-${propertyId}`} className="block text-sm font-semibold text-dark-900 mb-1.5">
+          <label
+            htmlFor={`property-phone-${propertyId}`}
+            className="block text-sm font-semibold text-dark-900 mb-1.5"
+          >
             Phone / WhatsApp
           </label>
           <div className="relative">
             <Phone className="absolute left-3 top-3 text-dark-400" size={18} />
             <input
               id={`property-phone-${propertyId}`}
-              name="phone"
+              name="tel"
               type="tel"
               required
               autoComplete="tel"
+              inputMode="tel"
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
               className="w-full pl-10 pr-4 py-3 border border-dark-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
