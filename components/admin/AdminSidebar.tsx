@@ -25,6 +25,7 @@ import {
   Smartphone,
   Ticket,
   Megaphone,
+  Package,
 } from "lucide-react";
 import { cn } from "@/lib/admin/utils";
 import { adminPath } from "@/lib/admin/path";
@@ -49,6 +50,7 @@ const navItems = [
   { segment: "facebook-ads", label: "Facebook Ads", icon: Megaphone },
   { segment: "sms", label: "SMS", icon: Smartphone },
   { segment: "ticketing", label: "IAPL Ticketing", icon: Ticket },
+  { segment: "inventory", label: "Company Inventory", icon: Package },
   { segment: "inquiries", label: "Inquiries", icon: MessageSquare, badge: "inquiries" as const },
   { segment: "leads", label: "Lead Generation", icon: Users, badge: "leads" as const },
   { segment: "settings", label: "Settings", icon: Settings },

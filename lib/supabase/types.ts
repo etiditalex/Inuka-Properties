@@ -271,3 +271,41 @@ export interface TicketInboundEmailRow {
   error_message: string | null;
   created_at: string;
 }
+
+export type AssetPurchaseCondition = "new" | "refurbished";
+export type AssetStatus = "active" | "retired" | "under_repair";
+export type SubscriptionType = "internet" | "software";
+export type SubscriptionBillingCycle = "monthly" | "annual" | "one_time";
+export type SubscriptionStatus = "active" | "expired" | "cancelled";
+
+export interface CompanyAsset {
+  id: number;
+  name: string;
+  model: string;
+  purchase_date: string;
+  department: string;
+  cost: number;
+  purchase_condition: AssetPurchaseCondition;
+  serial_number: string | null;
+  notes: string | null;
+  challenges: string | null;
+  status: AssetStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CompanySubscription {
+  id: number;
+  name: string;
+  subscription_type: SubscriptionType;
+  provider: string | null;
+  acquisition_date: string;
+  renewal_date: string | null;
+  cost: number;
+  billing_cycle: SubscriptionBillingCycle;
+  challenges: string | null;
+  status: SubscriptionStatus;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
