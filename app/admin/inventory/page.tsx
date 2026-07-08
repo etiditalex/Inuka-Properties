@@ -13,6 +13,7 @@ import {
   CalendarClock,
   X,
   Search,
+  FileSpreadsheet,
 } from "lucide-react";
 import AdminShell from "@/components/admin/AdminShell";
 import AdminButton from "@/components/admin/AdminButton";
@@ -29,6 +30,11 @@ import type {
   SubscriptionStatus,
 } from "@/lib/supabase/types";
 import { cn } from "@/lib/admin/utils";
+import {
+  exportAssetsToExcel,
+  exportFullInventoryToExcel,
+  exportSubscriptionsToExcel,
+} from "@/lib/admin/inventory-export";
 
 type Tab = "overview" | "assets" | "subscriptions" | "challenges";
 
@@ -341,6 +347,28 @@ export default function AdminInventoryPage() {
           {/* ── OVERVIEW ── */}
           {tab === "overview" && (
             <div className="space-y-6">
+              <div className="flex flex-wrap justify-end gap-2">
+                <AdminButton
+                  variant="secondary"
+                  onClick={() => exportAssetsToExcel(assets)}
+                  disabled={assets.length === 0}
+                >
+                  <FileSpreadsheet size={16} /> Download Assets Excel
+                </AdminButton>
+                <AdminButton
+                  variant="secondary"
+                  onClick={() => exportSubscriptionsToExcel(subscriptions)}
+                  disabled={subscriptions.length === 0}
+                >
+                  <FileSpreadsheet size={16} /> Download Subscriptions Excel
+                </AdminButton>
+                <AdminButton
+                  onClick={() => exportFullInventoryToExcel(assets, subscriptions)}
+                  disabled={assets.length === 0 && subscriptions.length === 0}
+                >
+                  <FileSpreadsheet size={16} /> Download Full Inventory
+                </AdminButton>
+              </div>
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <StatCard title="Total Asset Value" value={formatKES(stats.totalAssetValue)} icon={DollarSign} gradient="from-emerald-500 to-emerald-700" delay={0} />
                 <StatCard title="Active Assets" value={stats.activeAssets} icon={Package} gradient="from-primary-500 to-primary-700" delay={0.1} />
@@ -436,9 +464,18 @@ export default function AdminInventoryPage() {
                     className="w-full rounded-xl border border-dark-200 bg-white py-2.5 pl-9 pr-4 text-sm outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
                   />
                 </div>
-                <AdminButton onClick={() => setEditingAsset({ ...emptyAsset })}>
-                  <Plus size={16} /> Add Asset
-                </AdminButton>
+                <div className="flex flex-wrap gap-2">
+                  <AdminButton
+                    variant="secondary"
+                    onClick={() => exportAssetsToExcel(filteredAssets)}
+                    disabled={filteredAssets.length === 0}
+                  >
+                    <FileSpreadsheet size={16} /> Download Excel
+                  </AdminButton>
+                  <AdminButton onClick={() => setEditingAsset({ ...emptyAsset })}>
+                    <Plus size={16} /> Add Asset
+                  </AdminButton>
+                </div>
               </div>
 
               {filteredAssets.length === 0 ? (
@@ -567,9 +604,18 @@ export default function AdminInventoryPage() {
                     className="w-full rounded-xl border border-dark-200 bg-white py-2.5 pl-9 pr-4 text-sm outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
                   />
                 </div>
-                <AdminButton onClick={() => setEditingSub({ ...emptySubscription })}>
-                  <Plus size={16} /> Add Subscription
-                </AdminButton>
+                <div className="flex flex-wrap gap-2">
+                  <AdminButton
+                    variant="secondary"
+                    onClick={() => exportSubscriptionsToExcel(filteredSubs)}
+                    disabled={filteredSubs.length === 0}
+                  >
+                    <FileSpreadsheet size={16} /> Download Excel
+                  </AdminButton>
+                  <AdminButton onClick={() => setEditingSub({ ...emptySubscription })}>
+                    <Plus size={16} /> Add Subscription
+                  </AdminButton>
+                </div>
               </div>
 
               {filteredSubs.length === 0 ? (
