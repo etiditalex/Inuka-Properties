@@ -54,7 +54,7 @@ export async function GET(request: Request) {
       .eq("source", "facebook_ad")
       .gte("created_at", sinceIso)
       .order("created_at", { ascending: false })
-      .limit(20),
+      .limit(500),
     service.from("properties").select("id, title, location, price").eq("id", propertyId).single(),
   ]);
 

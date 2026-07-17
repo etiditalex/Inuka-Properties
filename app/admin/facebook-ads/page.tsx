@@ -9,10 +9,13 @@ import {
   Calendar,
   Megaphone,
   ExternalLink,
+  Download,
 } from "lucide-react";
 import AdminShell from "@/components/admin/AdminShell";
+import AdminButton from "@/components/admin/AdminButton";
 import StatCard from "@/components/admin/StatCard";
 import { formatAdminDate } from "@/lib/admin/utils";
+import { exportFacebookAdsToPdf } from "@/lib/admin/facebook-ads-export";
 import { FACEBOOK_CAMPAIGN_PROPERTY_ID, FACEBOOK_PIXEL_ID } from "@/lib/facebook/pixel";
 
 type PixelEvent = {
@@ -74,6 +77,19 @@ export default function AdminFacebookAdsPage() {
   const property = data?.property;
   const stats = data?.stats ?? {};
   const landingUrl = `https://www.inukaproperties.co.ke/for-sale/${FACEBOOK_CAMPAIGN_PROPERTY_ID}`;
+
+  const handleDownloadPdf = () => {
+    if (!data) return;
+    exportFacebookAdsToPdf({
+      propertyTitle: data.property?.title ?? "Tulivu Haven",
+      propertyLocation: data.property?.location,
+      propertyPrice: data.property?.price,
+      days: data.days,
+      stats: data.stats,
+      totalEvents: data.totalEvents,
+      leads: data.recentLeads,
+    });
+  };
 
   return (
     <AdminShell
@@ -138,15 +154,27 @@ export default function AdminFacebookAdsPage() {
                 "Tulivu Haven (property 14)"
               )}
             </p>
-            <select
-              value={days}
-              onChange={(e) => setDays(Number(e.target.value))}
-              className="rounded-lg border border-dark-200 bg-white px-3 py-2 text-sm text-dark-800 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
-            >
-              <option value={7}>Last 7 days</option>
-              <option value={30}>Last 30 days</option>
-              <option value={90}>Last 90 days</option>
-            </select>
+            <div className="flex flex-wrap items-center gap-2">
+              <select
+                value={days}
+                onChange={(e) => setDays(Number(e.target.value))}
+                className="rounded-lg border border-dark-200 bg-white px-3 py-2 text-sm text-dark-800 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
+              >
+                <option value={7}>Last 7 days</option>
+                <option value={30}>Last 30 days</option>
+                <option value={90}>Last 90 days</option>
+              </select>
+              <AdminButton
+                variant="outline"
+                size="sm"
+                onClick={handleDownloadPdf}
+                disabled={!data}
+                className="py-2"
+              >
+                <Download size={16} />
+                Download PDF
+              </AdminButton>
+            </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
@@ -221,6 +249,11 @@ export default function AdminFacebookAdsPage() {
             <div className="rounded-2xl border border-dark-200/60 bg-white p-6 shadow-sm">
               <h3 className="mb-4 text-lg font-bold text-dark-900 font-montserrat">
                 Facebook ad leads
+                {data?.recentLeads?.length ? (
+                  <span className="ml-2 text-sm font-medium text-dark-400">
+                    ({data.recentLeads.length})
+                  </span>
+                ) : null}
               </h3>
               {!data?.recentLeads?.length ? (
                 <p className="py-8 text-center text-sm text-dark-400">
