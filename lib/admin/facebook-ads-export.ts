@@ -49,12 +49,12 @@ export function exportFacebookAdsToPdf(input: FacebookAdsExportInput) {
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
-  doc.setTextColor(20, 40, 30);
+  doc.setTextColor(20, 40, 80);
   doc.text("INUKA AFRIKA PROPERTIES LTD", marginX, y);
   y += 8;
 
   doc.setFontSize(12);
-  doc.setTextColor(40, 90, 60);
+  doc.setTextColor(30, 80, 160);
   doc.text("Facebook Ads Results Report", marginX, y);
   y += 10;
 
@@ -82,7 +82,7 @@ export function exportFacebookAdsToPdf(input: FacebookAdsExportInput) {
   y += 4;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
-  doc.setTextColor(20, 40, 30);
+  doc.setTextColor(20, 40, 80);
   doc.text("Campaign metrics", marginX, y);
   y += 2;
 
@@ -91,8 +91,8 @@ export function exportFacebookAdsToPdf(input: FacebookAdsExportInput) {
     head: [["Metric", "Count"]],
     body: EVENT_ROWS.map(({ key, label }) => [label, String(input.stats[key] ?? 0)]),
     styles: { fontSize: 9, cellPadding: 2.5 },
-    headStyles: { fillColor: [34, 102, 68], textColor: 255 },
-    alternateRowStyles: { fillColor: [245, 248, 246] },
+    headStyles: { fillColor: [30, 90, 180], textColor: 255 },
+    alternateRowStyles: { fillColor: [240, 245, 252] },
     margin: { left: marginX, right: marginX },
   });
 
@@ -100,7 +100,7 @@ export function exportFacebookAdsToPdf(input: FacebookAdsExportInput) {
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
-  doc.setTextColor(20, 40, 30);
+  doc.setTextColor(20, 40, 80);
   doc.text("Facebook ad leads", marginX, y);
   y += 2;
 
@@ -121,8 +121,8 @@ export function exportFacebookAdsToPdf(input: FacebookAdsExportInput) {
         formatAdminDate(lead.created_at),
       ]),
       styles: { fontSize: 8, cellPadding: 2 },
-      headStyles: { fillColor: [34, 102, 68], textColor: 255 },
-      alternateRowStyles: { fillColor: [245, 248, 246] },
+      headStyles: { fillColor: [30, 90, 180], textColor: 255 },
+      alternateRowStyles: { fillColor: [240, 245, 252] },
       columnStyles: {
         0: { cellWidth: 35 },
         1: { cellWidth: 50 },
