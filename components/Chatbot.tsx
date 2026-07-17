@@ -42,9 +42,6 @@ const Chatbot = () => {
     }
   }, [isOpen]);
 
-  const whatsappNumber = "254711082084";
-  const whatsappMessage = "Hello, I'm interested in learning more about Inuka Afrika Properties.";
-
   const getBotResponse = (userMessage: string): string => {
     const lowerMessage = userMessage.toLowerCase();
 
@@ -139,9 +136,9 @@ const Chatbot = () => {
     }, 500);
   };
 
-  const handleWhatsAppClick = () => {
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
-    window.open(whatsappUrl, "_blank");
+  const handleWhatsAppClick = async () => {
+    const { openBookSiteVisitSmart } = await import("@/lib/leads/captureLead");
+    await openBookSiteVisitSmart({ source: "chatbot" });
   };
 
   const quickQuestions = [

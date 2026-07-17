@@ -17,3 +17,39 @@ export function generalSiteVisitWhatsAppUrl(): string {
     "Hi, I am interested in a property. How do I book a site visit?"
   );
 }
+
+/** In-site booking form URL — captures the lead before WhatsApp. */
+export function bookSiteVisitHref(options?: {
+  propertyId?: number | null;
+  source?: string;
+}): string {
+  const params = new URLSearchParams();
+  if (options?.propertyId) params.set("property_id", String(options.propertyId));
+  if (options?.source) params.set("source", options.source);
+  const query = params.toString();
+  return query ? `/book-site-visit?${query}` : "/book-site-visit";
+}
+
+export function siteVisitWhatsAppMessage(details: {
+  name: string;
+  email: string;
+  phone: string;
+  property: string;
+  preferredDate?: string;
+  preferredTime?: string;
+  message?: string;
+}): string {
+  const lines = [
+    "Hello! I would like to book a site visit:",
+    "",
+    `*Name:* ${details.name}`,
+    `*Phone:* ${details.phone}`,
+    `*Email:* ${details.email}`,
+    `*Property of Interest:* ${details.property}`,
+  ];
+  if (details.preferredDate) lines.push(`*Preferred Date:* ${details.preferredDate}`);
+  if (details.preferredTime) lines.push(`*Preferred Time:* ${details.preferredTime}`);
+  if (details.message) lines.push(`*Additional Notes:* ${details.message}`);
+  lines.push("", "Thank you!");
+  return lines.join("\n");
+}

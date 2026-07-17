@@ -4,7 +4,7 @@ import {
   propertyDetailPath,
   type PropertySeoEntry,
 } from "@/lib/propertySeo";
-import { propertySiteVisitWhatsAppUrl } from "@/lib/whatsapp";
+import BookSiteVisitButton from "@/components/BookSiteVisitButton";
 
 function RelatedProperties({
   ids,
@@ -125,14 +125,14 @@ export default function PropertySeoBlock({ propertyId }: { propertyId: number })
         )}
 
         <div className="mt-10 flex flex-wrap gap-3">
-          <a
-            href={propertySiteVisitWhatsAppUrl(property.title)}
-            target="_blank"
-            rel="noopener noreferrer"
+          <BookSiteVisitButton
+            propertyId={propertyId}
+            propertyTitle={property.title}
+            source="property_seo"
             className="rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-700"
           >
             Book a site visit
-          </a>
+          </BookSiteVisitButton>
           <Link
             href="/for-sale"
             className="rounded-lg border border-primary-600 px-5 py-2.5 text-sm font-semibold text-primary-700 hover:bg-primary-50"

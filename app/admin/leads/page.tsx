@@ -89,7 +89,7 @@ export default function AdminLeadsPage() {
                     : "border-dark-200 bg-white hover:border-primary-200"
                 )}
               >
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-2">
                   <p className="font-semibold text-dark-900">{lead.name}</p>
                   <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold uppercase", statusStyles[lead.status])}>
                     {lead.status}
@@ -98,6 +98,11 @@ export default function AdminLeadsPage() {
                 <p className="mt-1 flex items-center gap-1 text-xs text-primary-700">
                   <MapPin size={12} /> {lead.property_name || "General"}
                 </p>
+                {lead.source && (
+                  <p className="mt-1 text-[10px] font-medium uppercase tracking-wide text-dark-500">
+                    Source: {lead.source.replace(/_/g, " ")}
+                  </p>
+                )}
                 <p className="mt-1 text-[10px] text-dark-400">{formatAdminDate(lead.created_at)}</p>
               </button>
             ))
@@ -113,6 +118,11 @@ export default function AdminLeadsPage() {
                   <p className="flex items-center gap-1 text-sm text-primary-700">
                     <MapPin size={14} /> {selected.property_name || "No property specified"}
                   </p>
+                  {selected.source && (
+                    <p className="mt-1 text-xs font-medium uppercase tracking-wide text-dark-500">
+                      Source: {selected.source.replace(/_/g, " ")}
+                    </p>
+                  )}
                 </div>
                 <span className={cn("rounded-full px-3 py-1 text-xs font-bold uppercase", statusStyles[selected.status])}>
                   {selected.status}

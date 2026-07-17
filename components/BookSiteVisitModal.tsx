@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Clock, MapPin, User, Phone, Mail, Send, X } from "lucide-react";
+import { captureLeadThenOpenWhatsApp } from "@/lib/leads/captureLead";
+import { siteVisitWhatsAppMessage, whatsAppUrl } from "@/lib/whatsapp";
 
 interface BookSiteVisitModalProps {
   isOpen: boolean;
@@ -20,9 +22,10 @@ function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitModalProps) {
     message: "",
   });
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [fallbackUrl, setFallbackUrl] = useState<string | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Prevent body scroll when modal is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -34,7 +37,6 @@ function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitModalProps) {
     };
   }, [isOpen]);
 
-  // Close modal on ESC key press
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isOpen) {
@@ -45,15 +47,12 @@ function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitModalProps) {
     return () => window.removeEventListener("keydown", handleEscape);
   }, [isOpen, onClose]);
 
-  // Clear timeout and reset form when modal closes
   useEffect(() => {
     if (!isOpen) {
-      // Clear any pending timeout when modal closes
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
       }
-      // Reset form state and error when modal closes
       setFormData({
         name: "",
         email: "",
@@ -64,8 +63,9 @@ function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitModalProps) {
         message: "",
       });
       setError(null);
+      setFallbackUrl(null);
+      setSubmitting(false);
     }
-    // Cleanup on unmount
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
@@ -74,56 +74,68 @@ function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitModalProps) {
     };
   }, [isOpen]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Clear any existing timeout and error
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
-    setError(null); // Clear previous errors on new submission
+    setError(null);
+    setSubmitting(true);
 
-    // Format the message for WhatsApp
-    const whatsappMessage = `Hello! I would like to book a site visit:
+    const url = whatsAppUrl(
+      siteVisitWhatsAppMessage({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        property: formData.property,
+        preferredDate: formData.preferredDate,
+        preferredTime: formData.preferredTime,
+        message: formData.message,
+      })
+    );
+    setFallbackUrl(url);
 
-*Name:* ${formData.name}
-*Phone:* ${formData.phone}
-*Email:* ${formData.email}
-*Property of Interest:* ${formData.property}
-*Preferred Date:* ${formData.preferredDate}
-*Preferred Time:* ${formData.preferredTime}
-${formData.message ? `*Additional Notes:* ${formData.message}` : ''}
+    try {
+      const { whatsappOpened } = await captureLeadThenOpenWhatsApp({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        property: formData.property,
+        property_name: formData.property,
+        preferred_date: formData.preferredDate,
+        preferred_time: formData.preferredTime,
+        message: formData.message,
+        source: "site_visit_modal",
+      });
 
-Thank you!`;
+      if (!whatsappOpened) {
+        setError(
+          "Your details were saved. Please check your pop-up blocker or open WhatsApp manually."
+        );
+        setSubmitting(false);
+        return;
+      }
 
-    // Encode the message for URL
-    const encodedMessage = encodeURIComponent(whatsappMessage);
-    const whatsappNumber = "254711082084";
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
-
-    // Open WhatsApp and check if it succeeded
-    const whatsappWindow = window.open(whatsappUrl, "_blank");
-
-    // Check if window was blocked (pop-up blocker)
-    if (!whatsappWindow || whatsappWindow.closed || typeof whatsappWindow.closed === "undefined") {
-      // Window was blocked, show error and keep form data
-      setError("Unable to open WhatsApp. Please check your pop-up blocker settings or click the link below to open WhatsApp manually.");
-      return;
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        property: "",
+        preferredDate: "",
+        preferredTime: "",
+        message: "",
+      });
+      onClose();
+    } catch {
+      setError("Unable to save your details. You can still open WhatsApp manually below.");
+    } finally {
+      setSubmitting(false);
     }
-
-    // Reset form and close modal
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      property: "",
-      preferredDate: "",
-      preferredTime: "",
-      message: "",
-    });
-    onClose();
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -146,7 +158,6 @@ Thank you!`;
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -154,8 +165,7 @@ Thank you!`;
             onClick={onClose}
             className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm"
           />
-          
-          {/* Modal */}
+
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -164,7 +174,6 @@ Thank you!`;
             onClick={(e) => e.stopPropagation()}
           >
             <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-              {/* Modal Header */}
               <div className="sticky top-0 bg-white border-b border-dark-200 px-6 py-4 flex items-center justify-between rounded-t-xl">
                 <h2 className="text-2xl font-bold text-dark-900 font-montserrat">Book a Site Visit</h2>
                 <button
@@ -176,12 +185,11 @@ Thank you!`;
                 </button>
               </div>
 
-              {/* Modal Content */}
               <div className="p-6 md:p-8">
                 <div className="mb-6">
                   <p className="text-dark-600 font-montserrat">
-                    Fill out the form below to book a site visit. Our team will contact you to confirm
-                    the details and provide directions to the property.
+                    Fill out the form below to book a site visit. Your details are saved for our
+                    team, then WhatsApp opens so we can confirm with you.
                   </p>
                 </div>
 
@@ -189,7 +197,10 @@ Thank you!`;
                   <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                     <p className="text-red-700 text-sm font-montserrat mb-3">{error}</p>
                     <a
-                      href={`https://wa.me/254711082084?text=${encodeURIComponent("Hello! I would like to book a site visit.")}`}
+                      href={
+                        fallbackUrl ||
+                        whatsAppUrl("Hello! I would like to book a site visit.")
+                      }
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-red-600 hover:text-red-700 underline font-semibold font-montserrat text-sm"
@@ -202,7 +213,10 @@ Thank you!`;
                 <form onSubmit={handleSubmit} className="space-y-5 font-montserrat">
                   <div className="grid md:grid-cols-2 gap-5">
                     <div>
-                      <label htmlFor="modal-name" className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat">
+                      <label
+                        htmlFor="modal-name"
+                        className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat"
+                      >
                         <User size={16} className="inline mr-2" />
                         Full Name *
                       </label>
@@ -218,7 +232,10 @@ Thank you!`;
                     </div>
 
                     <div>
-                      <label htmlFor="modal-phone" className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat">
+                      <label
+                        htmlFor="modal-phone"
+                        className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat"
+                      >
                         <Phone size={16} className="inline mr-2" />
                         Phone Number *
                       </label>
@@ -235,7 +252,10 @@ Thank you!`;
                   </div>
 
                   <div>
-                    <label htmlFor="modal-email" className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat">
+                    <label
+                      htmlFor="modal-email"
+                      className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat"
+                    >
                       <Mail size={16} className="inline mr-2" />
                       Email Address *
                     </label>
@@ -251,7 +271,10 @@ Thank you!`;
                   </div>
 
                   <div>
-                    <label htmlFor="modal-property" className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat">
+                    <label
+                      htmlFor="modal-property"
+                      className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat"
+                    >
                       <MapPin size={16} className="inline mr-2" />
                       Property of Interest *
                     </label>
@@ -274,7 +297,10 @@ Thank you!`;
 
                   <div className="grid md:grid-cols-2 gap-5">
                     <div>
-                      <label htmlFor="modal-date" className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat">
+                      <label
+                        htmlFor="modal-date"
+                        className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat"
+                      >
                         <Calendar size={16} className="inline mr-2" />
                         Preferred Date *
                       </label>
@@ -291,7 +317,10 @@ Thank you!`;
                     </div>
 
                     <div>
-                      <label htmlFor="modal-time" className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat">
+                      <label
+                        htmlFor="modal-time"
+                        className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat"
+                      >
                         <Clock size={16} className="inline mr-2" />
                         Preferred Time *
                       </label>
@@ -317,7 +346,10 @@ Thank you!`;
                   </div>
 
                   <div>
-                    <label htmlFor="modal-message" className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat">
+                    <label
+                      htmlFor="modal-message"
+                      className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat"
+                    >
                       Additional Notes (Optional)
                     </label>
                     <textarea
@@ -341,10 +373,11 @@ Thank you!`;
                     </button>
                     <button
                       type="submit"
-                      className="flex-1 bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition flex items-center justify-center gap-2 font-montserrat"
+                      disabled={submitting}
+                      className="flex-1 bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition flex items-center justify-center gap-2 font-montserrat disabled:opacity-60"
                     >
                       <Send size={20} />
-                      Book Site Visit
+                      {submitting ? "Saving..." : "Book Site Visit"}
                     </button>
                   </div>
                 </form>

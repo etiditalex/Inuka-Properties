@@ -4,10 +4,17 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Calendar, Clock, MapPin, User, Phone, Mail, Send, CheckCircle } from "lucide-react";
+import {
+  captureLeadThenOpenWhatsApp,
+  prefillFromStoredContact,
+  resolveLeadSource,
+} from "@/lib/leads/captureLead";
+import { whatsAppUrl, siteVisitWhatsAppMessage } from "@/lib/whatsapp";
 
 function BookSiteVisitForm() {
   const searchParams = useSearchParams();
   const propertyIdParam = searchParams.get("property_id");
+  const sourceParam = searchParams.get("source");
 
   const [propertyId, setPropertyId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
@@ -20,6 +27,19 @@ function BookSiteVisitForm() {
     message: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [whatsappFallbackUrl, setWhatsappFallbackUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const prefill = prefillFromStoredContact();
+    setFormData((prev) => ({
+      ...prev,
+      name: prev.name || prefill.name,
+      email: prev.email || prefill.email,
+      phone: prev.phone || prefill.phone,
+    }));
+  }, []);
 
   useEffect(() => {
     if (!propertyIdParam) return;
@@ -38,41 +58,54 @@ function BookSiteVisitForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
+    setError(null);
+
+    const source = resolveLeadSource(sourceParam);
+    const fallbackUrl = whatsAppUrl(
+      siteVisitWhatsAppMessage({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        property: formData.property,
+        preferredDate: formData.preferredDate,
+        preferredTime: formData.preferredTime,
+        message: formData.message,
+      })
+    );
+    setWhatsappFallbackUrl(fallbackUrl);
+
     try {
-      await fetch("/api/leads", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          property_id: propertyId,
-          property_name: formData.property,
-          preferred_date: formData.preferredDate,
-          preferred_time: formData.preferredTime,
-          message: formData.message,
-          source: "site_visit",
-        }),
+      const { whatsappOpened } = await captureLeadThenOpenWhatsApp({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        property: formData.property,
+        property_id: propertyId,
+        property_name: formData.property,
+        preferred_date: formData.preferredDate,
+        preferred_time: formData.preferredTime,
+        message: formData.message,
+        source,
       });
+
+      if (!whatsappOpened) {
+        setError(
+          "Your details were saved. If WhatsApp did not open, use the button below."
+        );
+      }
+      setSubmitted(true);
     } catch {
-      // Still show success for offline mode
+      setError("Something went wrong. You can still continue on WhatsApp below.");
+      setSubmitted(true);
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        property: "",
-        preferredDate: "",
-        preferredTime: "",
-        message: "",
-      });
-    }, 3000);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -121,27 +154,26 @@ function BookSiteVisitForm() {
                 <div className="w-20 h-20 bg-cyan-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <CheckCircle size={48} className="text-cyan-600" />
                 </div>
-                <h2 className="text-3xl font-bold text-dark-900 mb-4">Booking Confirmed!</h2>
+                <h2 className="text-3xl font-bold text-dark-900 mb-4">Booking Received!</h2>
                 <p className="text-dark-600 text-lg mb-6">
-                  Thank you for booking a site visit. Our team will contact you shortly to confirm the details.
+                  Your details are saved with our team. We&apos;ve also opened WhatsApp so you can
+                  continue the conversation right away.
                 </p>
-                <div className="bg-primary-50 rounded-lg p-6 text-left max-w-md mx-auto">
-                  <h3 className="font-semibold text-dark-900 mb-3">What's Next?</h3>
-                  <ul className="space-y-2 text-dark-600">
-                    <li className="flex items-start gap-2">
-                      <CheckCircle size={20} className="text-primary-600 mt-0.5 flex-shrink-0" />
-                      <span>We'll call you within 24 hours to confirm your visit</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle size={20} className="text-primary-600 mt-0.5 flex-shrink-0" />
-                      <span>You'll receive a confirmation email with visit details</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle size={20} className="text-primary-600 mt-0.5 flex-shrink-0" />
-                      <span>Our team will guide you to the property location</span>
-                    </li>
-                  </ul>
-                </div>
+                {error && (
+                  <p className="mb-4 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                    {error}
+                  </p>
+                )}
+                {whatsappFallbackUrl && (
+                  <a
+                    href={whatsappFallbackUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#25D366] px-6 py-3 font-semibold text-white hover:opacity-90"
+                  >
+                    Continue on WhatsApp
+                  </a>
+                )}
               </div>
             ) : (
               <>
@@ -150,8 +182,8 @@ function BookSiteVisitForm() {
                     Schedule Your Visit
                   </h2>
                   <p className="text-dark-600">
-                    Fill out the form below to book a site visit. Our team will contact you to confirm 
-                    the details and provide directions to the property.
+                    Fill out the form below. We&apos;ll save your enquiry and open WhatsApp so our
+                    team can confirm your visit.
                   </p>
                 </div>
 
@@ -230,7 +262,10 @@ function BookSiteVisitForm() {
 
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
-                      <label htmlFor="preferredDate" className="block text-sm font-semibold text-dark-900 mb-2">
+                      <label
+                        htmlFor="preferredDate"
+                        className="block text-sm font-semibold text-dark-900 mb-2"
+                      >
                         <Calendar size={16} className="inline mr-2" />
                         Preferred Date *
                       </label>
@@ -247,7 +282,10 @@ function BookSiteVisitForm() {
                     </div>
 
                     <div>
-                      <label htmlFor="preferredTime" className="block text-sm font-semibold text-dark-900 mb-2">
+                      <label
+                        htmlFor="preferredTime"
+                        className="block text-sm font-semibold text-dark-900 mb-2"
+                      >
                         <Clock size={16} className="inline mr-2" />
                         Preferred Time *
                       </label>
@@ -289,10 +327,11 @@ function BookSiteVisitForm() {
 
                   <button
                     type="submit"
-                    className="w-full bg-primary-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-primary-700 transition flex items-center justify-center gap-2"
+                    disabled={submitting}
+                    className="w-full bg-primary-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-primary-700 transition flex items-center justify-center gap-2 disabled:opacity-60"
                   >
                     <Send size={20} />
-                    Book Site Visit
+                    {submitting ? "Saving..." : "Book Site Visit & Open WhatsApp"}
                   </button>
                 </form>
               </>
@@ -311,4 +350,3 @@ export default function BookSiteVisitPage() {
     </Suspense>
   );
 }
-

@@ -4,6 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 import ConditionalLayout from "@/components/ConditionalLayout";
 import AdminAwareWidgets from "@/components/AdminAwareWidgets";
+import ContactAutoCapture from "@/components/ContactAutoCapture";
 import JsonLd from "@/components/JsonLd";
 import {
   DEFAULT_OG_IMAGE,
@@ -149,6 +150,7 @@ export default function RootLayout({
               `}
             </Script>
             <ConditionalLayout>{children}</ConditionalLayout>
+            <ContactAutoCapture />
             <AdminAwareWidgets />
       </body>
     </html>

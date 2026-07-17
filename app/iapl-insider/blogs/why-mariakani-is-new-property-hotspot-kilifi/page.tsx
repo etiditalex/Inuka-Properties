@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { MapPin, Phone } from "lucide-react";
 import BlogArticleLayout from "@/components/blog/BlogArticleLayout";
-import { propertySiteVisitWhatsAppUrl } from "@/lib/whatsapp";
+import BookSiteVisitButton from "@/components/BookSiteVisitButton";
+import { FACEBOOK_CAMPAIGN_PROPERTY_ID } from "@/lib/facebook/pixel";
 
 const HERO_IMAGE =
   "https://res.cloudinary.com/dyfnobo9r/image/upload/v1781934535/Tulivu_haven_7_znzmct.jpg";
@@ -41,7 +42,7 @@ export default function WhyMariakaniPropertyHotspotPage() {
     },
   };
 
-  const tulivuWhatsApp = propertySiteVisitWhatsAppUrl("Tulivu Haven");
+  const tulivuPropertyId = FACEBOOK_CAMPAIGN_PROPERTY_ID;
 
   return (
     <BlogArticleLayout
@@ -286,14 +287,14 @@ export default function WhyMariakaniPropertyHotspotPage() {
           destination.
         </p>
         <div className="not-prose flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <a
-            href={tulivuWhatsApp}
-            target="_blank"
-            rel="noopener noreferrer"
+          <BookSiteVisitButton
+            propertyId={tulivuPropertyId}
+            propertyTitle="Tulivu Haven"
+            source="blog_mariakani"
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#25D366] px-6 py-3 font-semibold text-white hover:opacity-90"
           >
             Book a site visit on WhatsApp
-          </a>
+          </BookSiteVisitButton>
           <a
             href="tel:+254711082084"
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary-600 px-6 py-3 font-semibold text-white hover:bg-primary-700"

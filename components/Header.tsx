@@ -6,11 +6,8 @@ import { usePathname } from "next/navigation";
 import { Menu, X, ChevronDown, Phone, Mail, Facebook, Instagram, Linkedin, MessageCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import BookSiteVisitButton from "@/components/BookSiteVisitButton";
 import { getPropertySeo } from "@/lib/propertySeo";
-import {
-  generalSiteVisitWhatsAppUrl,
-  propertySiteVisitWhatsAppUrl,
-} from "@/lib/whatsapp";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -20,10 +17,8 @@ const Header = () => {
 
   const propertyIdMatch = pathname?.match(/^\/for-sale\/(\d+)$/);
   const propertyId = propertyIdMatch ? Number(propertyIdMatch[1]) : null;
-  const activeProperty = propertyId ? getPropertySeo(propertyId) : undefined;
-  const siteVisitWhatsAppUrl = activeProperty
-    ? propertySiteVisitWhatsAppUrl(activeProperty.title)
-    : generalSiteVisitWhatsAppUrl();
+  const propertyTitle = propertyId ? getPropertySeo(propertyId)?.title : null;
+  const siteVisitSource = propertyId ? "header_property" : "header";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -278,14 +273,12 @@ const Header = () => {
               </div>
             ))}
             {/* Book Site Visit Button */}
-            <a
-              href={siteVisitWhatsAppUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+            <BookSiteVisitButton
+              propertyId={propertyId}
+              propertyTitle={propertyTitle}
+              source={siteVisitSource}
               className="bg-red-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-red-700 transition shadow-md hover:shadow-lg"
-            >
-              Book Site Visit
-            </a>
+            />
           </div>
 
           {/* Mobile Menu Button */}
@@ -367,15 +360,13 @@ const Header = () => {
                 </div>
               ))}
               {/* Book Site Visit Button - Mobile */}
-              <a
-                href={siteVisitWhatsAppUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setIsMenuOpen(false)}
+              <BookSiteVisitButton
+                propertyId={propertyId}
+                propertyTitle={propertyTitle}
+                source={siteVisitSource}
+                onNavigate={() => setIsMenuOpen(false)}
                 className="block w-full text-center py-3 px-4 rounded-lg font-semibold transition bg-red-600 text-white hover:bg-red-700"
-              >
-                Book Site Visit
-              </a>
+              />
             </div>
           </motion.div>
         )}

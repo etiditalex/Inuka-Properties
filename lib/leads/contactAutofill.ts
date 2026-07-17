@@ -14,6 +14,7 @@ export type ContactFormFields = {
 const STORAGE_KEY = "iapl_contact_details";
 const FACEBOOK_SESSION_KEY = "iapl_facebook_landing";
 const FACEBOOK_CONTACT_SESSION_KEY = "iapl_facebook_lead_contact";
+const AUTO_CAPTURED_KEY = "iapl_lead_auto_captured";
 
 function safeDecode(value: string): string {
   try {
@@ -55,7 +56,7 @@ export function isFacebookAdTraffic(params: URLSearchParams): boolean {
       utmSource.includes("meta") ||
       utmSource === "fb" ||
       utmMedium === "paid_social" ||
-      utmMedium === "cpc" && utmSource.includes("fb")
+      (utmMedium === "cpc" && utmSource.includes("fb"))
   );
 }
 
@@ -143,6 +144,13 @@ export function captureFacebookLandingParams(params: URLSearchParams) {
 
     if (hasContactDetails(fromUrl)) {
       sessionStorage.setItem(FACEBOOK_CONTACT_SESSION_KEY, JSON.stringify(fromUrl));
+      if (fromUrl.name && fromUrl.email && fromUrl.phone) {
+        saveContact({
+          name: fromUrl.name,
+          email: fromUrl.email,
+          phone: fromUrl.phone,
+        });
+      }
     }
   } catch {
     // private mode
@@ -197,6 +205,89 @@ export function resolveContactFormPrefill(params?: URLSearchParams): ContactForm
     email: fromUrl.email || fromFacebookSession.email || saved.email || "",
     phone: fromUrl.phone || fromFacebookSession.phone || saved.phone || "",
   };
+}
+
+/** Merge URL, Facebook session, and saved contact into one profile. */
+export function getResolvedContact(params?: URLSearchParams): Partial<ContactDetails> {
+  if (params) captureFacebookLandingParams(params);
+  const fromUrl = params ? contactFromSearchParams(params) : {};
+  const fromFacebookSession = loadFacebookSessionContact();
+  const saved = loadSavedContact();
+
+  return {
+    name: fromUrl.name || fromFacebookSession.name || saved.name || "",
+    email: fromUrl.email || fromFacebookSession.email || saved.email || "",
+    phone: fromUrl.phone || fromFacebookSession.phone || saved.phone || "",
+  };
+}
+
+/**
+ * Build a dashboard-ready contact. Needs at least a phone number.
+ * Missing name/email are filled so WhatsApp leads still save.
+ */
+export function normalizeContactForLead(
+  partial: Partial<ContactDetails>
+): ContactDetails | null {
+  const phone = (partial.phone || "").trim();
+  if (!phone) return null;
+
+  let name = (partial.name || "").trim();
+  let email = (partial.email || "").trim();
+
+  if (!name && email) {
+    name = email.split("@")[0]?.replace(/[._+]/g, " ").trim() || "Website visitor";
+  }
+  if (!name) name = "Website visitor";
+
+  if (!email) {
+    const digits = phone.replace(/\D/g, "") || "unknown";
+    email = `${digits}@noemail.inukaproperties.co.ke`;
+  }
+
+  return { name, email, phone };
+}
+
+export function hasUsablePhone(partial: Partial<ContactDetails>): boolean {
+  return Boolean((partial.phone || "").trim());
+}
+
+function leadCaptureKey(details: ContactDetails): string {
+  return `${details.phone.replace(/\D/g, "")}|${details.email.toLowerCase()}`;
+}
+
+export function wasLeadCapturedThisSession(details: ContactDetails): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const raw = sessionStorage.getItem(AUTO_CAPTURED_KEY);
+    if (!raw) return false;
+    const keys = JSON.parse(raw) as string[];
+    return keys.includes(leadCaptureKey(details));
+  } catch {
+    return false;
+  }
+}
+
+export function markLeadCapturedThisSession(details: ContactDetails) {
+  if (typeof window === "undefined") return;
+  try {
+    const raw = sessionStorage.getItem(AUTO_CAPTURED_KEY);
+    const keys: string[] = raw ? (JSON.parse(raw) as string[]) : [];
+    const key = leadCaptureKey(details);
+    if (!keys.includes(key)) {
+      keys.push(key);
+      sessionStorage.setItem(AUTO_CAPTURED_KEY, JSON.stringify(keys));
+    }
+  } catch {
+    // private mode
+  }
+}
+
+/** Fresh contact from this page URL (not only old localStorage). */
+export function contactFromCurrentVisit(params: URLSearchParams): Partial<ContactDetails> {
+  const fromUrl = contactFromSearchParams(params);
+  if (hasContactDetails(fromUrl)) return fromUrl;
+  if (isFacebookAdTraffic(params)) return loadFacebookSessionContact();
+  return {};
 }
 
 /** @deprecated Use resolveContactFormPrefill */

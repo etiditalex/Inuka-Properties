@@ -6,13 +6,13 @@ import { motion } from "framer-motion";
 import { MapPin, Bed, Square, Phone, Mail, ArrowLeft, ChevronLeft, ChevronRight, X } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { propertySiteVisitWhatsAppUrl } from "@/lib/whatsapp";
 import { PROPERTY_DETAILS } from "@/lib/properties/detailFallback";
 import type { PropertyDetail } from "@/lib/properties/mapProperty";
 import { parseGalleryUrls, propertyImageProps } from "@/lib/images";
 import { FACEBOOK_CAMPAIGN_PROPERTY_ID } from "@/lib/facebook/pixel";
 import { trackFacebookEvent } from "@/lib/facebook/trackClient";
 import PropertyDetailsForm from "@/components/property/PropertyDetailsForm";
+import BookSiteVisitButton from "@/components/BookSiteVisitButton";
 
 export default function PropertyDetailPage({ params }: { params: { id: string } }) {
   const propertyId = parseInt(params.id, 10);
@@ -97,7 +97,6 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
   const imageAltBase =
     property.imageAltPrefix ??
     `${property.title} land for sale in ${property.location}`;
-  const siteVisitWhatsAppUrl = propertySiteVisitWhatsAppUrl(property.title);
   const galleryImages = parseGalleryUrls(property.gallery, property.image);
   const heroImage = galleryImages[0] ?? property.image;
 
@@ -321,15 +320,13 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
                 <Mail size={20} />
                 Email Us
               </a>
-              <a
-                href={siteVisitWhatsAppUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={trackSiteVisit}
+              <BookSiteVisitButton
+                propertyId={property.id}
+                propertyTitle={property.title}
+                source={trackCampaignEvent ? "facebook_ad" : "property_page"}
+                onNavigate={trackSiteVisit}
                 className="block w-full bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition text-center"
-              >
-                Book Site Visit
-              </a>
+              />
             </div>
           </motion.div>
         </div>
