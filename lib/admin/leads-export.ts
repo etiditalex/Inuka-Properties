@@ -2,14 +2,56 @@ import * as XLSX from "xlsx";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import type { PropertyLead } from "@/lib/supabase/types";
-import { formatAdminDate } from "@/lib/admin/utils";
 
 type DocWithAutoTable = jsPDF & {
   lastAutoTable?: { finalY: number };
 };
 
+const EXCLUDED_LEAD_NAMES = new Set(["alex etidit", "alex etidi"]);
+
 function todayStamp() {
   return new Date().toISOString().split("T")[0];
+}
+
+function normalizeName(name: string) {
+  return name.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
+}
+
+function normalizePhone(phone: string) {
+  return phone.replace(/\D/g, "");
+}
+
+/** Exclude test leads and collapse repeats by email / phone. */
+export function prepareLeadsForExport(leads: PropertyLead[]): PropertyLead[] {
+  const seen = new Set<string>();
+  const unique: PropertyLead[] = [];
+
+  for (const lead of leads) {
+    if (EXCLUDED_LEAD_NAMES.has(normalizeName(lead.name))) continue;
+
+    const emailKey = normalizeEmail(lead.email);
+    const phoneKey = normalizePhone(lead.phone);
+    const nameKey = normalizeName(lead.name);
+
+    const alreadySeen =
+      (emailKey && seen.has(`e:${emailKey}`)) ||
+      (phoneKey && seen.has(`p:${phoneKey}`)) ||
+      (!emailKey && !phoneKey && nameKey && seen.has(`n:${nameKey}`));
+
+    if (alreadySeen) continue;
+
+    if (emailKey) seen.add(`e:${emailKey}`);
+    if (phoneKey) seen.add(`p:${phoneKey}`);
+    if (!emailKey && !phoneKey && nameKey) seen.add(`n:${nameKey}`);
+
+    unique.push(lead);
+  }
+
+  return unique;
 }
 
 function autoSizeColumns(sheet: XLSX.WorkSheet) {
@@ -37,23 +79,22 @@ function leadRows(leads: PropertyLead[]) {
     Property: lead.property_name || "General",
     Source: lead.source.replace(/_/g, " "),
     Status: lead.status,
-    "Preferred Date": lead.preferred_date || "",
-    "Preferred Time": lead.preferred_time || "",
     Message: lead.message || "",
     Notes: lead.notes || "",
-    "Created At": lead.created_at.split("T")[0],
   }));
 }
 
 export function exportLeadsToExcel(leads: PropertyLead[]) {
+  const rows = prepareLeadsForExport(leads);
   const workbook = XLSX.utils.book_new();
-  const sheet = XLSX.utils.json_to_sheet(leadRows(leads));
+  const sheet = XLSX.utils.json_to_sheet(leadRows(rows));
   autoSizeColumns(sheet);
   XLSX.utils.book_append_sheet(workbook, sheet, "Leads");
   XLSX.writeFile(workbook, `IAPL-Property-Leads-${todayStamp()}.xlsx`);
 }
 
 export function exportLeadsToPdf(leads: PropertyLead[], filterLabel = "all") {
+  const rows = prepareLeadsForExport(leads);
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" }) as DocWithAutoTable;
   const marginX = 14;
   let y = 16;
@@ -75,8 +116,7 @@ export function exportLeadsToPdf(leads: PropertyLead[], filterLabel = "all") {
 
   const metaLines = [
     `Status filter: ${filterLabel}`,
-    `Total leads: ${leads.length}`,
-    `Generated: ${formatAdminDate(new Date().toISOString())}`,
+    `Total leads: ${rows.length}`,
   ];
 
   for (const line of metaLines) {
@@ -88,29 +128,27 @@ export function exportLeadsToPdf(leads: PropertyLead[], filterLabel = "all") {
 
   autoTable(doc, {
     startY: y,
-    head: [["Name", "Email", "Phone", "Property", "Source", "Status", "Preferred Visit", "Date"]],
-    body: leads.map((lead) => [
+    head: [["Name", "Email", "Phone", "Property", "Source", "Status", "Message"]],
+    body: rows.map((lead) => [
       lead.name,
       lead.email,
       lead.phone,
       lead.property_name || "General",
       lead.source.replace(/_/g, " "),
       lead.status,
-      [lead.preferred_date, lead.preferred_time].filter(Boolean).join(" ") || "—",
-      formatAdminDate(lead.created_at),
+      lead.message || "—",
     ]),
     styles: { fontSize: 8, cellPadding: 2 },
     headStyles: { fillColor: [30, 90, 180], textColor: 255 },
     alternateRowStyles: { fillColor: [240, 245, 252] },
     columnStyles: {
-      0: { cellWidth: 28 },
-      1: { cellWidth: 42 },
-      2: { cellWidth: 28 },
-      3: { cellWidth: 36 },
-      4: { cellWidth: 28 },
-      5: { cellWidth: 22 },
-      6: { cellWidth: 32 },
-      7: { cellWidth: 28 },
+      0: { cellWidth: 30 },
+      1: { cellWidth: 48 },
+      2: { cellWidth: 30 },
+      3: { cellWidth: 40 },
+      4: { cellWidth: 30 },
+      5: { cellWidth: 24 },
+      6: { cellWidth: 52 },
     },
     margin: { left: marginX, right: marginX },
   });
