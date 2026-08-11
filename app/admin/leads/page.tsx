@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Phone, Mail, MapPin, CheckCircle, XCircle } from "lucide-react";
+import { Phone, Mail, MapPin, CheckCircle, XCircle, FileSpreadsheet, FileText } from "lucide-react";
 import AdminShell from "@/components/admin/AdminShell";
 import AdminButton from "@/components/admin/AdminButton";
 import { AdminTextarea } from "@/components/admin/AdminForm";
 import { createClient } from "@/lib/supabase/client";
 import type { PropertyLead, LeadStatus } from "@/lib/supabase/types";
 import { formatAdminDate, cn } from "@/lib/admin/utils";
+import { exportLeadsToExcel, exportLeadsToPdf } from "@/lib/admin/leads-export";
 
 const statusOptions: LeadStatus[] = ["new", "contacted", "qualified", "converted", "lost"];
 
@@ -52,20 +53,38 @@ export default function AdminLeadsPage() {
         automatically marked as sold.
       </div>
 
-      <div className="mb-4 flex flex-wrap gap-2">
-        {(["all", ...statusOptions] as const).map((s) => (
-          <button
-            key={s}
-            type="button"
-            onClick={() => setFilter(s)}
-            className={cn(
-              "rounded-full px-3 py-1 text-xs font-semibold capitalize transition",
-              filter === s ? "bg-primary-600 text-white" : "bg-dark-100 text-dark-600 hover:bg-dark-200"
-            )}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-2">
+          {(["all", ...statusOptions] as const).map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setFilter(s)}
+              className={cn(
+                "rounded-full px-3 py-1 text-xs font-semibold capitalize transition",
+                filter === s ? "bg-primary-600 text-white" : "bg-dark-100 text-dark-600 hover:bg-dark-200"
+              )}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <AdminButton
+            variant="secondary"
+            onClick={() => exportLeadsToExcel(leads)}
+            disabled={loading || leads.length === 0}
           >
-            {s}
-          </button>
-        ))}
+            <FileSpreadsheet size={16} /> Download Excel
+          </AdminButton>
+          <AdminButton
+            variant="secondary"
+            onClick={() => exportLeadsToPdf(leads, filter)}
+            disabled={loading || leads.length === 0}
+          >
+            <FileText size={16} /> Download PDF
+          </AdminButton>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-5">
