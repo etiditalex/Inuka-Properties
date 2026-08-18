@@ -22,32 +22,31 @@ export default function NewsPage() {
   const [newsItems, setNewsItems] = useState(staticNewsItems);
 
   useEffect(() => {
-    fetch("/api/content/news")
+    fetch("/api/content/news", { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => {
-        if (data.items?.length) {
-          setNewsItems(
-            data.items.map((item: {
-              id: number;
-              title: string;
-              excerpt: string;
-              published_at: string;
-              category: string;
-              image: string;
-              featured?: boolean;
-              details?: string[];
-            }) => ({
-              id: item.id,
-              title: item.title,
-              excerpt: item.excerpt,
-              date: item.published_at,
-              category: item.category,
-              image: item.image,
-              featured: item.featured,
-              details: item.details,
-            }))
-          );
-        }
+        if (!Array.isArray(data.items) || data.items.length === 0) return;
+        setNewsItems(
+          data.items.map((item: {
+            id: number;
+            title: string;
+            excerpt: string;
+            published_at: string;
+            category: string;
+            image: string;
+            featured?: boolean;
+            details?: string[];
+          }) => ({
+            id: item.id,
+            title: item.title,
+            excerpt: item.excerpt,
+            date: item.published_at,
+            category: item.category,
+            image: item.image,
+            featured: item.featured,
+            details: item.details,
+          }))
+        );
       })
       .catch(() => {});
   }, []);

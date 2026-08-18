@@ -29,6 +29,7 @@ export default function AdminNewsPage() {
   const [detailsText, setDetailsText] = useState("");
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [saveError, setSaveError] = useState("");
 
   const load = async () => {
     const supabase = createClient();
@@ -57,16 +58,33 @@ export default function AdminNewsPage() {
   const handleSave = async () => {
     if (!editing) return;
     setSaving(true);
+    setSaveError("");
     const supabase = createClient();
     const payload = {
-      ...editing,
+      title: editing.title?.trim() || "",
+      excerpt: editing.excerpt?.trim() || "",
+      published_at: (editing.published_at || "").slice(0, 10),
+      category: editing.category?.trim() || "Company News",
+      image: editing.image || "",
+      featured: editing.featured ?? false,
       details: detailsText.split("\n").map((d) => d.trim()).filter(Boolean),
+      status: editing.status || "published",
     };
+    if (!payload.title || !payload.excerpt || !payload.image || !payload.published_at) {
+      setSaving(false);
+      setSaveError("Title, excerpt, date, and image are required.");
+      return;
+    }
     const { error } = editing.id
       ? await supabase.from("news_items").update(payload).eq("id", editing.id)
       : await supabase.from("news_items").insert(payload);
     setSaving(false);
-    if (!error) { setEditing(null); load(); }
+    if (error) {
+      setSaveError(error.message);
+      return;
+    }
+    setEditing(null);
+    load();
   };
 
   const handleDelete = async (id: number) => {
@@ -124,7 +142,7 @@ export default function AdminNewsPage() {
             <h3 className="text-lg font-bold font-montserrat">{editing.id ? "Edit News" : "New News"}</h3>
             <AdminInput label="Title" value={editing.title || ""} onChange={(e) => setEditing({ ...editing, title: e.target.value })} />
             <AdminInput label="Category" value={editing.category || ""} onChange={(e) => setEditing({ ...editing, category: e.target.value })} />
-            <AdminInput label="Date" type="date" value={editing.published_at || ""} onChange={(e) => setEditing({ ...editing, published_at: e.target.value })} />
+            <AdminInput label="Date" type="date" value={(editing.published_at || "").slice(0, 10)} onChange={(e) => setEditing({ ...editing, published_at: e.target.value })} />
             <AdminInput label="Image URL" value={editing.image || ""} onChange={(e) => setEditing({ ...editing, image: e.target.value })} />
             <ImageUpload label="Or upload image" value={editing.image || ""} onChange={(url) => setEditing({ ...editing, image: url })} folder="news" />
             <AdminTextarea label="Excerpt" value={editing.excerpt || ""} onChange={(e) => setEditing({ ...editing, excerpt: e.target.value })} rows={3} />
@@ -136,9 +154,12 @@ export default function AdminNewsPage() {
               value={editing.status || "published"}
               onChange={(e) => setEditing({ ...editing, status: e.target.value as ContentStatus })}
             />
+            {saveError && (
+              <p className="text-sm text-red-600">{saveError}</p>
+            )}
             <div className="flex gap-3">
               <AdminButton onClick={handleSave} loading={saving}>Save</AdminButton>
-              <AdminButton variant="outline" onClick={() => setEditing(null)}>Cancel</AdminButton>
+              <AdminButton variant="outline" onClick={() => { setEditing(null); setSaveError(""); }}>Cancel</AdminButton>
             </div>
           </div>
           <NewsPreview item={{ ...editing, details: detailsText.split("\n").filter(Boolean) }} />
