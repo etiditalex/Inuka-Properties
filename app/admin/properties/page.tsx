@@ -1,15 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Plus, Pencil, Trash2, Search, Download } from "lucide-react";
+import dynamic from "next/dynamic";
+import { Plus, Pencil, Trash2, Search, Download, MapPin } from "lucide-react";
 import AdminShell from "@/components/admin/AdminShell";
 import AdminButton from "@/components/admin/AdminButton";
 import { createClient } from "@/lib/supabase/client";
 import type { Property } from "@/lib/supabase/types";
 import { cn } from "@/lib/admin/utils";
 import { adminPath } from "@/lib/admin/path";
+import { parseMapCoords } from "@/lib/maps";
+import type { AdminMapMarker } from "@/components/admin/AdminLeafletMap";
+
+const AdminLeafletMap = dynamic(() => import("@/components/admin/AdminLeafletMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-80 items-center justify-center rounded-xl border border-dark-200 bg-dark-50 text-sm text-dark-500">
+      Loading map…
+    </div>
+  ),
+});
 
 const statusColors = {
   available: "bg-emerald-100 text-emerald-800",
@@ -79,6 +91,30 @@ export default function AdminPropertiesPage() {
       p.location.toLowerCase().includes(search.toLowerCase())
   );
 
+  const mapMarkers = useMemo<AdminMapMarker[]>(
+    () =>
+      properties
+        .filter(
+          (p) =>
+            p.title.toLowerCase().includes(search.toLowerCase()) ||
+            p.location.toLowerCase().includes(search.toLowerCase())
+        )
+        .flatMap((property) => {
+          const coords = parseMapCoords(property.map_link);
+          if (!coords) return [];
+          return [
+            {
+              id: property.id,
+              lat: coords.lat,
+              lng: coords.lng,
+              label: property.title,
+              href: adminPath(`properties/${property.id}`),
+            },
+          ];
+        }),
+    [properties, search]
+  );
+
   return (
     <AdminShell title="Land Listings" subtitle="Manage properties for sale">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -112,6 +148,23 @@ export default function AdminPropertiesPage() {
         </div>
       )}
 
+      <div className="mb-6 overflow-hidden rounded-2xl border border-dark-200/60 bg-white p-4 shadow-sm">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 className="flex items-center gap-2 font-bold text-dark-900 font-montserrat">
+              <MapPin size={18} className="text-primary-600" />
+              Property map
+            </h3>
+            <p className="mt-1 text-xs text-dark-500">
+              {mapMarkers.length > 0
+                ? `${mapMarkers.length} listing${mapMarkers.length === 1 ? "" : "s"} pinned. Click a pin to edit. Open a listing to drop or move its pin.`
+                : "No listings have a map pin yet. Open a property and click the map to drop a pin."}
+            </p>
+          </div>
+        </div>
+        <AdminLeafletMap heightClass="h-80 md:h-[28rem]" markers={mapMarkers} />
+      </div>
+
       {loading ? (
         <div className="flex h-48 items-center justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
@@ -135,6 +188,7 @@ export default function AdminPropertiesPage() {
               <tr>
                 <th className="px-4 py-3 font-semibold text-dark-600">Property</th>
                 <th className="hidden px-4 py-3 font-semibold text-dark-600 md:table-cell">Location</th>
+                <th className="hidden px-4 py-3 font-semibold text-dark-600 lg:table-cell">Map</th>
                 <th className="px-4 py-3 font-semibold text-dark-600">Price</th>
                 <th className="px-4 py-3 font-semibold text-dark-600">Units</th>
                 <th className="px-4 py-3 font-semibold text-dark-600">Status</th>
@@ -156,6 +210,15 @@ export default function AdminPropertiesPage() {
                     </div>
                   </td>
                   <td className="hidden px-4 py-3 text-dark-600 md:table-cell">{p.location}</td>
+                  <td className="hidden px-4 py-3 lg:table-cell">
+                    {parseMapCoords(p.map_link) ? (
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary-700">
+                        <MapPin size={12} /> Pinned
+                      </span>
+                    ) : (
+                      <span className="text-xs text-dark-400">No pin</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 font-medium text-amber-700">{p.price}</td>
                   <td className="px-4 py-3 text-dark-600">
                     {p.total_units > 0 ? `${p.sold_units}/${p.total_units}` : "—"}

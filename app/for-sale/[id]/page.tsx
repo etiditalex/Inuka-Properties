@@ -13,6 +13,7 @@ import { FACEBOOK_CAMPAIGN_PROPERTY_ID } from "@/lib/facebook/pixel";
 import { trackFacebookEvent } from "@/lib/facebook/trackClient";
 import PropertyDetailsForm from "@/components/property/PropertyDetailsForm";
 import BookSiteVisitButton from "@/components/BookSiteVisitButton";
+import PropertyLocationMap from "@/components/PropertyLocationMap";
 
 export default function PropertyDetailPage({ params }: { params: { id: string } }) {
   const propertyId = parseInt(params.id, 10);
@@ -22,7 +23,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
 
   useEffect(() => {
     const staticFallback = PROPERTY_DETAILS[propertyId] as PropertyDetail | undefined;
-    fetch(`/api/content/properties/${propertyId}`)
+    fetch(`/api/content/properties/${propertyId}`, { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         setProperty(data?.property ?? staticFallback ?? null);
@@ -294,9 +295,9 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
             </div>
 
             <div className="space-y-4 mb-6">
-              {property.mapLink && (
+              {(property.mapLink || property.location) && (
                 <a
-                  href={property.mapLink}
+                  href={property.mapLink || `https://maps.google.com/?q=${encodeURIComponent(property.location)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block w-full bg-dark-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-dark-800 transition text-center"
@@ -333,6 +334,16 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
 
         <div className="mt-12 grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
+            {(property.mapLink || property.location) && (
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-dark-900 mb-4 font-montserrat">Property location</h2>
+                <PropertyLocationMap
+                  mapLink={property.mapLink}
+                  location={property.location}
+                  title={property.title}
+                />
+              </div>
+            )}
             <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
               <h2 className="text-2xl font-bold text-dark-900 mb-4">About this property</h2>
               <p className="text-dark-700 leading-relaxed whitespace-pre-line break-words [overflow-wrap:anywhere]">

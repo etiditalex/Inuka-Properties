@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import AdminShell from "@/components/admin/AdminShell";
 import { AdminInput, AdminTextarea, AdminSelect, AdminToggle } from "@/components/admin/AdminForm";
 import GalleryUpload from "@/components/admin/GalleryUpload";
+import PropertyMapFields from "@/components/admin/PropertyMapFields";
 import AdminButton from "@/components/admin/AdminButton";
 import PropertyPreview from "@/components/admin/preview/PropertyPreview";
 import { createClient } from "@/lib/supabase/client";
@@ -16,6 +17,7 @@ import { Save } from "lucide-react";
 const emptyProperty: Partial<Property> = {
   title: "",
   location: "",
+  map_link: "",
   type: "residential",
   price: "",
   size: "",
@@ -159,6 +161,7 @@ export default function PropertyFormPage({ propertyId }: PropertyFormPageProps) 
       image: gallery[0] || form.image || "",
       features: featuresText.split("\n").map((f) => f.trim()).filter(Boolean),
       gallery,
+      map_link: form.map_link?.trim() || null,
       pricing: linesToRecord(pricingText),
       payment_plan: paymentPlanFromForm(paymentFields),
       quick_info: linesToRecord(quickInfoText),
@@ -200,6 +203,11 @@ export default function PropertyFormPage({ propertyId }: PropertyFormPageProps) 
 
           <AdminInput label="Title" value={form.title || ""} onChange={(e) => update("title", e.target.value)} required />
           <AdminInput label="Location" value={form.location || ""} onChange={(e) => update("location", e.target.value)} required />
+          <PropertyMapFields
+            location={form.location || ""}
+            mapLink={form.map_link || ""}
+            onChange={(mapLink) => update("map_link", mapLink)}
+          />
           <div className="grid gap-4 sm:grid-cols-2">
             <AdminSelect label="Type" options={typeOptions} value={form.type || "residential"} onChange={(e) => update("type", e.target.value)} />
             <AdminSelect label="Status" options={statusOptions} value={form.status || "available"} onChange={(e) => update("status", e.target.value as PropertyStatus)} />

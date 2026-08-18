@@ -62,3 +62,18 @@ body {
   animation: partners-carousel 30s linear infinite;
   will-change: transform;
 }
+
+.admin-leaflet-map {
+  isolation: isolate;
+  z-index: 0;
+}
+
+.admin-leaflet-map .leaflet-pane,
+.admin-leaflet-map .leaflet-top,
+.admin-leaflet-map .leaflet-bottom {
+  z-index: 1 !important;
+}
+
+.admin-leaflet-map .leaflet-control {
+  z-index: 2 !important;
+}

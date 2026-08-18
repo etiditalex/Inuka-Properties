@@ -4,6 +4,7 @@ import Image from "next/image";
 import { MapPin } from "lucide-react";
 import type { Property } from "@/lib/supabase/types";
 import { cn } from "@/lib/admin/utils";
+import PropertyLocationMap from "@/components/PropertyLocationMap";
 
 type PropertyPreviewProps = {
   property: Partial<Property>;
@@ -98,6 +99,18 @@ export default function PropertyPreview({ property }: PropertyPreviewProps) {
             })()}
           </div>
         </div>
+        {(property.map_link || property.location) && (
+          <div className="mt-4">
+            <p className="mb-2 text-xs font-medium text-dark-500">Map location preview</p>
+            <PropertyLocationMap
+              mapLink={property.map_link}
+              location={property.location}
+              title={property.title || "Property"}
+              heightClass="h-48"
+              showOpenLink={false}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
