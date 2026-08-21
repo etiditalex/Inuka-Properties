@@ -1,28 +1,75 @@
 import type { MetadataRoute } from "next";
 import { BLOG_ARTICLE_SLUGS, BLOG_POSTS } from "@/lib/blogPosts";
 import { PROPERTY_SEO } from "@/lib/propertySeo";
+import { fetchPublishedProperties } from "@/lib/properties/getProperties";
 import { SITE_ORIGIN } from "@/lib/site";
 
 type SitemapEntry = MetadataRoute.Sitemap[number];
 
+function parseDate(value?: string | Date | null): Date | undefined {
+  if (!value) return undefined;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? undefined : date;
+}
+
+function toLastmod(value: Date | string): string {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return new Date().toISOString().slice(0, 10);
+  }
+  return date.toISOString().slice(0, 10);
+}
+
 function staticPage(
   path: string,
   priority: number,
-  changeFrequency: SitemapEntry["changeFrequency"] = "monthly"
+  changeFrequency: SitemapEntry["changeFrequency"] = "monthly",
+  lastModified?: Date
 ): SitemapEntry {
   return {
     url: `${SITE_ORIGIN}${path}`,
-    lastModified: new Date(),
+    ...(lastModified ? { lastModified } : {}),
     changeFrequency,
     priority,
   };
 }
 
-export function getSitemapEntries(): MetadataRoute.Sitemap {
+export async function getSitemapEntries(): Promise<MetadataRoute.Sitemap> {
+  const propertyById = new Map<
+    number,
+    { lastModified?: Date; priority: number }
+  >();
+
+  for (const property of PROPERTY_SEO) {
+    propertyById.set(property.id, {
+      lastModified: parseDate(property.datePosted),
+      priority: property.soldOut ? 0.4 : property.sitemapPriority ?? 0.85,
+    });
+  }
+
+  try {
+    const live = await fetchPublishedProperties();
+    for (const property of live) {
+      const existing = propertyById.get(property.id);
+      const lastModified =
+        parseDate(property.created_at) ?? existing?.lastModified;
+      const priority =
+        existing?.priority ?? (property.status === "sold" ? 0.4 : 0.85);
+      propertyById.set(property.id, { lastModified, priority });
+    }
+  } catch {
+    // Keep the static PROPERTY_SEO list if live listings cannot be loaded.
+  }
+
+  const newestPropertyDate = [...propertyById.values()]
+    .map((property) => property.lastModified)
+    .filter((date): date is Date => Boolean(date))
+    .sort((a, b) => b.getTime() - a.getTime())[0];
+
   const staticRoutes: SitemapEntry[] = [
-    staticPage("", 1, "weekly"),
-    staticPage("/for-sale", 0.95, "daily"),
-    staticPage("/for-sale/ongoing-projects", 0.9, "daily"),
+    staticPage("", 1, "weekly", newestPropertyDate),
+    staticPage("/for-sale", 0.95, "daily", newestPropertyDate),
+    staticPage("/for-sale/ongoing-projects", 0.9, "daily", newestPropertyDate),
     staticPage("/project-showcase", 0.85, "weekly"),
     staticPage("/book-site-visit", 0.85, "monthly"),
     staticPage("/about-us", 0.8, "monthly"),
@@ -54,18 +101,20 @@ export function getSitemapEntries(): MetadataRoute.Sitemap {
     staticPage("/cookie-policy", 0.3, "yearly"),
   ];
 
-  const propertyRoutes: SitemapEntry[] = PROPERTY_SEO.map((property) => ({
-    url: `${SITE_ORIGIN}/for-sale/${property.id}`,
-    lastModified: new Date(),
-    changeFrequency: "weekly" as const,
-    priority: property.soldOut ? 0.4 : property.sitemapPriority ?? 0.85,
-  }));
+  const propertyRoutes: SitemapEntry[] = [...propertyById.entries()]
+    .sort((a, b) => b[0] - a[0])
+    .map(([id, property]) => ({
+      url: `${SITE_ORIGIN}/for-sale/${id}`,
+      ...(property.lastModified ? { lastModified: property.lastModified } : {}),
+      changeFrequency: "weekly" as const,
+      priority: property.priority,
+    }));
 
   const blogRoutes: SitemapEntry[] = BLOG_POSTS.filter((post) =>
     BLOG_ARTICLE_SLUGS.has(post.slug)
   ).map((post) => ({
     url: `${SITE_ORIGIN}/iapl-insider/blogs/${post.slug}`,
-    lastModified: new Date(post.date),
+    lastModified: parseDate(post.date),
     changeFrequency: "monthly" as const,
     priority: 0.8,
   }));
@@ -82,21 +131,17 @@ function escapeXml(value: string): string {
     .replace(/'/g, "&apos;");
 }
 
-export function buildSitemapXml(): string {
-  const entries = getSitemapEntries();
+export async function buildSitemapXml(): Promise<string> {
+  const entries = await getSitemapEntries();
 
   const urls = entries
     .map((entry) => {
-      const lastmod =
-        entry.lastModified instanceof Date
-          ? entry.lastModified.toISOString()
-          : entry.lastModified
-            ? new Date(entry.lastModified).toISOString()
-            : new Date().toISOString();
+      const lastmod = entry.lastModified
+        ? `\n    <lastmod>${toLastmod(entry.lastModified)}</lastmod>`
+        : "";
 
       return `  <url>
-    <loc>${escapeXml(entry.url)}</loc>
-    <lastmod>${lastmod}</lastmod>${entry.changeFrequency ? `\n    <changefreq>${entry.changeFrequency}</changefreq>` : ""}${entry.priority !== undefined ? `\n    <priority>${entry.priority}</priority>` : ""}
+    <loc>${escapeXml(entry.url)}</loc>${lastmod}${entry.changeFrequency ? `\n    <changefreq>${entry.changeFrequency}</changefreq>` : ""}${entry.priority !== undefined ? `\n    <priority>${entry.priority}</priority>` : ""}
   </url>`;
     })
     .join("\n");
