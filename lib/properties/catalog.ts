@@ -12,6 +12,7 @@ export interface CatalogProperty {
   featured?: boolean;
   status?: "available" | "ongoing" | "sold";
   features?: string[];
+  created_at?: string;
 }
 
 export const STATIC_PROPERTY_CATALOG: CatalogProperty[] = [

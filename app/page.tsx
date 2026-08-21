@@ -20,17 +20,19 @@ interface Property {
   image: string;
   featured?: boolean;
   status?: "available" | "ongoing" | "sold";
+  created_at?: string;
 }
 
 import { STATIC_PROPERTY_CATALOG } from "@/lib/properties/catalog";
 import {
   getHomepageProperties,
   getLatestProject,
-  LATEST_PROJECT_ID,
+  getNewestListingId,
 } from "@/lib/properties/sortProperties";
 
 function PropertyCarousel({ properties }: { properties: Property[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const newestListingId = getNewestListingId(properties);
 
   const nextSlide = () => {
     setCurrentIndex((prev) => (prev + 1) % properties.length);
@@ -57,7 +59,7 @@ function PropertyCarousel({ properties }: { properties: Property[] }) {
                 imageHeightClass="h-[220px] sm:h-[260px]"
                 imageSizes="100vw"
                 badge={
-                  properties[currentIndex].id === LATEST_PROJECT_ID ? "New" : undefined
+                  properties[currentIndex].id === newestListingId ? "New" : undefined
                 }
               />
             </motion.div>
@@ -171,7 +173,7 @@ function PropertyCardsSection() {
   );
 
   useEffect(() => {
-    fetch("/api/content/properties")
+    fetch("/api/content/properties", { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => {
         if (!data.properties?.length) return;
@@ -182,6 +184,8 @@ function PropertyCardsSection() {
       })
       .catch(() => {});
   }, []);
+
+  const newestListingId = getNewestListingId(homeFeaturedProperties);
 
   return (
     <>
@@ -208,7 +212,7 @@ function PropertyCardsSection() {
               >
                 <PropertyListingCard
                   property={property}
-                  badge={property.id === LATEST_PROJECT_ID ? "New" : undefined}
+                  badge={property.id === newestListingId ? "New" : undefined}
                 />
               </motion.div>
             ))}

@@ -4,7 +4,7 @@ import { STATIC_PROPERTY_CATALOG, type CatalogProperty } from "./catalog";
 import { PROPERTY_DETAILS } from "./detailFallback";
 import { mapDbPropertyToDetail, type PropertyDetail } from "./mapProperty";
 import { parseGalleryUrls } from "@/lib/images";
-import { getAvailableProperties, getHomepageProperties, sortPropertiesNewestFirst } from "./sortProperties";
+import { getHomepageProperties, sortPropertiesNewestFirst } from "./sortProperties";
 
 function getPublicClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -31,6 +31,7 @@ export async function fetchPublishedProperties(): Promise<CatalogProperty[]> {
     .from("properties")
     .select("id, title, location, type, price, size, bedrooms, image, gallery, featured, status, features, created_at")
     .eq("published", true)
+    .order("created_at", { ascending: false })
     .order("id", { ascending: false });
 
   if (!data?.length) return getStaticCatalog();
@@ -49,6 +50,7 @@ export async function fetchPublishedProperties(): Promise<CatalogProperty[]> {
       featured: p.featured,
       status: p.status as CatalogProperty["status"],
       features: (p.features as string[]) ?? [],
+      created_at: p.created_at ?? undefined,
     };
   });
 

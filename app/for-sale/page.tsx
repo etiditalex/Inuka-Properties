@@ -6,7 +6,7 @@ import { Search, Home, ChevronRight, X, SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
 import PropertyListingCard from "@/components/PropertyListingCard";
 import { STATIC_PROPERTY_CATALOG, type CatalogProperty } from "@/lib/properties/catalog";
-import { sortPropertiesNewestFirst, LATEST_PROJECT_ID } from "@/lib/properties/sortProperties";
+import { sortPropertiesNewestFirst, getNewestListingId } from "@/lib/properties/sortProperties";
 
 type PropertyType = "all" | "residential" | "commercial" | "beach" | "farm" | "affordable";
 
@@ -18,10 +18,10 @@ export default function ForSalePage() {
   );
   const [filter, setFilter] = useState<PropertyType>("all");
   useEffect(() => {
-    fetch("/api/content/properties")
+    fetch("/api/content/properties", { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => {
-        if (data.properties?.length) setProperties(data.properties);
+        if (data.properties?.length) setProperties(sortPropertiesNewestFirst(data.properties));
       })
       .catch(() => {});
   }, []);
@@ -53,6 +53,8 @@ export default function ForSalePage() {
     
     return matchesFilter && matchesSearch && matchesLocation && matchesStatus && matchesPrice;
   });
+
+  const newestListingId = getNewestListingId(properties);
 
   const propertyTypes: { value: PropertyType; label: string }[] = [
     { value: "all", label: "All Properties" },
@@ -357,7 +359,7 @@ export default function ForSalePage() {
                       status: property.status,
                     }}
                     imageSizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
-                    badge={property.id === LATEST_PROJECT_ID ? "New" : undefined}
+                    badge={property.id === newestListingId ? "New" : undefined}
                   />
                 </motion.div>
               ))}

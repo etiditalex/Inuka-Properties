@@ -12,6 +12,7 @@ import type { Property } from "@/lib/supabase/types";
 import { cn } from "@/lib/admin/utils";
 import { adminPath } from "@/lib/admin/path";
 import { parseMapCoords } from "@/lib/maps";
+import { sortPropertiesNewestFirst } from "@/lib/properties/sortProperties";
 import type { AdminMapMarker } from "@/components/admin/AdminLeafletMap";
 
 const AdminLeafletMap = dynamic(() => import("@/components/admin/AdminLeafletMap"), {
@@ -38,8 +39,12 @@ export default function AdminPropertiesPage() {
 
   const load = async () => {
     const supabase = createClient();
-    const { data } = await supabase.from("properties").select("*").order("id", { ascending: false });
-    setProperties((data as Property[]) || []);
+    const { data } = await supabase
+      .from("properties")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false });
+    setProperties(sortPropertiesNewestFirst((data as Property[]) || []));
     setLoading(false);
   };
 

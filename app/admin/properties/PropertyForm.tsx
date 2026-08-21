@@ -156,8 +156,10 @@ export default function PropertyFormPage({ propertyId }: PropertyFormPageProps) 
 
     const gallery = resolveGallery(form).map((u) => u.trim()).filter(Boolean);
 
+    const { id: _id, created_at: _createdAt, updated_at: _updatedAt, ...formFields } = form;
+
     const payload = {
-      ...form,
+      ...formFields,
       image: gallery[0] || form.image || "",
       features: featuresText.split("\n").map((f) => f.trim()).filter(Boolean),
       gallery,
