@@ -58,7 +58,7 @@ export function getSitemapEntries(): MetadataRoute.Sitemap {
     url: `${SITE_ORIGIN}/for-sale/${property.id}`,
     lastModified: new Date(),
     changeFrequency: "weekly" as const,
-    priority: property.soldOut ? 0.4 : 0.85,
+    priority: property.soldOut ? 0.4 : property.sitemapPriority ?? 0.85,
   }));
 
   const blogRoutes: SitemapEntry[] = BLOG_POSTS.filter((post) =>

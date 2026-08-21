@@ -14,6 +14,7 @@ import {
   buildBreadcrumbSchema,
   buildFaqSchema,
   buildPageMetadata,
+  buildPropertyWebPageSchema,
   buildRealEstateListingSchema,
 } from "@/lib/seo";
 
@@ -63,8 +64,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     path,
     keywords: property.keywords ?? defaultKeywords,
     ogImage: property.image,
-    ogImageAlt: `${property.title} — land for sale in ${property.location}, ${county}`,
+    ogImageAlt: `${property.schemaName ?? property.title} — ${property.location}, ${county}`,
     noIndex: property.soldOut,
+    exactTitle: property.exactSeoTitle,
   });
 }
 
@@ -76,7 +78,8 @@ export default function PropertyDetailLayout({ children, params }: Props) {
   const listingSchema =
     property &&
     buildRealEstateListingSchema({
-      name: property.h1 ?? property.title,
+      name: property.schemaName ?? property.h1 ?? property.title,
+      alternateName: property.schemaName ? property.title : undefined,
       description: property.metaDescription ?? property.description,
       image: property.gallery ?? property.image,
       path,
@@ -86,13 +89,29 @@ export default function PropertyDetailLayout({ children, params }: Props) {
       county: property.county,
       geo: property.geo,
       availability: property.soldOut ? "SoldOut" : "InStock",
+      keywords: property.keywords,
+      datePosted: property.datePosted,
+      additionalProperty: property.additionalProperty,
+      highPrice: property.highPrice,
     });
+
+  const webPageSchema = property
+    ? buildPropertyWebPageSchema({
+        name: property.schemaName ?? property.seoTitle ?? property.title,
+        description: property.metaDescription ?? property.description,
+        path,
+        image: property.image,
+        keywords: property.keywords,
+        location: property.location,
+        county: property.county,
+      })
+    : null;
 
   const breadcrumbSchema = property
     ? buildBreadcrumbSchema([
         { name: "Home", path: "/" },
         { name: "Properties for Sale", path: "/for-sale" },
-        { name: property.title, path },
+        { name: property.schemaName ?? property.title, path },
       ])
     : null;
 
@@ -110,6 +129,7 @@ export default function PropertyDetailLayout({ children, params }: Props) {
         <FacebookPixel propertyId={id} pagePath={path} />
       ) : null}
       {listingSchema ? <JsonLd data={listingSchema} /> : null}
+      {webPageSchema ? <JsonLd data={webPageSchema} /> : null}
       {breadcrumbSchema ? <JsonLd data={breadcrumbSchema} /> : null}
       {faqSchema ? <JsonLd data={faqSchema} /> : null}
       {children}

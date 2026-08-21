@@ -49,7 +49,8 @@ function RelatedProperties({
 export default function PropertySeoBlock({ propertyId }: { propertyId: number }) {
   const property = getPropertySeo(propertyId);
 
-  if (!property?.seoSections?.length && !property?.faq?.length) {
+  if (!property || property.schemaOnly) return null;
+  if (!property.seoSections?.length && !property.faq?.length) {
     return null;
   }
 

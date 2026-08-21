@@ -30,6 +30,16 @@ export type PropertySeoEntry = {
   relatedPropertyIds?: number[];
   mapLink?: string;
   geo?: { latitude: number; longitude: number };
+  /** JSON-LD listing name when it should differ from the visible page heading */
+  schemaName?: string;
+  /** Use seoTitle as the full document title (no site-name suffix) */
+  exactSeoTitle?: boolean;
+  /** FAQ and SEO copy stay in metadata/JSON-LD only — not rendered on the page */
+  schemaOnly?: boolean;
+  sitemapPriority?: number;
+  datePosted?: string;
+  additionalProperty?: { name: string; value: string }[];
+  highPrice?: number;
   /** Lower sitemap priority; optional noindex for sold inventory */
   soldOut?: boolean;
 };
@@ -264,15 +274,93 @@ export const PROPERTY_SEO: PropertySeoEntry[] = [
   },
   {
     id: 3,
-    title: "Kikambala Phase 2",
-    location: "Kikambala, Kilifi County",
+    title: "MILIKI TEZO NA INUKA",
+    schemaName: "Affordable Land & Plots for Sale in Tezo, Kilifi County",
+    seoTitle: "Land for Sale in Tezo Kilifi from KES 450K | Miliki Tezo na Inuka",
+    exactSeoTitle: true,
+    schemaOnly: true,
+    sitemapPriority: 0.95,
+    datePosted: "2026-08-21",
+    location: "Tezo, Kilifi County",
     county: "Kilifi County",
-    price: "KES 1,250,000",
-    priceAmount: 1250000,
+    price: "KES 450,000",
+    priceAmount: 450000,
+    highPrice: 950000,
+    additionalProperty: [
+      { name: "Plot sizes", value: "1/8 acre (50x100) and 1/4 acre" },
+      { name: "Payment plan", value: "12-month installment" },
+      { name: "Access", value: "Kwa Mwancha Access Road, near Tezo Town" },
+      { name: "Project", value: "Miliki Tezo na Inuka" },
+    ],
     image:
-      "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767285860/Kikambala_Phase_2_cw64y8.jpg",
+      "https://slqalqvtsqrloaxjrtza.supabase.co/storage/v1/object/public/admin-uploads/properties/1787292087079-kg9108raxss.jpeg",
+    gallery: [
+      "https://slqalqvtsqrloaxjrtza.supabase.co/storage/v1/object/public/admin-uploads/properties/1787292087079-kg9108raxss.jpeg",
+    ],
+    mapLink: "https://maps.google.com/?q=-3.5333,39.85",
+    geo: { latitude: -3.5333, longitude: 39.85 },
     description:
-      "Kikambala Gardens Phase 2 land for sale — gated coastal plots with perimeter fence, utilities, and 2.5km from the highway near Mtwapa.",
+      "Land for sale in Tezo, Kilifi from KES 450K. Own 1/8 or 1/4-acre plots with flexible 12-month installments. Miliki Tezo na Inuka today.",
+    metaDescription:
+      "Land for sale in Tezo, Kilifi from KES 450K. Own 1/8 or 1/4-acre plots with flexible 12-month installments. Miliki Tezo na Inuka today.",
+    keywords: [
+      "Land for sale in Tezo Kilifi",
+      "Plots for sale in Tezo Kilifi",
+      "Land for sale in Kilifi County",
+      "Plots for sale in Kilifi",
+      "Affordable plots for sale in Kilifi",
+      "50x100 plots for sale in Kilifi",
+      "1/8 acre plots for sale in Kilifi",
+      "1/4 acre land for sale in Kilifi",
+      "Affordable land for sale in Tezo",
+      "Residential land for sale in Tezo",
+      "Land investment in Kilifi County",
+      "Property for sale in Kilifi County",
+      "Land for sale near Kilifi Town",
+      "Coastal land for sale in Kenya",
+      "Plots for sale in Coastal Kenya",
+      "Land for sale near Mombasa",
+      "Affordable land in Coastal Kenya",
+      "Land with installment payment in Kilifi",
+      "Plots on installment in Kilifi",
+      "Miliki Tezo na Inuka",
+      "Inuka Afrika Properties Kilifi",
+      "Inuka Properties land for sale",
+      "Kwa Mwancha Access Road Tezo",
+      "land for sale near Tezo Town",
+    ],
+    faq: [
+      {
+        question: "Where can I find land for sale in Tezo, Kilifi?",
+        answer:
+          "Miliki Tezo na Inuka offers land for sale in Tezo, Kilifi County — residential 1/8-acre and 1/4-acre plots on Kwa Mwancha Access Road, near Tezo Town. Plots start from KES 450,000 with a flexible 12-month installment plan from Inuka Afrika Properties Kilifi.",
+      },
+      {
+        question: "How much are plots for sale in Tezo, Kilifi?",
+        answer:
+          "Plots for sale in Tezo, Kilifi at Miliki Tezo na Inuka start at KES 450,000 for a 1/8-acre (50x100) plot. 1/4-acre land for sale in Kilifi at this project is KES 950,000. Prices are all-inclusive, with no hidden charges.",
+      },
+      {
+        question: "Are there 50x100 and 1/8 acre plots for sale in Kilifi?",
+        answer:
+          "Yes. Miliki Tezo na Inuka has 50x100 plots for sale in Kilifi — the same as 1/8 acre plots for sale in Kilifi — from KES 450,000. Larger 1/4 acre land for sale in Kilifi is available at KES 950,000 on the same 10-acre Tezo project.",
+      },
+      {
+        question: "Can I buy land with installment payment in Kilifi?",
+        answer:
+          "Yes. Plots on installment in Kilifi are available at Miliki Tezo na Inuka. For 1/8-acre plots, pay a KES 150,000 deposit and KES 25,000 per month for 12 months. For 1/4-acre plots, pay a KES 250,000 deposit and the balance over 12 months. This is affordable land for sale in Tezo with a 12-month installment plan.",
+      },
+      {
+        question: "Is Miliki Tezo na Inuka a good land investment in Kilifi County?",
+        answer:
+          "Miliki Tezo na Inuka is residential land for sale in Tezo in a growing neighbourhood near Tezo Town, with schools, hospitals, shopping facilities, and hotels such as Gabs Gate Hotel and Rossy Hotel nearby. It is positioned for buyers searching for affordable plots for sale in Kilifi, land for sale near Kilifi Town, land for sale near Mombasa, and coastal land for sale in Kenya.",
+      },
+      {
+        question: "Who sells Inuka Properties land for sale in Kilifi?",
+        answer:
+          "Inuka Afrika Properties Kilifi (Inuka Afrika Properties Limited) sells Miliki Tezo na Inuka. Call or WhatsApp 0711 082 084 or email info@inukaproperties.co.ke to book a site visit and view plots for sale in Coastal Kenya.",
+      },
+    ],
   },
   {
     id: 2,

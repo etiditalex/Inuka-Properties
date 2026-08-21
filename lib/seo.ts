@@ -32,6 +32,7 @@ type PageMetadataOptions = {
   ogImageAlt?: string;
   ogType?: "website" | "article";
   noIndex?: boolean;
+  exactTitle?: boolean;
 };
 
 export function buildPageMetadata({
@@ -43,11 +44,13 @@ export function buildPageMetadata({
   ogImageAlt = `${SITE_NAME} Logo`,
   ogType = "website",
   noIndex = false,
+  exactTitle = false,
 }: PageMetadataOptions): Metadata {
   const url = absoluteUrl(path);
-  const fullTitle = title.includes(SITE_SHORT_NAME)
-    ? title
-    : `${title} | ${SITE_SHORT_NAME}`;
+  const fullTitle =
+    exactTitle || title.includes(SITE_SHORT_NAME)
+      ? title
+      : `${title} | ${SITE_SHORT_NAME}`;
 
   return {
     title: fullTitle,
@@ -268,28 +271,65 @@ export function buildRealEstateListingSchema(options: {
   county?: string;
   geo?: { latitude: number; longitude: number };
   availability?: "InStock" | "SoldOut";
+  alternateName?: string;
+  keywords?: string[];
+  datePosted?: string;
+  additionalProperty?: { name: string; value: string }[];
+  highPrice?: number;
 }): Record<string, unknown> {
   const images = Array.isArray(options.image) ? options.image : [options.image];
   const parsed = Number(String(options.price).replace(/[^\d]/g, ""));
   const numericPrice =
     options.priceAmount ?? (parsed > 0 ? parsed : undefined);
+  const offerPrice = numericPrice
+    ? options.highPrice && options.highPrice > numericPrice
+      ? {
+          "@type": "AggregateOffer",
+          lowPrice: numericPrice,
+          highPrice: options.highPrice,
+          priceCurrency: "KES",
+        }
+      : {
+          "@type": "Offer",
+          price: numericPrice,
+          priceCurrency: "KES",
+        }
+    : {
+        "@type": "Offer",
+        price: options.price,
+        priceCurrency: "KES",
+      };
 
   return {
     "@context": "https://schema.org",
-    "@type": "RealEstateListing",
+    "@type": ["RealEstateListing", "Product"],
     name: options.name,
+    ...(options.alternateName ? { alternateName: options.alternateName } : {}),
     description: options.description,
     image: images,
     url: absoluteUrl(options.path),
-    datePosted: new Date().toISOString().split("T")[0],
+    datePosted: options.datePosted ?? new Date().toISOString().split("T")[0],
+    brand: {
+      "@type": "Brand",
+      name: SITE_NAME,
+    },
+    ...(options.keywords?.length ? { keywords: options.keywords.join(", ") } : {}),
+    ...(options.additionalProperty?.length
+      ? {
+          additionalProperty: options.additionalProperty.map((item) => ({
+            "@type": "PropertyValue",
+            name: item.name,
+            value: item.value,
+          })),
+        }
+      : {}),
     offers: {
-      "@type": "Offer",
-      ...(numericPrice ? { price: numericPrice } : { price: options.price }),
-      priceCurrency: "KES",
+      ...offerPrice,
       availability:
         options.availability === "SoldOut"
           ? "https://schema.org/SoldOut"
           : "https://schema.org/InStock",
+      businessFunction: "http://purl.org/goodrelations/v1#Sell",
       seller: {
         "@type": "RealEstateAgent",
         name: SITE_NAME,
@@ -307,9 +347,65 @@ export function buildRealEstateListingSchema(options: {
       : {}),
     address: {
       "@type": "PostalAddress",
+      streetAddress: options.location,
       addressLocality: options.location,
       addressRegion: options.county ?? "Kilifi County",
       addressCountry: "KE",
+    },
+    areaServed: [
+      { "@type": "Place", name: options.location },
+      { "@type": "AdministrativeArea", name: options.county ?? "Kilifi County" },
+      { "@type": "Place", name: "Coastal Kenya" },
+    ],
+  };
+}
+
+export function buildPropertyWebPageSchema(options: {
+  name: string;
+  description: string;
+  path: string;
+  image?: string;
+  keywords?: string[];
+  location?: string;
+  county?: string;
+}): Record<string, unknown> {
+  const pageUrl = absoluteUrl(options.path);
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": `${pageUrl}#webpage`,
+    url: pageUrl,
+    name: options.name,
+    headline: options.name,
+    description: options.description,
+    inLanguage: "en-KE",
+    isPartOf: {
+      "@type": "WebSite",
+      name: SITE_NAME,
+      url: SITE_ORIGIN,
+    },
+    about: {
+      "@type": "Place",
+      name: options.location ?? "Kilifi County",
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: options.location,
+        addressRegion: options.county ?? "Kilifi County",
+        addressCountry: "KE",
+      },
+    },
+    ...(options.keywords?.length ? { keywords: options.keywords.join(", ") } : {}),
+    ...(options.image
+      ? {
+          primaryImageOfPage: {
+            "@type": "ImageObject",
+            url: options.image,
+          },
+        }
+      : {}),
+    speakable: {
+      "@type": "SpeakableSpecification",
+      cssSelector: ["h1", "title", "meta[name='description']"],
     },
   };
 }
