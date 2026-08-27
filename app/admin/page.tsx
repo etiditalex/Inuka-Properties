@@ -18,6 +18,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { DashboardStats, Inquiry, PropertyLead } from "@/lib/supabase/types";
 import { formatAdminDate } from "@/lib/admin/utils";
 import { adminPath } from "@/lib/admin/path";
+import { uniquePropertyLeads } from "@/lib/leads/dedupe";
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<DashboardStats>({
@@ -44,7 +45,7 @@ export default function AdminDashboardPage() {
         { count: blogs },
         { count: news },
         { count: newInq },
-        { count: newLeads },
+        { data: newLeadRows },
         { data: inquiries },
         { data: leads },
       ] = await Promise.all([
@@ -54,9 +55,9 @@ export default function AdminDashboardPage() {
         supabase.from("blog_posts").select("*", { count: "exact", head: true }),
         supabase.from("news_items").select("*", { count: "exact", head: true }),
         supabase.from("inquiries").select("*", { count: "exact", head: true }).eq("status", "new"),
-        supabase.from("property_leads").select("*", { count: "exact", head: true }).eq("status", "new"),
+        supabase.from("property_leads").select("id, email, phone, status, created_at").eq("status", "new"),
         supabase.from("inquiries").select("*").order("created_at", { ascending: false }).limit(5),
-        supabase.from("property_leads").select("*").order("created_at", { ascending: false }).limit(5),
+        supabase.from("property_leads").select("*").order("created_at", { ascending: false }).limit(50),
       ]);
 
       setStats({
@@ -66,10 +67,10 @@ export default function AdminDashboardPage() {
         blogs: blogs || 0,
         news: news || 0,
         newInquiries: newInq || 0,
-        newLeads: newLeads || 0,
+        newLeads: uniquePropertyLeads(newLeadRows || []).length,
       });
       setRecentInquiries((inquiries as Inquiry[]) || []);
-      setRecentLeads((leads as PropertyLead[]) || []);
+      setRecentLeads(uniquePropertyLeads((leads as PropertyLead[]) || []).slice(0, 5));
       setLoading(false);
     }
     load();

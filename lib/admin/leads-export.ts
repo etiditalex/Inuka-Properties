@@ -2,6 +2,7 @@ import * as XLSX from "xlsx";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import type { PropertyLead } from "@/lib/supabase/types";
+import { uniquePropertyLeads } from "@/lib/leads/dedupe";
 
 type DocWithAutoTable = jsPDF & {
   lastAutoTable?: { finalY: number };
@@ -17,41 +18,11 @@ function normalizeName(name: string) {
   return name.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-function normalizeEmail(email: string) {
-  return email.trim().toLowerCase();
-}
-
-function normalizePhone(phone: string) {
-  return phone.replace(/\D/g, "");
-}
-
 /** Exclude test leads and collapse repeats by email / phone. */
 export function prepareLeadsForExport(leads: PropertyLead[]): PropertyLead[] {
-  const seen = new Set<string>();
-  const unique: PropertyLead[] = [];
-
-  for (const lead of leads) {
-    if (EXCLUDED_LEAD_NAMES.has(normalizeName(lead.name))) continue;
-
-    const emailKey = normalizeEmail(lead.email);
-    const phoneKey = normalizePhone(lead.phone);
-    const nameKey = normalizeName(lead.name);
-
-    const alreadySeen =
-      (emailKey && seen.has(`e:${emailKey}`)) ||
-      (phoneKey && seen.has(`p:${phoneKey}`)) ||
-      (!emailKey && !phoneKey && nameKey && seen.has(`n:${nameKey}`));
-
-    if (alreadySeen) continue;
-
-    if (emailKey) seen.add(`e:${emailKey}`);
-    if (phoneKey) seen.add(`p:${phoneKey}`);
-    if (!emailKey && !phoneKey && nameKey) seen.add(`n:${nameKey}`);
-
-    unique.push(lead);
-  }
-
-  return unique;
+  return uniquePropertyLeads(
+    leads.filter((lead) => !EXCLUDED_LEAD_NAMES.has(normalizeName(lead.name)))
+  );
 }
 
 function autoSizeColumns(sheet: XLSX.WorkSheet) {

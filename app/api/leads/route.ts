@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { runLeadAutomation } from "@/lib/email/automation";
 import { runLeadSmsAutomation } from "@/lib/sms/automation";
+import { buildLeadEnrichment, findExistingPropertyLead } from "@/lib/leads/dedupe";
 
 function getServiceClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -32,6 +33,27 @@ export async function POST(request: Request) {
     const supabase = getServiceClient();
     if (!supabase) {
       return NextResponse.json({ success: true, offline: true });
+    }
+
+    const existing = await findExistingPropertyLead(supabase, email, phone);
+    if (existing) {
+      const enrichment = buildLeadEnrichment(existing, {
+        name,
+        email,
+        phone,
+        property_id,
+        property_name,
+        preferred_date,
+        preferred_time,
+        message,
+        source,
+      });
+
+      if (enrichment) {
+        await supabase.from("property_leads").update(enrichment).eq("id", existing.id);
+      }
+
+      return NextResponse.json({ success: true, duplicate: true, id: existing.id });
     }
 
     const { data: inserted, error } = await supabase

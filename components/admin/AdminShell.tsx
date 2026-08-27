@@ -8,6 +8,7 @@ import AdminTopBar from "./AdminTopBar";
 import { useAdminShell } from "./AdminShellContext";
 import { cn } from "@/lib/admin/utils";
 import type { Profile } from "@/lib/supabase/types";
+import { uniquePropertyLeads } from "@/lib/leads/dedupe";
 
 type AdminShellProps = {
   children: React.ReactNode;
@@ -42,11 +43,11 @@ export default function AdminShell({ children, title, subtitle, contentClassName
         .single();
       if (prof) setProfile(prof as Profile);
 
-      const [{ count: inq }, { count: leads }] = await Promise.all([
+      const [{ count: inq }, { data: newLeadRows }] = await Promise.all([
         supabase.from("inquiries").select("*", { count: "exact", head: true }).eq("status", "new"),
-        supabase.from("property_leads").select("*", { count: "exact", head: true }).eq("status", "new"),
+        supabase.from("property_leads").select("id, email, phone, status, created_at").eq("status", "new"),
       ]);
-      setBadges({ inquiries: inq || 0, leads: leads || 0 });
+      setBadges({ inquiries: inq || 0, leads: uniquePropertyLeads(newLeadRows || []).length });
     }
 
     load();

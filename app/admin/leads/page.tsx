@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { PropertyLead, LeadStatus } from "@/lib/supabase/types";
 import { formatAdminDate, cn } from "@/lib/admin/utils";
 import { exportLeadsToExcel, exportLeadsToPdf } from "@/lib/admin/leads-export";
+import { uniquePropertyLeads, isSameLead } from "@/lib/leads/dedupe";
 
 const statusOptions: LeadStatus[] = ["new", "contacted", "qualified", "converted", "lost"];
 
@@ -26,13 +27,21 @@ export default function AdminLeadsPage() {
   const [notes, setNotes] = useState("");
   const [filter, setFilter] = useState<LeadStatus | "all">("all");
   const [loading, setLoading] = useState(true);
+  const [hiddenDuplicates, setHiddenDuplicates] = useState(0);
 
   const load = async () => {
     const supabase = createClient();
     let query = supabase.from("property_leads").select("*").order("created_at", { ascending: false });
     if (filter !== "all") query = query.eq("status", filter);
     const { data } = await query;
-    setLeads((data as PropertyLead[]) || []);
+    const rows = (data as PropertyLead[]) || [];
+    const unique = uniquePropertyLeads(rows);
+    setLeads(unique);
+    setHiddenDuplicates(Math.max(0, rows.length - unique.length));
+    setSelected((prev) => {
+      if (!prev) return prev;
+      return unique.find((lead) => lead.id === prev.id) || unique.find((lead) => isSameLead(lead, prev)) || null;
+    });
     setLoading(false);
   };
 
@@ -46,7 +55,7 @@ export default function AdminLeadsPage() {
   };
 
   return (
-    <AdminShell title="Lead Generation" subtitle="Property interest leads — converting marks units sold">
+    <AdminShell title="Lead Generation" subtitle="Each person is captured once — converting marks units sold">
       <div className="mb-4 rounded-xl border border-secondary-200 bg-secondary-50 p-4 text-sm text-secondary-800">
         <strong>Auto Sold Out:</strong> When you mark a lead as &quot;Converted&quot;, the linked property&apos;s
         sold unit count increases by 1. If auto sold-out is enabled and all units are sold, the property is
@@ -68,6 +77,12 @@ export default function AdminLeadsPage() {
               {s}
             </button>
           ))}
+          {!loading && (
+            <span className="self-center text-xs text-dark-500">
+              {leads.length} unique lead{leads.length === 1 ? "" : "s"}
+              {hiddenDuplicates > 0 ? ` · ${hiddenDuplicates} repeat${hiddenDuplicates === 1 ? "" : "s"} hidden` : ""}
+            </span>
+          )}
         </div>
         <div className="flex flex-wrap gap-2">
           <AdminButton

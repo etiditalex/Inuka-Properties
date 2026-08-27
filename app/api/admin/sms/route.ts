@@ -12,6 +12,19 @@ import { formatPhoneKenyaE164 } from "@/lib/phone/kenya";
 
 export const dynamic = "force-dynamic";
 
+function uniqueByKenyaPhone<T extends { phone: string | null; name: string }>(rows: T[]): T[] {
+  const seen = new Set<string>();
+  const unique: T[] = [];
+  for (const row of rows) {
+    if (!row.phone) continue;
+    const key = formatPhoneKenyaE164(row.phone);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    unique.push(row);
+  }
+  return unique;
+}
+
 export async function GET() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -56,21 +69,19 @@ export async function GET() {
     ? { ...DEFAULT_SMS_AUTOMATION, ...(settingsRow.value as SmsAutomationSettings) }
     : DEFAULT_SMS_AUTOMATION;
 
+  const uniqueLeads = uniqueByKenyaPhone(leads || []);
+  const uniqueInquiries = uniqueByKenyaPhone(inquiries || []);
   const phones = new Set<string>();
-  for (const row of leads || []) {
-    if (row.phone) phones.add(formatPhoneKenyaE164(row.phone));
-  }
-  for (const row of inquiries || []) {
-    if (row.phone) phones.add(formatPhoneKenyaE164(row.phone));
-  }
+  for (const row of uniqueLeads) phones.add(formatPhoneKenyaE164(row.phone || ""));
+  for (const row of uniqueInquiries) phones.add(formatPhoneKenyaE164(row.phone || ""));
 
   return NextResponse.json({
     settings,
     logs: logs || [],
     insights,
     recipientCounts: {
-      leads: (leads || []).length,
-      inquiries: (inquiries || []).length,
+      leads: uniqueLeads.length,
+      inquiries: uniqueInquiries.length,
       all: phones.size,
     },
     properties: properties || [],
@@ -127,10 +138,10 @@ export async function POST(request: Request) {
       recipients = customPhones.map((p: string) => ({ phone: p, name: "Client" }));
     } else if (audience === "leads") {
       const { data } = await service.from("property_leads").select("phone, name");
-      recipients = (data || []).filter((r) => r.phone) as Recipient[];
+      recipients = uniqueByKenyaPhone((data || []).filter((r) => r.phone) as Recipient[]);
     } else if (audience === "inquiries") {
       const { data } = await service.from("inquiries").select("phone, name").not("phone", "is", null);
-      recipients = (data || []) as Recipient[];
+      recipients = uniqueByKenyaPhone((data || []) as Recipient[]);
     } else {
       const [{ data: leadRows }, { data: inquiryRows }] = await Promise.all([
         service.from("property_leads").select("phone, name"),

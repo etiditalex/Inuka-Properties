@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { FACEBOOK_CAMPAIGN_PROPERTY_ID } from "@/lib/facebook/pixel";
+import { uniquePropertyLeads } from "@/lib/leads/dedupe";
 
 export const dynamic = "force-dynamic";
 
@@ -80,6 +81,6 @@ export async function GET(request: Request) {
     stats,
     totalEvents: rows.length,
     recentEvents: rows.slice(0, 50),
-    recentLeads: leads || [],
+    recentLeads: uniquePropertyLeads(leads || []),
   });
 }
