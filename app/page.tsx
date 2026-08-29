@@ -575,7 +575,7 @@ export default function HomePage() {
         "name": "What are the featured property projects from Inuka Afrika Properties?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Featured selling projects include Miliki Tezo na Inuka in Tezo, Tulivu Haven in Mariakani, Bofa Projects (Bofa Platinum and Bofa Phase 21) in Bofa, and Malindi Airport Gardens in Ganda Furunzi, Malindi."
+          "text": "Featured selling projects include Miliki Tezo na Inuka in Tezo, Tulivu Haven in Mariakani, Bofa Phase 21 in Bofa, and Malindi Airport Gardens in Ganda Furunzi, Malindi."
         }
       },
       {

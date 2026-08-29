@@ -42,6 +42,11 @@ const nextConfig = {
         destination: "/sitemap.xml",
         permanent: true,
       },
+      {
+        source: "/bofa-projects",
+        destination: "/bofa-phase-21",
+        permanent: true,
+      },
     ];
   },
   async rewrites() {

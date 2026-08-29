@@ -1,6 +1,5 @@
 import type { MetadataRoute } from "next";
 import { BLOG_ARTICLE_SLUGS, BLOG_POSTS } from "@/lib/blogPosts";
-import { FEATURED_SITELINK_PAGES } from "@/lib/featuredProjects";
 import { PROPERTY_SEO } from "@/lib/propertySeo";
 import { fetchPublishedProperties } from "@/lib/properties/getProperties";
 import { SITE_ORIGIN } from "@/lib/site";
@@ -71,9 +70,6 @@ export async function getSitemapEntries(): Promise<MetadataRoute.Sitemap> {
     staticPage("", 1, "weekly", newestPropertyDate),
     staticPage("/for-sale", 0.95, "daily", newestPropertyDate),
     staticPage("/for-sale/ongoing-projects", 0.9, "daily", newestPropertyDate),
-    ...FEATURED_SITELINK_PAGES.filter((page) => page.propertyId == null).map(
-      (page) => staticPage(page.href, 0.98, "weekly", newestPropertyDate)
-    ),
     staticPage("/project-showcase", 0.85, "weekly"),
     staticPage("/book-site-visit", 0.85, "monthly"),
     staticPage("/about-us", 0.8, "monthly"),

@@ -1,4 +1,4 @@
-/** Key selling projects promoted as Google sitelinks and local search landing pages. */
+/** Existing listings promoted as Google sitelinks — aliases of `/for-sale/[id]`, not new properties. */
 
 export const GOOGLE_PLACE_ID = "ChIJh7mWVCcTQBgRz0n0qhSMn1Q";
 export const GOOGLE_MAPS_PLACE_URL = `https://www.google.com/maps/place/?q=place_id:${GOOGLE_PLACE_ID}`;
@@ -8,12 +8,12 @@ export const OFFICE_MAPS_SEARCH_URL =
 export type FeaturedSitelinkPage = {
   name: string;
   href: string;
-  /** Listing id when this sitelink is a single property page. */
-  propertyId: number | null;
+  propertyId: number;
   location: string;
   description: string;
 };
 
+/** Names and IDs match published listings already on /for-sale. */
 export const FEATURED_SITELINK_PAGES: FeaturedSitelinkPage[] = [
   {
     name: "Miliki Tezo na Inuka",
@@ -32,12 +32,12 @@ export const FEATURED_SITELINK_PAGES: FeaturedSitelinkPage[] = [
       "1/8-acre plots for sale in Mariakani, Kilifi County from KES 450,000 with water and electricity on site.",
   },
   {
-    name: "Bofa Projects",
-    href: "/bofa-projects",
-    propertyId: null,
+    name: "Bofa Phase 21",
+    href: "/bofa-phase-21",
+    propertyId: 8,
     location: "Bofa, Kilifi County",
     description:
-      "Bofa Platinum beachfront and Bofa Phase 21 plots for sale on tarmacked Bofa Road, Kilifi County.",
+      "Bofa Phase 21 plots for sale on tarmacked Bofa Road (B69), Kilifi County — water, electricity, and flexible payment terms.",
   },
   {
     name: "Malindi Airport Gardens",
@@ -48,8 +48,6 @@ export const FEATURED_SITELINK_PAGES: FeaturedSitelinkPage[] = [
       "1/8-acre plots for sale near Malindi Airport — holiday homes and coastal investment in Kilifi County.",
   },
 ];
-
-export const BOFA_PROJECT_IDS = [1, 8] as const;
 
 export const FEATURED_PROPERTY_REWRITES = [
   { source: "/miliki-tezo-na-inuka", destination: "/for-sale/3" },

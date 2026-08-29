@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import BookSiteVisitButton from "@/components/BookSiteVisitButton";
 import { getPropertySeo, getPropertyIdFromPathname } from "@/lib/propertySeo";
-import { FEATURED_SITELINK_PAGES, isFeaturedProjectPath } from "@/lib/featuredProjects";
+import { isFeaturedProjectPath } from "@/lib/featuredProjects";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -36,10 +36,6 @@ const Header = () => {
       dropdown: [
         { name: "All Properties", href: "/for-sale" },
         { name: "Ongoing Projects", href: "/for-sale/ongoing-projects" },
-        ...FEATURED_SITELINK_PAGES.map((page) => ({
-          name: page.name,
-          href: page.href,
-        })),
       ],
     },
     {

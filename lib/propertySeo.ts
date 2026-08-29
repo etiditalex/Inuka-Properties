@@ -483,7 +483,7 @@ export const PROPERTY_SEO: PropertySeoEntry[] = [
       {
         question: "How do I view Bofa projects?",
         answer:
-          "See all Bofa listings at inukaproperties.co.ke/bofa-projects, or call/WhatsApp 0711 082 084 to book a site visit to Bofa Platinum and Bofa Phase 21.",
+          "View Bofa Phase 21 at inukaproperties.co.ke/bofa-phase-21, or call/WhatsApp 0711 082 084 to book a site visit.",
       },
     ],
   },
