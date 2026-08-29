@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Phone, Mail, MapPin, Facebook, Instagram, Linkedin, MessageCircle } from "lucide-react";
 import Image from "next/image";
+import { FEATURED_SITELINK_PAGES } from "@/lib/featuredProjects";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -136,6 +137,13 @@ const Footer = () => {
                   Contact Us
                 </Link>
               </li>
+              {FEATURED_SITELINK_PAGES.map((page) => (
+                <li key={page.href}>
+                  <Link href={page.href} className="text-dark-300 hover:text-primary-400 transition text-sm">
+                    {page.name}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 

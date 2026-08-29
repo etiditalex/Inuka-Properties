@@ -9,6 +9,7 @@ import JsonLd from "@/components/JsonLd";
 import {
   DEFAULT_OG_IMAGE,
   organizationSchema,
+  siteNavigationSchema,
   websiteSchema,
 } from "@/lib/seo";
 import { SITE_ORIGIN } from "@/lib/site";
@@ -64,7 +65,11 @@ export const metadata: Metadata = {
     "real estate developer Kenya",
     "title deed issuance Kenya",
     "property management Kenya",
-    "affordable housing Kenya"
+    "affordable housing Kenya",
+    "Miliki Tezo na Inuka",
+    "Tulivu Haven Mariakani",
+    "Bofa Platinum Kilifi",
+    "Malindi Airport Gardens",
   ],
   authors: [{ name: "Inuka Afrika Properties Limited" }],
   creator: "Inuka Afrika Properties Limited",
@@ -134,6 +139,7 @@ export default function RootLayout({
         />
         <JsonLd data={organizationSchema} />
         <JsonLd data={websiteSchema} />
+        <JsonLd data={siteNavigationSchema} />
       </head>
       <body>
             {/* Google tag (gtag.js) */}

@@ -44,6 +44,15 @@ const nextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return [
+      { source: "/miliki-tezo-na-inuka", destination: "/for-sale/3" },
+      { source: "/tulivu-haven", destination: "/for-sale/14" },
+      { source: "/malindi-airport-gardens", destination: "/for-sale/6" },
+      { source: "/bofa-platinum", destination: "/for-sale/1" },
+      { source: "/bofa-phase-21", destination: "/for-sale/8" },
+    ];
+  },
   images: {
     remotePatterns,
   },

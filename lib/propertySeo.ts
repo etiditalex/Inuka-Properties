@@ -36,6 +36,8 @@ export type PropertySeoEntry = {
   exactSeoTitle?: boolean;
   /** FAQ and SEO copy stay in metadata/JSON-LD only — not rendered on the page */
   schemaOnly?: boolean;
+  /** Public sitelink URL, e.g. `/tulivu-haven`. Numbered `/for-sale/[id]` still works. */
+  slug?: string;
   sitemapPriority?: number;
   datePosted?: string;
   additionalProperty?: { name: string; value: string }[];
@@ -49,6 +51,9 @@ export const PROPERTY_SEO: PropertySeoEntry[] = [
   {
     id: 14,
     title: "Tulivu Haven",
+    slug: "tulivu-haven",
+    schemaOnly: true,
+    sitemapPriority: 0.98,
     h1: "Tulivu Haven — Land for Sale in Kibao Kiche, Mariakani, Kilifi County",
     seoTitle:
       "Tulivu Haven | Land for Sale in Mariakani & Kilifi — KES 450,000",
@@ -215,6 +220,10 @@ export const PROPERTY_SEO: PropertySeoEntry[] = [
   {
     id: 8,
     title: "Bofa Phase 21",
+    slug: "bofa-phase-21",
+    schemaOnly: true,
+    sitemapPriority: 0.9,
+    seoTitle: "Bofa Phase 21 | Plots for Sale on Bofa Road, Kilifi",
     location: "Bofa, Kilifi County",
     county: "Kilifi County",
     price: "KES 1,850,000",
@@ -223,6 +232,31 @@ export const PROPERTY_SEO: PropertySeoEntry[] = [
       "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767291293/Bofa_Phase_21_17_ss7xhv.jpg",
     description:
       "Bofa Phase 21 plots for sale on tarmacked Bofa Road (B69) — demarcated plots with water, electricity, perimeter fence, and flexible payment terms.",
+    metaDescription:
+      "Bofa Phase 21: 1/8-acre plots for sale on tarmacked Bofa Road (B69), Kilifi County. Water, electricity, beacons, perimeter fence. Deposit KES 700,000, 12-month plan. Inuka Afrika Properties.",
+    keywords: [
+      "Bofa Phase 21",
+      "plots for sale Bofa Kilifi",
+      "land for sale Bofa Road",
+      "Bofa Kilifi properties",
+      "tarmacked Bofa Road plots",
+      "1/8 acre plots Kilifi",
+      "Inuka Afrika Properties Bofa",
+    ],
+    mapLink: "https://maps.google.com/?q=Bofa+Road+Kilifi+Kenya",
+    geo: { latitude: -3.59, longitude: 39.87 },
+    faq: [
+      {
+        question: "Where is Bofa Phase 21 located?",
+        answer:
+          "Bofa Phase 21 is in Bofa, Kilifi County, off the newly tarmacked Bofa Road (B69). Plots are demarcated with beacons, with water, electricity, access roads, and a perimeter fence.",
+      },
+      {
+        question: "How much is a plot at Bofa Phase 21?",
+        answer:
+          "1/8-acre plots at Bofa Phase 21 are KES 1,850,000. Pay a KES 700,000 deposit and the remaining KES 1,150,000 over 12 months. Call 0711 082 084 to confirm availability.",
+      },
+    ],
   },
   {
     id: 7,
@@ -239,6 +273,10 @@ export const PROPERTY_SEO: PropertySeoEntry[] = [
   {
     id: 6,
     title: "Malindi Airport Gardens",
+    slug: "malindi-airport-gardens",
+    schemaOnly: true,
+    sitemapPriority: 0.98,
+    seoTitle: "Malindi Airport Gardens | Plots for Sale near Malindi Airport",
     location: "Ganda Furunzi, Malindi",
     county: "Kilifi County",
     price: "KES 950,000",
@@ -247,6 +285,33 @@ export const PROPERTY_SEO: PropertySeoEntry[] = [
       "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767287215/Malindi_Airport_Gardens_dphmr6.jpg",
     description:
       "Malindi Airport Gardens plots for sale — 1/8 acre near Malindi Airport and the coast, ideal for holiday homes and coastal investment.",
+    metaDescription:
+      "Malindi Airport Gardens: 1/8-acre plots for sale in Ganda Furunzi, Malindi — 3km from Malindi Airport, minutes from the beach, 10km to Watamu. KES 950,000. Holiday homes and coastal investment from Inuka Afrika Properties.",
+    keywords: [
+      "Malindi Airport Gardens",
+      "plots for sale Malindi",
+      "land for sale near Malindi Airport",
+      "Malindi plots for sale",
+      "Ganda Furunzi land",
+      "holiday homes Malindi",
+      "Watamu land investment",
+      "coastal plots Kilifi County",
+      "Inuka Afrika Properties Malindi",
+    ],
+    mapLink: "https://maps.google.com/?q=Ganda+Furunzi+Malindi+Kenya",
+    geo: { latitude: -3.2524, longitude: 40.1006 },
+    faq: [
+      {
+        question: "Where is Malindi Airport Gardens?",
+        answer:
+          "Malindi Airport Gardens is in Ganda Furunzi, Malindi, Kilifi County — about 3km from Malindi Airport, minutes from the ocean, and 10km from Watamu. It suits holiday homes and coastal investment.",
+      },
+      {
+        question: "How much are plots at Malindi Airport Gardens?",
+        answer:
+          "1/8-acre plots at Malindi Airport Gardens are KES 950,000. Contact Inuka Afrika Properties on 0711 082 084 or info@inukaproperties.co.ke to book a site visit.",
+      },
+    ],
   },
   {
     id: 5,
@@ -275,11 +340,12 @@ export const PROPERTY_SEO: PropertySeoEntry[] = [
   {
     id: 3,
     title: "MILIKI TEZO NA INUKA",
+    slug: "miliki-tezo-na-inuka",
     schemaName: "Affordable Land & Plots for Sale in Tezo, Kilifi County",
     seoTitle: "Land for Sale in Tezo Kilifi from KES 450K | Miliki Tezo na Inuka",
     exactSeoTitle: true,
     schemaOnly: true,
-    sitemapPriority: 0.95,
+    sitemapPriority: 0.98,
     datePosted: "2026-08-21",
     location: "Tezo, Kilifi County",
     county: "Kilifi County",
@@ -377,21 +443,63 @@ export const PROPERTY_SEO: PropertySeoEntry[] = [
   {
     id: 1,
     title: "Bofa Platinum",
+    slug: "bofa-platinum",
+    schemaOnly: true,
+    sitemapPriority: 0.9,
+    seoTitle: "Bofa Platinum | Beachfront Gated Community in Bofa, Kilifi",
     location: "Bofa, Kilifi County",
     county: "Kilifi County",
     price: "KES 5,990,000",
     priceAmount: 5990000,
+    highPrice: 5990000,
     image:
       "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767284997/bofa_platinum_gf7vxw.jpg",
     description:
       "Bofa Platinum beachfront gated community — controlled development 30m from the beach on Bofa Road, Kilifi County premium coastal property.",
+    metaDescription:
+      "Bofa Platinum: gated beachfront plots 30m from the sand on Bofa Road, Kilifi. 1/8 acre from KES 2,990,000 and 1/4 acre at KES 5,990,000. Water, electricity, perimeter walls. Inuka Afrika Properties.",
+    keywords: [
+      "Bofa Platinum",
+      "Bofa beach plots",
+      "beachfront land Kilifi",
+      "gated community Bofa",
+      "Bofa Road properties",
+      "land for sale Bofa Kilifi",
+      "Inuka Afrika Properties Bofa",
+    ],
+    additionalProperty: [
+      { name: "Distance to beach", value: "30 metres" },
+      { name: "Access", value: "Bofa Road, Kilifi County" },
+      { name: "Plot sizes", value: "1/8 acre and 1/4 acre" },
+    ],
+    mapLink: "https://maps.google.com/?q=Bofa+Beach+Kilifi+Kenya",
+    geo: { latitude: -3.5985, longitude: 39.878 },
+    faq: [
+      {
+        question: "What is Bofa Platinum?",
+        answer:
+          "Bofa Platinum is a controlled gated community on Bofa Road, Kilifi County, about 30 metres from the beach. It offers 1/8-acre plots from KES 2,990,000 and 1/4-acre plots at KES 5,990,000, with water, electricity, and perimeter walls.",
+      },
+      {
+        question: "How do I view Bofa projects?",
+        answer:
+          "See all Bofa listings at inukaproperties.co.ke/bofa-projects, or call/WhatsApp 0711 082 084 to book a site visit to Bofa Platinum and Bofa Phase 21.",
+      },
+    ],
   },
 ];
 
 const byId = new Map(PROPERTY_SEO.map((p) => [p.id, p]));
+const bySlug = new Map(
+  PROPERTY_SEO.filter((p) => p.slug).map((p) => [p.slug as string, p])
+);
 
 export function getPropertySeo(id: number): PropertySeoEntry | undefined {
   return byId.get(id);
+}
+
+export function getPropertySeoBySlug(slug: string): PropertySeoEntry | undefined {
+  return bySlug.get(slug);
 }
 
 export function getAllPropertyIds(): number[] {
@@ -399,7 +507,18 @@ export function getAllPropertyIds(): number[] {
 }
 
 export function propertyDetailPath(id: number): string {
-  return `/for-sale/${id}`;
+  const slug = byId.get(id)?.slug;
+  return slug ? `/${slug}` : `/for-sale/${id}`;
+}
+
+export function getPropertyIdFromPathname(
+  pathname: string | null | undefined
+): number | null {
+  if (!pathname) return null;
+  const numbered = pathname.match(/^\/for-sale\/(\d+)$/);
+  if (numbered) return Number(numbered[1]);
+  const slug = pathname.replace(/^\//, "").replace(/\/$/, "");
+  return bySlug.get(slug)?.id ?? null;
 }
 
 export function propertyImageAlt(

@@ -1,4 +1,9 @@
 import type { Metadata } from "next";
+import {
+  FEATURED_SITELINK_PAGES,
+  GOOGLE_MAPS_PLACE_URL,
+  OFFICE_MAPS_SEARCH_URL,
+} from "@/lib/featuredProjects";
 import { SITE_ORIGIN } from "@/lib/site";
 
 export const SITE_NAME = "Inuka Afrika Properties Limited";
@@ -33,6 +38,7 @@ type PageMetadataOptions = {
   ogType?: "website" | "article";
   noIndex?: boolean;
   exactTitle?: boolean;
+  geo?: { latitude: number; longitude: number; placename?: string };
 };
 
 export function buildPageMetadata({
@@ -45,6 +51,7 @@ export function buildPageMetadata({
   ogType = "website",
   noIndex = false,
   exactTitle = false,
+  geo,
 }: PageMetadataOptions): Metadata {
   const url = absoluteUrl(path);
   const fullTitle =
@@ -84,6 +91,16 @@ export function buildPageMetadata({
     robots: noIndex
       ? { index: false, follow: true }
       : DEFAULT_ROBOTS,
+    ...(geo
+      ? {
+          other: {
+            "geo.region": "KE-03",
+            "geo.placename": geo.placename ?? "Kilifi County",
+            "geo.position": `${geo.latitude};${geo.longitude}`,
+            ICBM: `${geo.latitude}, ${geo.longitude}`,
+          },
+        }
+      : {}),
   };
 }
 
@@ -129,15 +146,22 @@ export function buildArticleMetadata({
 
 export const organizationSchema = {
   "@context": "https://schema.org",
-  "@type": "RealEstateAgent",
+  "@type": ["RealEstateAgent", "LocalBusiness"],
+  "@id": `${SITE_ORIGIN}/#organization`,
   name: SITE_NAME,
-  alternateName: "IAPL",
+  alternateName: ["IAPL", "Inuka Afrika Properties", "Inuka Properties"],
   url: SITE_ORIGIN,
   logo: DEFAULT_OG_IMAGE,
   image: DEFAULT_OG_IMAGE,
   description:
     "Leading real estate company in Kenya specializing in affordable residential, commercial, and beach properties in Kilifi County. 10 years of excellence in property solutions.",
   foundingDate: "2016",
+  telephone: "+254-711-082084",
+  email: "info@inukaproperties.co.ke",
+  priceRange: "KES",
+  currenciesAccepted: "KES",
+  paymentAccepted: "Cash, Bank Transfer, M-Pesa, Installment Plan",
+  hasMap: GOOGLE_MAPS_PLACE_URL,
   address: {
     "@type": "PostalAddress",
     streetAddress: "Links Road Opposite Kigothos Hotel",
@@ -151,6 +175,20 @@ export const organizationSchema = {
     latitude: -4.048,
     longitude: 39.709,
   },
+  openingHoursSpecification: [
+    {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+      opens: "08:00",
+      closes: "17:00",
+    },
+    {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: "Saturday",
+      opens: "09:00",
+      closes: "14:00",
+    },
+  ],
   contactPoint: {
     "@type": "ContactPoint",
     telephone: "+254-711-082084",
@@ -163,38 +201,78 @@ export const organizationSchema = {
     "https://www.facebook.com/InukaAfrikaProperties",
     "https://www.instagram.com/inukafrikaproperties",
     "https://www.linkedin.com/company/inuka-afrika-properties-limited",
+    GOOGLE_MAPS_PLACE_URL,
+    OFFICE_MAPS_SEARCH_URL,
   ],
   areaServed: [
-    "Kilifi",
-    "Mariakani",
-    "Mtwapa",
-    "Kikambala",
-    "Bofa",
-    "Chumani",
-    "Tezo",
-    "Msabaha",
-    "Mtondia",
-    "Malindi",
-    "Nyali",
-    "Mombasa",
+    { "@type": "AdministrativeArea", name: "Kilifi County" },
+    { "@type": "City", name: "Mariakani" },
+    { "@type": "City", name: "Mtwapa" },
+    { "@type": "Place", name: "Kikambala" },
+    { "@type": "Place", name: "Bofa" },
+    { "@type": "Place", name: "Chumani" },
+    { "@type": "Place", name: "Tezo" },
+    { "@type": "Place", name: "Msabaha" },
+    { "@type": "Place", name: "Mtondia" },
+    { "@type": "City", name: "Malindi" },
+    { "@type": "City", name: "Nyali" },
+    { "@type": "City", name: "Mombasa" },
   ],
+  knowsAbout: [
+    "Land for sale in Kilifi County",
+    "Plots for sale in Mariakani",
+    "Land for sale in Tezo",
+    "Bofa beach plots",
+    "Malindi Airport Gardens",
+    "Tulivu Haven",
+    "Miliki Tezo na Inuka",
+    "Affordable housing Kenya coast",
+  ],
+  hasOfferCatalog: {
+    "@type": "OfferCatalog",
+    name: "Featured land and plots for sale",
+    itemListElement: FEATURED_SITELINK_PAGES.map((page, index) => ({
+      "@type": "Offer",
+      position: index + 1,
+      url: absoluteUrl(page.href),
+      itemOffered: {
+        "@type": "RealEstateListing",
+        name: page.name,
+        description: page.description,
+        url: absoluteUrl(page.href),
+        areaServed: {
+          "@type": "Place",
+          name: page.location,
+        },
+      },
+    })),
+  },
 };
 
 export const websiteSchema = {
   "@context": "https://schema.org",
   "@type": "WebSite",
+  "@id": `${SITE_ORIGIN}/#website`,
   name: SITE_NAME,
   url: SITE_ORIGIN,
   description:
-    "Land and property for sale in Kilifi County, Kenya — Mariakani, Mtwapa, Kikambala, Tezo, Malindi, and the Kenyan coast.",
+    "Land and property for sale in Kilifi County, Kenya — Mariakani, Mtwapa, Kikambala, Tezo, Malindi, Bofa, and the Kenyan coast.",
   publisher: {
     "@type": "Organization",
+    "@id": `${SITE_ORIGIN}/#organization`,
     name: SITE_NAME,
     logo: {
       "@type": "ImageObject",
       url: DEFAULT_OG_IMAGE,
     },
   },
+  inLanguage: "en-KE",
+  hasPart: FEATURED_SITELINK_PAGES.map((page) => ({
+    "@type": "WebPage",
+    name: page.name,
+    url: absoluteUrl(page.href),
+    description: page.description,
+  })),
   potentialAction: {
     "@type": "SearchAction",
     target: {
@@ -203,6 +281,48 @@ export const websiteSchema = {
     },
     "query-input": "required name=search_term_string",
   },
+};
+
+/** Hidden JSON-LD used to signal important sitelink pages to Google. */
+export const siteNavigationSchema = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  name: "Inuka Afrika Properties key pages",
+  itemListOrder: "https://schema.org/ItemListOrderAscending",
+  numberOfItems: FEATURED_SITELINK_PAGES.length + 4,
+  itemListElement: [
+    ...FEATURED_SITELINK_PAGES.map((page, index) => ({
+      "@type": "SiteNavigationElement",
+      position: index + 1,
+      name: page.name,
+      url: absoluteUrl(page.href),
+      description: page.description,
+    })),
+    {
+      "@type": "SiteNavigationElement",
+      position: FEATURED_SITELINK_PAGES.length + 1,
+      name: "Properties for Sale",
+      url: absoluteUrl("/for-sale"),
+    },
+    {
+      "@type": "SiteNavigationElement",
+      position: FEATURED_SITELINK_PAGES.length + 2,
+      name: "About Us",
+      url: absoluteUrl("/about-us"),
+    },
+    {
+      "@type": "SiteNavigationElement",
+      position: FEATURED_SITELINK_PAGES.length + 3,
+      name: "Services",
+      url: absoluteUrl("/services"),
+    },
+    {
+      "@type": "SiteNavigationElement",
+      position: FEATURED_SITELINK_PAGES.length + 4,
+      name: "Testimonials",
+      url: absoluteUrl("/testimonials"),
+    },
+  ],
 };
 
 export function buildBreadcrumbSchema(

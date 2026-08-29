@@ -29,6 +29,7 @@ import {
   getLatestProject,
   getNewestListingId,
 } from "@/lib/properties/sortProperties";
+import { FEATURED_SITELINK_PAGES } from "@/lib/featuredProjects";
 
 function PropertyCarousel({ properties }: { properties: Property[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -517,126 +518,18 @@ export default function HomePage() {
     ],
     "hasOfferCatalog": {
       "@type": "OfferCatalog",
-      "name": "Real Estate Properties",
-      "itemListElement": [
-        {
-          "@type": "OfferCatalog",
-          "name": "Properties in Mariakani",
-          "itemListElement": [
-            {
-              "@type": "Offer",
-              "itemOffered": {
-                "@type": "Product",
-                "name": "Properties in Mariakani, Kilifi County"
-              }
-            }
-          ]
-        },
-        {
-          "@type": "OfferCatalog",
-          "name": "Properties in Mtwapa",
-          "itemListElement": [
-            {
-              "@type": "Offer",
-              "itemOffered": {
-                "@type": "Product",
-                "name": "Properties in Mtwapa, Kilifi County"
-              }
-            }
-          ]
-        },
-        {
-          "@type": "OfferCatalog",
-          "name": "Properties in Kikambala",
-          "itemListElement": [
-            {
-              "@type": "Offer",
-              "itemOffered": {
-                "@type": "Product",
-                "name": "Properties in Kikambala, Kilifi County"
-              }
-            }
-          ]
-        },
-        {
-          "@type": "OfferCatalog",
-          "name": "Properties in Bofa",
-          "itemListElement": [
-            {
-              "@type": "Offer",
-              "itemOffered": {
-                "@type": "Product",
-                "name": "Properties in Bofa, Kilifi County"
-              }
-            }
-          ]
-        },
-        {
-          "@type": "OfferCatalog",
-          "name": "Properties in Chumani",
-          "itemListElement": [
-            {
-              "@type": "Offer",
-              "itemOffered": {
-                "@type": "Product",
-                "name": "Properties in Chumani, Kilifi County"
-              }
-            }
-          ]
-        },
-        {
-          "@type": "OfferCatalog",
-          "name": "Properties in Tezo",
-          "itemListElement": [
-            {
-              "@type": "Offer",
-              "itemOffered": {
-                "@type": "Product",
-                "name": "Properties in Tezo, Kilifi County"
-              }
-            }
-          ]
-        },
-        {
-          "@type": "OfferCatalog",
-          "name": "Properties in Msabaha",
-          "itemListElement": [
-            {
-              "@type": "Offer",
-              "itemOffered": {
-                "@type": "Product",
-                "name": "Properties in Msabaha, Kilifi County"
-              }
-            }
-          ]
-        },
-        {
-          "@type": "OfferCatalog",
-          "name": "Properties in Mtondia",
-          "itemListElement": [
-            {
-              "@type": "Offer",
-              "itemOffered": {
-                "@type": "Product",
-                "name": "Properties in Mtondia, Kilifi County"
-              }
-            }
-          ]
-        },
-        {
-          "@type": "OfferCatalog",
-          "name": "Properties in Malindi",
-          "itemListElement": [
-            {
-              "@type": "Offer",
-              "itemOffered": {
-                "@type": "Product",
-                "name": "Properties in Malindi, Kilifi County"
-              }
-            }
-          ]
+      "name": "Featured land and plots for sale in Kilifi County",
+      "itemListElement": FEATURED_SITELINK_PAGES.map((page, index) => ({
+        "@type": "Offer",
+        "position": index + 1,
+        "url": `https://www.inukaproperties.co.ke${page.href}`,
+        "itemOffered": {
+          "@type": "RealEstateListing",
+          "name": page.name,
+          "description": page.description,
+          "url": `https://www.inukaproperties.co.ke${page.href}`
         }
-      ]
+      }))
     }
   };
 
@@ -675,6 +568,14 @@ export default function HomePage() {
         "acceptedAnswer": {
           "@type": "Answer",
           "text": "You can contact Inuka Afrika Properties Limited at phone number 0711 082084 or email info@inukaproperties.co.ke. Our office is located at Links Road Opposite Kigothos Hotel, P.O. BOX 525-80100, Nyali, Mombasa, Kenya."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What are the featured property projects from Inuka Afrika Properties?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Featured selling projects include Miliki Tezo na Inuka in Tezo, Tulivu Haven in Mariakani, Bofa Projects (Bofa Platinum and Bofa Phase 21) in Bofa, and Malindi Airport Gardens in Ganda Furunzi, Malindi."
         }
       },
       {

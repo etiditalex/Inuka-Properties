@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { MapPin, Bed, Bath, Square, Heart, Home } from "lucide-react";
 import { propertyImageProps } from "@/lib/images";
+import { propertyDetailPath } from "@/lib/propertySeo";
 
 export interface PropertyListingCardData {
   id: number;
@@ -163,7 +164,7 @@ export default function PropertyListingCard({
 
         <div className="pt-2">
           <Link
-            href={`/for-sale/${property.id}`}
+            href={propertyDetailPath(property.id)}
             className={`block w-full rounded-lg border py-3 text-center text-sm font-bold transition font-montserrat ${
               isSold
                 ? "border-dark-300 bg-dark-50 text-dark-600 hover:bg-dark-100"

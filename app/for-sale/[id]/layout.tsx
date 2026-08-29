@@ -67,6 +67,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ogImageAlt: `${property.schemaName ?? property.title} — ${property.location}, ${county}`,
     noIndex: property.soldOut,
     exactTitle: property.exactSeoTitle,
+    geo: property.geo
+      ? {
+          latitude: property.geo.latitude,
+          longitude: property.geo.longitude,
+          placename: property.location,
+        }
+      : undefined,
   });
 }
 
