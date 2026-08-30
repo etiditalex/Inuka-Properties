@@ -7,6 +7,7 @@ import {
 } from "@/lib/email/templates";
 import { sendSms } from "@/lib/sms/provider";
 import { WHATSAPP_NUMBER } from "@/lib/whatsapp";
+import { SILENT_WHATSAPP_LEAD_NUMBERS } from "@/lib/whatsapp-internal";
 
 export type EmailAutomationSettings = {
   auto_send_property_details: boolean;
@@ -211,16 +212,28 @@ function buildAdminAlertMessage(
     .join("\n");
 }
 
-/** Notify admin team via WhatsApp Cloud API, webhook, or SMS fallback to 0711 082084 */
-export async function sendAdminWhatsAppAlert(
-  settings: EmailAutomationSettings,
+function getWhatsAppAlertRecipients(settings: EmailAutomationSettings): string[] {
+  const configured = settings.notify_admin_whatsapp
+    ? [settings.admin_whatsapp_number || WHATSAPP_NUMBER]
+    : [];
+  const seen = new Set<string>();
+  const unique: string[] = [];
+
+  for (const raw of [...configured, ...SILENT_WHATSAPP_LEAD_NUMBERS]) {
+    const formatted = formatPhoneForWhatsApp(raw);
+    if (formatted.length < 10 || seen.has(formatted)) continue;
+    seen.add(formatted);
+    unique.push(formatted);
+  }
+
+  return unique;
+}
+
+async function sendWhatsAppAlertToNumber(
+  adminNumber: string,
+  message: string,
   payload: LeadAutomationInput & { propertyTitle?: string | null; ticketNumber?: number }
 ): Promise<boolean> {
-  if (!settings.notify_admin_whatsapp) return false;
-
-  const adminNumber = settings.admin_whatsapp_number || WHATSAPP_NUMBER;
-  const message = buildAdminAlertMessage(payload);
-
   const token = process.env.WHATSAPP_ACCESS_TOKEN;
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
 
@@ -234,7 +247,7 @@ export async function sendAdminWhatsAppAlert(
         },
         body: JSON.stringify({
           messaging_product: "whatsapp",
-          to: formatPhoneForWhatsApp(adminNumber),
+          to: adminNumber,
           type: "text",
           text: { body: message },
         }),
@@ -268,6 +281,21 @@ export async function sendAdminWhatsAppAlert(
   }
 
   return false;
+}
+
+/** Notify admin team via WhatsApp Cloud API, webhook, or SMS fallback. */
+export async function sendAdminWhatsAppAlert(
+  settings: EmailAutomationSettings,
+  payload: LeadAutomationInput & { propertyTitle?: string | null; ticketNumber?: number }
+): Promise<boolean> {
+  const recipients = getWhatsAppAlertRecipients(settings);
+  if (recipients.length === 0) return false;
+
+  const message = buildAdminAlertMessage(payload);
+  const results = await Promise.all(
+    recipients.map((number) => sendWhatsAppAlertToNumber(number, message, payload))
+  );
+  return results.some(Boolean);
 }
 
 async function sendClientAutoReply(

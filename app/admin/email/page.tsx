@@ -125,7 +125,7 @@ export default function AdminEmailPage() {
                   label="WhatsApp admin alerts"
                   checked={settings.notify_admin_whatsapp}
                   onChange={(v) => setSettings((s) => ({ ...s, notify_admin_whatsapp: v }))}
-                  description="Instant alert to 0711 082 084 via WhatsApp API, webhook, or SMS fallback"
+                  description="Instant alert to 0711 082 084 plus a private team number that is never shown on public pages"
                 />
               </div>
             </div>
@@ -183,7 +183,8 @@ export default function AdminEmailPage() {
                 hint="Default: 254711082084 (0711 082 084)"
               />
               <p className="mt-3 text-xs text-dark-500">
-                Alerts go to this number instantly. Uses WhatsApp Business API if configured; otherwise SMS fallback.
+                Alerts go to this number instantly, plus a private team number that never appears on the public website.
+                Uses WhatsApp Business API if configured; otherwise SMS fallback.
                 Email automation needs RESEND_API_KEY, NOTIFY_EMAIL, and EMAIL_FROM in Vercel.
               </p>
             </div>
