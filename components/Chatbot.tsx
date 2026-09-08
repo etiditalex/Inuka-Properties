@@ -2,20 +2,39 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, X, Send, Phone, MapPin, Mail, Home, Building2, Waves } from "lucide-react";
+import { MessageCircle, X, Send, Phone, FileDown, ExternalLink } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
+import { getChatbotResponse } from "@/lib/chatbot/getResponse";
+import { getStaticChatbotKnowledge, mergeLiveChatbotKnowledge } from "@/lib/chatbot/knowledge";
+import type { ChatLink, ChatbotKnowledge } from "@/lib/chatbot/types";
+
+type ChatMessage = {
+  type: "user" | "bot";
+  content: string;
+  links?: ChatLink[];
+};
 
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
-  const [messages, setMessages] = useState<Array<{ type: "user" | "bot"; content: string }>>([
+  const [knowledge, setKnowledge] = useState<ChatbotKnowledge>(() => getStaticChatbotKnowledge());
+  const [messages, setMessages] = useState<ChatMessage[]>([
     {
       type: "bot",
-      content: "Hello! I'm IAPL, your virtual assistant. How can I help you today?",
+      content:
+        "Hello! I'm IAPL, your virtual assistant. Ask me about any project, blog article, prices, payment plans — or download our listings, company profile, and maps.",
+      links: [
+        { label: "Browse properties", href: "/for-sale" },
+        { label: "Blogs & guides", href: "/iapl-insider/blogs" },
+        { label: "Downloads", href: "/testimonials/downloads" },
+      ],
     },
   ]);
   const [inputValue, setInputValue] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const knowledgeRef = useRef(knowledge);
+  knowledgeRef.current = knowledge;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -42,98 +61,67 @@ const Chatbot = () => {
     }
   }, [isOpen]);
 
-  const getBotResponse = (userMessage: string): string => {
-    const lowerMessage = userMessage.toLowerCase();
+  useEffect(() => {
+    let cancelled = false;
+    const loadLiveKnowledge = async () => {
+      try {
+        const [propertiesRes, downloadsRes, blogsRes, newsRes] = await Promise.all([
+          fetch("/api/content/properties"),
+          fetch("/api/content/downloads"),
+          fetch("/api/content/blogs"),
+          fetch("/api/content/news"),
+        ]);
+        const propertiesJson = propertiesRes.ok ? await propertiesRes.json() : {};
+        const downloadsJson = downloadsRes.ok ? await downloadsRes.json() : {};
+        const blogsJson = blogsRes.ok ? await blogsRes.json() : {};
+        const newsJson = newsRes.ok ? await newsRes.json() : {};
+        if (cancelled) return;
+        setKnowledge(
+          mergeLiveChatbotKnowledge(
+            getStaticChatbotKnowledge(),
+            propertiesJson.properties,
+            downloadsJson.items,
+            blogsJson.posts,
+            newsJson.items
+          )
+        );
+      } catch {
+        // Static catalog already loaded.
+      }
+    };
+    void loadLiveKnowledge();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-    // Greetings
-    if (lowerMessage.includes("hello") || lowerMessage.includes("hi") || lowerMessage.includes("hey")) {
-      return "Hello! Welcome to Inuka Afrika Properties. How can I assist you today?";
-    }
+  const handleSendMessage = (rawMessage?: string) => {
+    const userMessage = (rawMessage ?? inputValue).trim();
+    if (!userMessage) return;
 
-    // Company information
-    if (lowerMessage.includes("about") || lowerMessage.includes("company") || lowerMessage.includes("who")) {
-      return "Inuka Afrika Properties Limited is a leading real estate company with over 10 years of experience. We specialize in affordable residential, commercial, and beach properties in Kilifi County, including Mariakani, Mtwapa, Kikambala, Bofa, Chumani, Tezo, Msabaha, Mtondia, and Malindi.";
-    }
-
-    // Location/Office
-    if (lowerMessage.includes("location") || lowerMessage.includes("office") || lowerMessage.includes("address") || lowerMessage.includes("where")) {
-      return "Our head office is located at Links Road Opposite Kigothos Hotel, P.O. BOX 525-80100, Nyali, Mombasa, Kenya. Would you like to visit us or need directions?";
-    }
-
-    // Contact information
-    if (lowerMessage.includes("contact") || lowerMessage.includes("phone") || lowerMessage.includes("email") || lowerMessage.includes("number")) {
-      return `You can reach us at:\n📞 Phone: 0711 082084\n📧 Email: info@inukaproperties.co.ke\n📍 Office: Links Road Opposite Kigothos Hotel, Nyali, Mombasa\n\nWould you like to chat with us on WhatsApp?`;
-    }
-
-    // Properties for sale
-    if (lowerMessage.includes("property") || lowerMessage.includes("properties") || lowerMessage.includes("sale") || lowerMessage.includes("buy") || lowerMessage.includes("plot") || lowerMessage.includes("land")) {
-      return "We have various properties available including:\n🏠 Residential plots\n🏢 Commercial spaces\n🌊 Beachfront properties\n🌾 Farm land\n\nProperties are available in Mariakani, Mtwapa, Kikambala, Bofa, Chumani, Tezo, Msabaha, Mtondia, and Malindi. Would you like to see our available properties?";
-    }
-
-    // Pricing
-    if (lowerMessage.includes("price") || lowerMessage.includes("cost") || lowerMessage.includes("how much") || lowerMessage.includes("affordable")) {
-      return "Our properties range from affordable residential plots starting at KES 325,000 to premium beachfront developments. Prices vary by location and size. For specific pricing information, I can connect you with our sales team via WhatsApp.";
-    }
-
-    // Payment plans
-    if (lowerMessage.includes("payment") || lowerMessage.includes("installment") || lowerMessage.includes("plan") || lowerMessage.includes("deposit")) {
-      return "We offer flexible payment plans with deposits and monthly installments. Payment terms vary by property. For detailed payment plan information, let me connect you with our sales team on WhatsApp.";
-    }
-
-    // Site visit
-    if (lowerMessage.includes("visit") || lowerMessage.includes("site") || lowerMessage.includes("viewing") || lowerMessage.includes("tour")) {
-      return "We'd be happy to arrange a site visit for you! Site visits are available for all our properties. Let me connect you with our team on WhatsApp to schedule a convenient time.";
-    }
-
-    // Services
-    if (lowerMessage.includes("service") || lowerMessage.includes("what do you") || lowerMessage.includes("offer")) {
-      return "We offer comprehensive real estate services:\n✅ Property Sales (Residential, Commercial, Beach)\n✅ Property Management\n✅ Title Issuance\n✅ Feasibility Studies\n✅ Affordable Housing Solutions\n\nHow can we assist you?";
-    }
-
-    // Title deed
-    if (lowerMessage.includes("title") || lowerMessage.includes("deed") || lowerMessage.includes("document")) {
-      return "We facilitate smooth title issuance processes and have issued over 4,513 title deeds. Our legal team ensures all documentation is properly handled. For specific title deed inquiries, I can connect you with our legal team via WhatsApp.";
-    }
-
-    // Experience/Years
-    if (lowerMessage.includes("experience") || lowerMessage.includes("years") || lowerMessage.includes("established") || lowerMessage.includes("founded")) {
-      return "Inuka Afrika Properties was founded in 2016 and has over 10 years of excellence in the real estate industry. We have completed over 70 projects and served 10,000+ happy clients across the coastal region of Kenya.";
-    }
-
-    // Awards/Achievements
-    if (lowerMessage.includes("award") || lowerMessage.includes("achievement") || lowerMessage.includes("recognition")) {
-      return "We have won several awards including the 2022 Real Estate Investor of the Year Award. Our commitment to excellence and customer satisfaction has earned us recognition in the industry.";
-    }
-
-    // Default response - lead to WhatsApp
-    return "I'm still learning, but I'd love to help! Let me connect you with our team on WhatsApp for personalized assistance.";
-  };
-
-  const handleSendMessage = () => {
-    if (!inputValue.trim()) return;
-
-    const userMessage = inputValue.trim();
     setMessages((prev) => [...prev, { type: "user", content: userMessage }]);
     setInputValue("");
 
-    // Simulate bot thinking
-    setTimeout(() => {
-      const botResponse = getBotResponse(userMessage);
-      setMessages((prev) => [...prev, { type: "bot", content: botResponse }]);
+    const lastBotText = [...messages].reverse().find((message) => message.type === "bot")?.content;
 
-      // If response suggests WhatsApp, add a quick action
-      if (botResponse.includes("WhatsApp") || botResponse.includes("connect")) {
+    setTimeout(() => {
+      const reply = getChatbotResponse(userMessage, knowledgeRef.current, { lastBotText });
+      setMessages((prev) => [
+        ...prev,
+        { type: "bot", content: reply.text, links: reply.links },
+      ]);
+
+      if (reply.openWhatsApp) {
+        void handleWhatsAppClick();
+      } else if (reply.suggestWhatsApp) {
         setTimeout(() => {
           setMessages((prev) => [
             ...prev,
-            {
-              type: "bot",
-              content: "Would you like me to open WhatsApp for you?",
-            },
+            { type: "bot", content: "Would you like me to open WhatsApp for you?" },
           ]);
         }, 500);
       }
-    }, 500);
+    }, 400);
   };
 
   const handleWhatsAppClick = async () => {
@@ -143,10 +131,12 @@ const Chatbot = () => {
 
   const quickQuestions = [
     "What properties do you have?",
-    "Where is your office?",
-    "What are your prices?",
+    "Why is Mariakani a hotspot?",
+    "Download brochures and maps",
     "Do you offer payment plans?",
   ];
+
+  const isFileLink = (href: string) => /\.pdf($|\?)/i.test(href) || href.startsWith("/downloads/");
 
   return (
     <>
@@ -259,6 +249,40 @@ const Chatbot = () => {
                     }`}
                   >
                     <p className="text-sm whitespace-pre-line">{message.content}</p>
+                    {message.links && message.links.length > 0 && (
+                      <div className="mt-2 flex flex-col gap-1.5">
+                        {message.links.map((link) => {
+                          const file = isFileLink(link.href);
+                          const className =
+                            "inline-flex items-center gap-1.5 text-xs font-semibold underline-offset-2 hover:underline";
+                          const colorClass = message.type === "user" ? "text-white" : "text-primary-700";
+                          if (file || link.href.startsWith("http")) {
+                            return (
+                              <a
+                                key={`${link.href}-${link.label}`}
+                                href={link.href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`${className} ${colorClass}`}
+                              >
+                                {file ? <FileDown size={12} /> : <ExternalLink size={12} />}
+                                {link.label}
+                              </a>
+                            );
+                          }
+                          return (
+                            <Link
+                              key={`${link.href}-${link.label}`}
+                              href={link.href}
+                              className={`${className} ${colorClass}`}
+                            >
+                              <ExternalLink size={12} />
+                              {link.label}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               ))}
@@ -273,10 +297,7 @@ const Chatbot = () => {
                   {quickQuestions.map((question, index) => (
                     <button
                       key={index}
-                      onClick={() => {
-                        setInputValue(question);
-                        setTimeout(() => handleSendMessage(), 100);
-                      }}
+                      onClick={() => handleSendMessage(question)}
                       className="text-xs bg-primary-50 text-primary-700 px-3 py-1 rounded-full hover:bg-primary-100 transition font-montserrat"
                     >
                       {question}
@@ -310,12 +331,12 @@ const Chatbot = () => {
                   type="text"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+                  onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
                   placeholder="Type your message..."
                   className="flex-1 px-4 py-2 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm font-montserrat"
                 />
                 <button
-                  onClick={handleSendMessage}
+                  onClick={() => handleSendMessage()}
                   className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition flex items-center justify-center font-montserrat"
                   disabled={!inputValue.trim()}
                 >
