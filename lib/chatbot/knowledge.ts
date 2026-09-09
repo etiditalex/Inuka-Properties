@@ -251,7 +251,7 @@ export function mergeLiveChatbotKnowledge(
       aliases: uniquePhrases([...property.aliases, ...aliasesFromTitle(live.title, undefined, MANUAL_ALIASES[live.id] ?? [])]),
       location: live.location || property.location,
       type: live.type || property.type,
-      price: live.price || property.price,
+      price: typeof live.price === "string" ? live.price : property.price,
       size: live.size || property.size,
       status: live.status || property.status,
       features: live.features?.length ? live.features : property.features,
@@ -281,6 +281,40 @@ export function mergeLiveChatbotKnowledge(
     extraProjects: base.extraProjects,
     downloads: liveDownloads?.length ? buildDownloads(liveDownloads) : base.downloads,
     pages: mergeLiveChatbotPages(base.pages, liveBlogs, liveNews),
+  };
+}
+
+export function applyLivePropertyDetail(
+  knowledge: ChatbotKnowledge,
+  detail: {
+    id: number;
+    title?: string;
+    price?: string;
+    location?: string;
+    size?: string;
+    status?: string;
+    features?: string[];
+    pricing?: Record<string, string>;
+    paymentPlan?: Record<string, string>;
+  }
+): ChatbotKnowledge {
+  return {
+    ...knowledge,
+    properties: knowledge.properties.map((property) =>
+      property.id === detail.id
+        ? {
+            ...property,
+            title: detail.title || property.title,
+            price: typeof detail.price === "string" ? detail.price : property.price,
+            location: detail.location || property.location,
+            size: detail.size || property.size,
+            status: detail.status || property.status,
+            features: detail.features?.length ? detail.features : property.features,
+            pricing: detail.pricing ?? property.pricing,
+            paymentPlan: detail.paymentPlan ?? property.paymentPlan,
+          }
+        : property
+    ),
   };
 }
 

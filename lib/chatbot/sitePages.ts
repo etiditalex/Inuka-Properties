@@ -84,7 +84,15 @@ const BLOG_GUIDES: ChatbotPage[] = [
     "Why Land Investment: The Ultimate Guide to Building Wealth Through Real Estate",
     "/iapl-insider/blogs/why-land-investment",
     "Land is a finite, tangible asset that has historically appreciated — especially in Kilifi County along highways and the coast. It can outperform volatile stocks because you can hold, develop, or bank it. Inuka Afrika focuses on title-deed plots in Mariakani, Mtwapa, Tezo, Malindi, and Bofa with installment plans.",
-    ["why land investment", "land vs stocks", "building wealth land", "land investment guide kenya"]
+    [
+      "why land investment",
+      "land vs stocks",
+      "building wealth land",
+      "land investment guide kenya",
+      "why should i invest",
+      "should i invest in land",
+      "is land a good investment",
+    ]
   ),
   page(
     "blog-mombasa-houses",
@@ -146,7 +154,14 @@ const SITE_PAGES: ChatbotPage[] = [
     "Why choose Inuka Afrika Properties",
     "/about-us/why-us",
     "Clients choose Inuka Afrika for guaranteed ROI in strategic locations, amenities nearby, prices from about KES 250,000, flexible zero-interest plans, title deeds with fast processing, and value-add such as fencing, access roads, and bush clearing. We won the 2022 Real Estate Investor of the Year award.",
-    ["why us", "why choose inuka", "why buy from you"]
+    [
+      "why us",
+      "why choose inuka",
+      "why buy from you",
+      "why should i invest",
+      "why invest with inuka",
+      "reasons to invest",
+    ]
   ),
   page(
     "page-team",

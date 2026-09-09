@@ -15,8 +15,12 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { name, email, phone, subject, message, source, property_id, property_name } = body;
 
-    if (!name || !email || !message) {
-      return NextResponse.json({ error: "Name, email, and message are required" }, { status: 400 });
+    if (!name || !message) {
+      return NextResponse.json({ error: "Name and message are required" }, { status: 400 });
+    }
+
+    if (!email && !phone) {
+      return NextResponse.json({ error: "Email or phone is required" }, { status: 400 });
     }
 
     const supabase = getServiceClient();
@@ -28,7 +32,7 @@ export async function POST(request: Request) {
       .from("inquiries")
       .insert({
         name,
-        email,
+        email: email || "chatbot@inukaproperties.co.ke",
         phone: phone || null,
         subject: subject || null,
         message,

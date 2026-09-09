@@ -5,9 +5,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, X, Send, Phone, FileDown, ExternalLink } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { getChatbotResponse } from "@/lib/chatbot/getResponse";
-import { getStaticChatbotKnowledge, mergeLiveChatbotKnowledge } from "@/lib/chatbot/knowledge";
-import type { ChatLink, ChatbotKnowledge } from "@/lib/chatbot/types";
+import { getChatbotResponse, peekNamedPropertyIds } from "@/lib/chatbot/getResponse";
+import { submitChatbotInquiry } from "@/lib/chatbot/inquiry";
+import { applyLivePropertyDetail, getStaticChatbotKnowledge, mergeLiveChatbotKnowledge } from "@/lib/chatbot/knowledge";
+import { hasInquiryContact, hasPriceIntent, parseChatContact } from "@/lib/chatbot/pricing";
+import { normalizeChatText } from "@/lib/chatbot/text";
+import type { ChatLink, ChatbotInquiryDraft, ChatbotKnowledge } from "@/lib/chatbot/types";
+import { loadSavedContact } from "@/lib/leads/contactAutofill";
 
 type ChatMessage = {
   type: "user" | "bot";
@@ -32,6 +36,10 @@ const Chatbot = () => {
     },
   ]);
   const [inputValue, setInputValue] = useState("");
+  const [checkingPrice, setCheckingPrice] = useState(false);
+  const [pendingInquiry, setPendingInquiry] = useState<ChatbotInquiryDraft | null>(null);
+  const [inquiryForm, setInquiryForm] = useState({ name: "", email: "", phone: "" });
+  const [inquiryBusy, setInquiryBusy] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const knowledgeRef = useRef(knowledge);
   knowledgeRef.current = knowledge;
@@ -95,33 +103,149 @@ const Chatbot = () => {
     };
   }, []);
 
-  const handleSendMessage = (rawMessage?: string) => {
+  const refreshLiveKnowledge = async (propertyId?: number) => {
+    try {
+      const [propertiesRes, downloadsRes, blogsRes, newsRes] = await Promise.all([
+        fetch("/api/content/properties", { cache: "no-store" }),
+        fetch("/api/content/downloads", { cache: "no-store" }),
+        fetch("/api/content/blogs", { cache: "no-store" }),
+        fetch("/api/content/news", { cache: "no-store" }),
+      ]);
+      const propertiesJson = propertiesRes.ok ? await propertiesRes.json() : {};
+      const downloadsJson = downloadsRes.ok ? await downloadsRes.json() : {};
+      const blogsJson = blogsRes.ok ? await blogsRes.json() : {};
+      const newsJson = newsRes.ok ? await newsRes.json() : {};
+      let next = mergeLiveChatbotKnowledge(
+        getStaticChatbotKnowledge(),
+        propertiesJson.properties,
+        downloadsJson.items,
+        blogsJson.posts,
+        newsJson.items
+      );
+      if (propertyId) {
+        const detailRes = await fetch(`/api/content/properties/${propertyId}`, { cache: "no-store" });
+        if (detailRes.ok) {
+          const detailJson = await detailRes.json();
+          if (detailJson.property) {
+            next = applyLivePropertyDetail(next, detailJson.property);
+          }
+        }
+      }
+      knowledgeRef.current = next;
+      setKnowledge(next);
+      return next;
+    } catch {
+      return knowledgeRef.current;
+    }
+  };
+
+  const confirmInquirySubmitted = (name: string) => {
+    setPendingInquiry(null);
+    setMessages((prev) => [
+      ...prev,
+      {
+        type: "bot",
+        content: `Thanks ${name}. I’ve sent your question to our sales team — it now appears on the admin inquiries dashboard and they will follow up shortly.`,
+        links: [{ label: "Or continue on WhatsApp", href: "/book-site-visit?source=chatbot" }],
+      },
+    ]);
+  };
+
+  const trySubmitInquiry = async (
+    draft: ChatbotInquiryDraft,
+    contact: { name?: string; email?: string; phone?: string }
+  ) => {
+    if (!hasInquiryContact(contact) || !contact.name) return false;
+    setInquiryBusy(true);
+    const ok = await submitChatbotInquiry({
+      draft,
+      name: contact.name,
+      email: contact.email,
+      phone: contact.phone,
+    });
+    setInquiryBusy(false);
+    if (ok) {
+      confirmInquirySubmitted(contact.name);
+      return true;
+    }
+    setMessages((prev) => [
+      ...prev,
+      {
+        type: "bot",
+        content: "I couldn’t file that inquiry just now. Please try again or use the contact form.",
+        links: [{ label: "Contact us", href: "/contact-us" }],
+      },
+    ]);
+    return false;
+  };
+
+  const handleSendMessage = async (rawMessage?: string) => {
     const userMessage = (rawMessage ?? inputValue).trim();
     if (!userMessage) return;
 
     setMessages((prev) => [...prev, { type: "user", content: userMessage }]);
     setInputValue("");
 
-    const lastBotText = [...messages].reverse().find((message) => message.type === "bot")?.content;
-
-    setTimeout(() => {
-      const reply = getChatbotResponse(userMessage, knowledgeRef.current, { lastBotText });
+    if (pendingInquiry) {
+      const parsed = parseChatContact(userMessage);
+      const merged = {
+        name: parsed.name || inquiryForm.name,
+        email: parsed.email || inquiryForm.email,
+        phone: parsed.phone || inquiryForm.phone,
+      };
+      setInquiryForm((prev) => ({
+        name: merged.name || prev.name,
+        email: merged.email || prev.email,
+        phone: merged.phone || prev.phone,
+      }));
+      if (hasInquiryContact(merged)) {
+        await trySubmitInquiry(pendingInquiry, merged);
+        return;
+      }
       setMessages((prev) => [
         ...prev,
-        { type: "bot", content: reply.text, links: reply.links },
+        {
+          type: "bot",
+          content: "I still need your name and either a phone number or email so the team can follow up.",
+        },
       ]);
+      return;
+    }
 
-      if (reply.openWhatsApp) {
-        void handleWhatsAppClick();
-      } else if (reply.suggestWhatsApp) {
-        setTimeout(() => {
-          setMessages((prev) => [
-            ...prev,
-            { type: "bot", content: "Would you like me to open WhatsApp for you?" },
-          ]);
-        }, 500);
+    const lastBotText = [...messages].reverse().find((message) => message.type === "bot")?.content;
+    let knowledgeNow = knowledgeRef.current;
+
+    if (hasPriceIntent(normalizeChatText(userMessage))) {
+      setCheckingPrice(true);
+      const ids = peekNamedPropertyIds(userMessage, knowledgeNow);
+      knowledgeNow = await refreshLiveKnowledge(ids[0]);
+      setCheckingPrice(false);
+    }
+
+    const reply = getChatbotResponse(userMessage, knowledgeNow, { lastBotText });
+    setMessages((prev) => [...prev, { type: "bot", content: reply.text, links: reply.links }]);
+
+    if (reply.collectInquiry) {
+      const saved = loadSavedContact();
+      setPendingInquiry(reply.collectInquiry);
+      setInquiryForm({
+        name: saved.name || "",
+        email: saved.email || "",
+        phone: saved.phone || "",
+      });
+      if (hasInquiryContact(saved) && saved.name) {
+        await trySubmitInquiry(reply.collectInquiry, saved);
       }
-    }, 400);
+    } else if (reply.openWhatsApp) {
+      void handleWhatsAppClick();
+    } else if (reply.suggestWhatsApp) {
+      setTimeout(() => {
+        setMessages((prev) => [
+          ...prev,
+          { type: "bot", content: "Would you like me to open WhatsApp for you?" },
+        ]);
+      }, 500);
+    }
   };
 
   const handleWhatsAppClick = async () => {
@@ -131,7 +255,7 @@ const Chatbot = () => {
 
   const quickQuestions = [
     "What properties do you have?",
-    "Why is Mariakani a hotspot?",
+    "Why should I invest?",
     "Download brochures and maps",
     "Do you offer payment plans?",
   ];
@@ -286,6 +410,9 @@ const Chatbot = () => {
                   </div>
                 </motion.div>
               ))}
+              {checkingPrice && (
+                <p className="text-xs text-dark-500 font-montserrat italic">Checking the latest published price…</p>
+              )}
               <div ref={messagesEndRef} />
             </div>
 
@@ -322,6 +449,45 @@ const Chatbot = () => {
                   Continue on WhatsApp
                 </button>
               </motion.div>
+            )}
+
+            {pendingInquiry && (
+              <div className="px-4 py-3 bg-primary-50 border-t border-primary-100 space-y-2">
+                <p className="text-xs font-semibold text-primary-800 font-montserrat">
+                  {pendingInquiry.kind === "price"
+                    ? "Send this price request to our sales team"
+                    : "Send this question to our sales team"}
+                </p>
+                <input
+                  type="text"
+                  value={inquiryForm.name}
+                  onChange={(e) => setInquiryForm((prev) => ({ ...prev, name: e.target.value }))}
+                  placeholder="Your name"
+                  className="w-full px-3 py-2 border border-dark-200 rounded-lg text-sm font-montserrat"
+                />
+                <input
+                  type="tel"
+                  value={inquiryForm.phone}
+                  onChange={(e) => setInquiryForm((prev) => ({ ...prev, phone: e.target.value }))}
+                  placeholder="Phone (0711…)"
+                  className="w-full px-3 py-2 border border-dark-200 rounded-lg text-sm font-montserrat"
+                />
+                <input
+                  type="email"
+                  value={inquiryForm.email}
+                  onChange={(e) => setInquiryForm((prev) => ({ ...prev, email: e.target.value }))}
+                  placeholder="Email (optional if you share a phone)"
+                  className="w-full px-3 py-2 border border-dark-200 rounded-lg text-sm font-montserrat"
+                />
+                <button
+                  type="button"
+                  disabled={inquiryBusy || !hasInquiryContact(inquiryForm)}
+                  onClick={() => void trySubmitInquiry(pendingInquiry, inquiryForm)}
+                  className="w-full bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary-700 disabled:opacity-50 font-montserrat"
+                >
+                  {inquiryBusy ? "Sending…" : "Send to sales team"}
+                </button>
+              </div>
             )}
 
             {/* Input Area */}

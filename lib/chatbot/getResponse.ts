@@ -8,6 +8,13 @@ import {
   relatedDownloadsForProperty,
 } from "./knowledge";
 import { contentQuestion, findBestChatbotPages } from "./sitePages";
+import {
+  formatPriceRangeLine,
+  hasPriceIntent,
+  listingPriceRange,
+  propertyHasPublishedPrice,
+  unknownPriceSubject,
+} from "./pricing";
 import { normalizeChatText } from "./text";
 import type { ChatbotDownload, ChatbotKnowledge, ChatbotProperty, ChatbotReply, ChatLink } from "./types";
 
@@ -120,7 +127,109 @@ function summarizeProperty(property: ChatbotProperty): string {
   return `• ${property.title} — ${property.price}${size}\n  ${property.location} (${statusLabel(property.status)})`;
 }
 
+function pricedAvailable(knowledge: ChatbotKnowledge): ChatbotProperty[] {
+  return availableProperties(knowledge).filter((property) => propertyHasPublishedPrice(property));
+}
+
+function rangeLineFor(properties: ChatbotProperty[], scope = "available listings"): string {
+  const range = listingPriceRange(properties);
+  return range ? formatPriceRangeLine(range, scope) : "";
+}
+
+function investWhyResponse(knowledge: ChatbotKnowledge, locationPages: { page: { title: string; summary: string; path: string } }[]): ChatbotReply {
+  const range = rangeLineFor(pricedAvailable(knowledge), "available listings on the website");
+  const extra = locationPages[0]
+    ? `\n\nOn ${locationPages[0].page.title.toLowerCase().includes("why") ? "this location" : "your topic"}:\n${locationPages[0].page.summary}`
+    : "";
+  return {
+    text: [
+      "Why invest with Inuka Afrika Properties",
+      "",
+      "• Title-deed land — we have processed 4,513+ title deeds, so ownership is documented.",
+      "• Affordable entry — published plots on the site start in the mid-KES 300,000s, with flexible 12-month plans (often zero interest).",
+      "• Kilifi County growth — Mariakani, Tezo, Kikambala, Bofa, Malindi and the coast are seeing new roads, power, and tourism demand.",
+      "• Market context — our research notes about 15% year-over-year coastal value growth and typical investor talk of 12–18% annual returns (not a guarantee).",
+      "• Land is finite — you can hold, build, or bank it; Inuka adds roads, fencing, and utilities on many projects.",
+      "• Track record — 10+ years, 70+ projects, 10,000+ clients, and 2022 Real Estate Investor of the Year.",
+      range ? `\n${range}` : "",
+      extra,
+      "",
+      "Read the guides below, or ask about a specific project. If you want a personal recommendation, share your name and phone and I’ll send it to our sales team.",
+    ]
+      .filter((line) => line !== "")
+      .join("\n"),
+    links: [
+      { label: "Why invest in land", href: "/iapl-insider/blogs/why-land-investment" },
+      { label: "Why choose Inuka", href: "/about-us/why-us" },
+      { label: "Kilifi land demand", href: "/iapl-insider/blogs/why-more-kenyans-investing-land-for-sale-kilifi-county" },
+      { label: "Market research", href: "/iapl-insider/market-research" },
+      ...locationPages.slice(0, 2).map((item) => ({ label: item.page.title, href: item.page.path })),
+      { label: "Browse listings", href: FOR_SALE_PATH },
+    ],
+  };
+}
+
+function unansweredInquiry(question: string, knowledge: ChatbotKnowledge): ChatbotReply {
+  const range = rangeLineFor(pricedAvailable(knowledge));
+  return {
+    text: `I don’t have a complete answer for that on the website yet.${range ? `\n\n${range}` : ""}\n\nI’ll send your question to our sales team on the admin inquiries dashboard so they can follow up.\n\nPlease share your name plus a phone number or email.`,
+    collectInquiry: {
+      kind: "question",
+      question,
+      subject: `Chatbot question — ${question.slice(0, 80)}`,
+    },
+    links: [{ label: "Or use the contact form", href: "/contact-us" }],
+  };
+}
+
+function missingPriceInquiry(
+  property: ChatbotProperty | null,
+  question: string,
+  knowledge: ChatbotKnowledge,
+  hint?: string | null
+): ChatbotReply {
+  const title = property?.title || hint || "that project";
+  const range = rangeLineFor(pricedAvailable(knowledge));
+  const rangeNote = range ? `\n\n${range}` : "";
+  return {
+    text: `I checked our live listings and don’t have a published price for ${title} right now.${rangeNote}\n\nI’ll send this to the sales team as an inquiry on the admin dashboard so they can confirm the current figure and get back to you.\n\nPlease share your name plus a phone number or email.`,
+    collectInquiry: {
+      kind: "price",
+      propertyId: property && property.id < 1000 ? property.id : null,
+      propertyTitle: property?.title || hint || null,
+      question,
+    },
+    links: [{ label: "Or use the contact form", href: "/contact-us" }, { label: "Browse listings", href: FOR_SALE_PATH }],
+  };
+}
+
+function livePriceResponse(property: ChatbotProperty, knowledge: ChatbotKnowledge): ChatbotReply {
+  const pricing = formatRecord(property.pricing);
+  const payment = formatRecord(property.paymentPlan);
+  const range = rangeLineFor(pricedAvailable(knowledge), "all live listings on the website");
+  const lines = [
+    `Live price — ${property.title}`,
+    `📍 ${property.location}`,
+    `💰 ${property.price}${property.size ? `  •  ${property.size}` : ""}`,
+    `Status: ${statusLabel(property.status)}`,
+  ];
+  if (pricing) lines.push("", "Plot prices:", pricing);
+  if (payment) lines.push("", "Payment plan:", payment);
+  if (range) lines.push("", range);
+  lines.push("", "This figure is from our current published listing. Ask if you want a site visit.");
+  return {
+    text: lines.join("\n"),
+    links: propertyLinks(property, knowledge.downloads),
+  };
+}
+
 function detailResponse(property: ChatbotProperty, knowledge: ChatbotKnowledge, intent: string): ChatbotReply {
+  if (intent === "price") {
+    return propertyHasPublishedPrice(property)
+      ? livePriceResponse(property, knowledge)
+      : missingPriceInquiry(property, `${property.title} price`, knowledge);
+  }
+
   const highlights = property.features.slice(0, 6).map((feature) => `• ${feature}`).join("\n");
   const pricing = formatRecord(property.pricing);
   const payment = formatRecord(property.paymentPlan);
@@ -166,7 +275,7 @@ function detailResponse(property: ChatbotProperty, knowledge: ChatbotKnowledge, 
   };
 }
 
-function listResponse(title: string, properties: ChatbotProperty[]): ChatbotReply {
+function listResponse(title: string, properties: ChatbotProperty[], rangeScope?: string): ChatbotReply {
   if (!properties.length) {
     return {
       text: "I don't have a matching listing in that category right now. Browse all current plots or download our property catalog.",
@@ -175,9 +284,13 @@ function listResponse(title: string, properties: ChatbotProperty[]): ChatbotRepl
     };
   }
 
+  const range = rangeLineFor(
+    properties.filter((property) => propertyHasPublishedPrice(property)),
+    rangeScope
+  );
   const body = properties.map(summarizeProperty).join("\n");
   return {
-    text: `${title}\n\n${body}\n\nAsk me about any project by name for prices, payment plans, and downloadable maps.`,
+    text: `${title}${range ? `\n${range}` : ""}\n\n${body}\n\nAsk me about any project by name for prices, payment plans, and downloadable maps.`,
     links: [
       ...properties.slice(0, 4).map((property) => ({ label: property.title, href: property.path })),
       ...listingLinks(),
@@ -293,7 +406,7 @@ export function getChatbotResponse(
   if (GREETING_RE.test(userMessage) && message.split(" ").length <= 4) {
     const featured = availableProperties(knowledge).slice(0, 4);
     return {
-      text: `Hello! Welcome to Inuka Afrika Properties. I can share current plots, prices, payment plans, blog guides, and downloadable maps.\n\nPopular listings:\n${featured.map(summarizeProperty).join("\n")}\n\nAsk about a project by name, a blog topic (for example why Mariakani), or say "downloads" for brochures and maps.`,
+      text: `Hello! Welcome to Inuka Afrika Properties. I can share current plots, live prices, payment plans, blog guides, and downloadable maps.\n\n${rangeLineFor(featured, "these featured listings")}\n\nPopular listings:\n${featured.map(summarizeProperty).join("\n")}\n\nAsk about a project by name, say "price range", or "downloads" for brochures and maps.`,
       links: listingLinks(),
     };
   }
@@ -313,7 +426,7 @@ export function getChatbotResponse(
     "company profile",
     "listings pdf",
   ]);
-  const priceIntent = hasAny(message, ["price", "prices", "cost", "how much", "affordable", "cheap", "cheapest"]);
+  const priceIntent = hasPriceIntent(message) || hasAny(message, ["affordable", "cheap", "cheapest"]);
   const paymentIntent = hasAny(message, ["payment", "installment", "instalment", "deposit", "plan", "monthly"]);
   const visitIntent = hasAny(message, ["visit", "viewing", "tour", "site visit"]);
   const titleIntent = hasAny(message, ["title", "deed", "title deed"]);
@@ -344,6 +457,62 @@ export function getChatbotResponse(
     if (downloadHits.length || !propertyHits.length) {
       return downloadCatalogReply(knowledge, downloadHits.length ? downloadHits : undefined);
     }
+  }
+
+  if (priceIntent && !hasAny(message, ["cheapest", "lowest", "budget", "affordable"])) {
+    if (hasAny(message, ["range", "between", "from and to", "starting from"])) {
+      const scoped = propertyHits.length
+        ? propertyHits.filter((property) => propertyHasPublishedPrice(property))
+        : pricedAvailable(knowledge);
+      return listResponse(
+        "Live price range for listings on the website:",
+        scoped.slice().sort((a, b) => parsePriceAmount(a.price) - parsePriceAmount(b.price)),
+        propertyHits.length ? "these matching listings" : "available listings on the website"
+      );
+    }
+    const named = distinctProps[0] || (propertyHits.length === 1 ? propertyHits[0] : undefined);
+    if (named) {
+      return propertyHasPublishedPrice(named)
+        ? livePriceResponse(named, knowledge)
+        : missingPriceInquiry(named, userMessage, knowledge);
+    }
+    if (propertyHits.length > 1) {
+      const missing = propertyHits.filter((property) => !propertyHasPublishedPrice(property));
+      if (missing.length === propertyHits.length) {
+        return missingPriceInquiry(propertyHits[0], userMessage, knowledge);
+      }
+      return listResponse(
+        "Live published prices for matching projects:",
+        propertyHits.filter(propertyHasPublishedPrice),
+        "these matching listings"
+      );
+    }
+    const hint = unknownPriceSubject(message);
+    if (hint) {
+      return missingPriceInquiry(null, userMessage, knowledge, hint);
+    }
+  }
+
+  const investIntent =
+    hasAny(message, [
+      "why invest",
+      "should i invest",
+      "should we invest",
+      "reason to invest",
+      "reasons to invest",
+      "good investment",
+      "why buy land",
+      "why land",
+      "why choose",
+      "why inuka",
+      "roi",
+      "return on investment",
+      "appreciation",
+    ]) ||
+    (hasWord(message, "why") && hasAny(message, ["invest", "investment", "kilifi", "coast", "coastal"]));
+
+  if (investIntent) {
+    return investWhyResponse(knowledge, pageHits.filter((item) => item.page.kind === "blog" || item.page.id === "page-why-us"));
   }
 
   if (
@@ -378,7 +547,7 @@ export function getChatbotResponse(
 
   const byLocation = locationMatches(message, knowledge);
   if (byLocation.length && listingIntent) {
-    return listResponse(`Properties in that area:`, byLocation);
+    return listResponse(`Properties in that area:`, byLocation, "listings in that area");
   }
 
   if (hasAny(message, ["beach", "beachfront", "ocean", "coastal"])) {
@@ -392,10 +561,15 @@ export function getChatbotResponse(
 
   if (hasAny(message, ["cheapest", "lowest", "budget", "affordable"])) {
     const cheapest = availableProperties(knowledge)
+      .filter((property) => propertyHasPublishedPrice(property))
       .slice()
       .sort((a, b) => parsePriceAmount(a.price) - parsePriceAmount(b.price))
       .slice(0, 5);
-    return listResponse("Most affordable available plots right now:", cheapest);
+    return listResponse(
+      "Most affordable available plots right now (live published prices):",
+      cheapest,
+      "these affordable listings"
+    );
   }
 
   if (hasAny(message, ["sold out", "sold-out"])) {
@@ -408,7 +582,7 @@ export function getChatbotResponse(
   if (
     hasAny(message, ["property", "properties", "plot", "plots", "listing", "listings", "available", "for sale", "buy"])
   ) {
-    return listResponse("Current Inuka Afrika properties:", availableProperties(knowledge));
+    return listResponse("Current Inuka Afrika properties:", availableProperties(knowledge), "available listings");
   }
 
   if (paymentIntent) {
@@ -419,11 +593,20 @@ export function getChatbotResponse(
   }
 
   if (priceIntent) {
-    const cheapest = availableProperties(knowledge)
+    const named = distinctProps[0] || propertyHits[0];
+    if (named) {
+      return propertyHasPublishedPrice(named)
+        ? livePriceResponse(named, knowledge)
+        : missingPriceInquiry(named, userMessage, knowledge);
+    }
+    const hint = unknownPriceSubject(message);
+    if (hint) {
+      return missingPriceInquiry(null, userMessage, knowledge, hint);
+    }
+    const priced = pricedAvailable(knowledge)
       .slice()
-      .sort((a, b) => parsePriceAmount(a.price) - parsePriceAmount(b.price))
-      .slice(0, 6);
-    return listResponse("Current starting prices (available plots):", cheapest);
+      .sort((a, b) => parsePriceAmount(a.price) - parsePriceAmount(b.price));
+    return listResponse("Current published prices (live from our listings):", priced, "available listings on the website");
   }
 
   if (visitIntent) {
@@ -493,19 +676,18 @@ export function getChatbotResponse(
     };
   }
 
-  const featured = availableProperties(knowledge).slice(0, 4);
-  const fallbackPages = findBestChatbotPages(message, knowledge.pages ?? [], 2, 10);
+  const fallbackPages = findBestChatbotPages(message, knowledge.pages ?? [], 2, 12);
   if (fallbackPages.length) {
     return pageResponse(fallbackPages);
   }
 
-  return {
-    text: `I can help with that from our website. Here are current listings:\n\n${featured.map(summarizeProperty).join("\n")}\n\nYou can also ask about a blog topic (Mariakani, Tezo, Kikambala, land investment), download our catalog, or name a project.`,
-    links: [
-      ...listingLinks(),
-      { label: "Blogs & guides", href: "/iapl-insider/blogs" },
-      { label: "News", href: "/iapl-insider/news" },
-    ],
-    suggestWhatsApp: true,
-  };
+  return unansweredInquiry(userMessage, knowledge);
+}
+
+export function peekNamedPropertyIds(userMessage: string, knowledge: ChatbotKnowledge): number[] {
+  const message = normalizeChatText(userMessage);
+  const hits = distinctlyNamedProperties(message, matchProperties(message, knowledge));
+  return (hits.length ? hits : matchProperties(message, knowledge))
+    .map((property) => property.id)
+    .filter((id) => id < 1000);
 }

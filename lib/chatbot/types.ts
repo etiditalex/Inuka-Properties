@@ -8,7 +8,21 @@ export type ChatbotReply = {
   links?: ChatLink[];
   suggestWhatsApp?: boolean;
   openWhatsApp?: boolean;
+  collectInquiry?: ChatbotInquiryDraft;
 };
+
+export type ChatbotInquiryKind = "price" | "question";
+
+export type ChatbotInquiryDraft = {
+  kind: ChatbotInquiryKind;
+  propertyId?: number | null;
+  propertyTitle?: string | null;
+  question: string;
+  subject?: string;
+};
+
+/** @deprecated Use ChatbotInquiryDraft */
+export type PriceInquiryDraft = ChatbotInquiryDraft;
 
 export type ChatbotFaq = {
   question: string;

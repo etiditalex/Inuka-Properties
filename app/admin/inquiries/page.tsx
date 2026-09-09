@@ -44,7 +44,7 @@ export default function AdminInquiriesPage() {
   };
 
   return (
-    <AdminShell title="Inquiries" subtitle="Contact form submissions and client messages">
+    <AdminShell title="Inquiries" subtitle="Contact form, chatbot price requests, and client messages">
       <div className="mb-4 flex flex-wrap gap-2">
         {(["all", ...statusFlow] as const).map((s) => (
           <button
@@ -89,6 +89,11 @@ export default function AdminInquiriesPage() {
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-dark-500">{inq.subject || inq.email}</p>
+                {inq.source === "chatbot" && (
+                  <p className="mt-1 text-[10px] font-semibold uppercase text-primary-700">
+                    {inq.subject?.toLowerCase().includes("price") ? "Chatbot price request" : "Chatbot question"}
+                  </p>
+                )}
                 <p className="mt-1 flex items-center gap-1 text-[10px] text-dark-400">
                   <Clock size={10} /> {formatAdminDate(inq.created_at)}
                 </p>
@@ -104,6 +109,11 @@ export default function AdminInquiriesPage() {
                 <div>
                   <h3 className="text-xl font-bold text-dark-900 font-montserrat">{selected.name}</h3>
                   <p className="text-sm text-dark-500">{selected.subject}</p>
+                  {selected.source && (
+                    <p className="mt-1 text-xs uppercase tracking-wide text-primary-700">
+                      Source: {selected.source === "chatbot" ? "Chatbot price request" : selected.source}
+                    </p>
+                  )}
                 </div>
                 <span className={cn("rounded-full px-3 py-1 text-xs font-bold uppercase", statusStyles[selected.status])}>
                   {selected.status}
