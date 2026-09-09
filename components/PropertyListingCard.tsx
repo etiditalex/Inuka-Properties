@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, Bed, Bath, Square, Heart, Home } from "lucide-react";
+import { MapPin, Bed, Bath, Square, Home } from "lucide-react";
 import { propertyImageProps } from "@/lib/images";
 import { propertyDetailPath } from "@/lib/propertySeo";
+import PropertyLikeButton from "@/components/property/PropertyLikeButton";
+import PropertyStarRating from "@/components/property/PropertyStarRating";
 
 export interface PropertyListingCardData {
   id: number;
@@ -44,7 +45,6 @@ export default function PropertyListingCard({
   className?: string;
   badge?: string;
 }) {
-  const [saved, setSaved] = useState(false);
   const typeLabel = formatTypeLabel(property.type);
   const isSold = property.status === "sold";
   const imageProps = property.image ? propertyImageProps(property.image) : null;
@@ -78,23 +78,7 @@ export default function PropertyListingCard({
             {badge}
           </div>
         )}
-        <button
-          type="button"
-          aria-label={saved ? "Remove from saved" : "Save property"}
-          aria-pressed={saved}
-          onClick={() => setSaved((s) => !s)}
-          className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-dark-100/80 bg-white shadow-md transition hover:bg-dark-50"
-        >
-          <Heart
-            size={20}
-            strokeWidth={1.5}
-            className={
-              saved
-                ? "fill-red-500 text-red-500"
-                : "fill-none text-dark-900"
-            }
-          />
-        </button>
+        <PropertyLikeButton propertyId={property.id} />
       </div>
 
       <div className="flex flex-col gap-4 p-5 md:p-6 rounded-b-xl overflow-visible">
@@ -123,6 +107,8 @@ export default function PropertyListingCard({
         <h3 className="break-words text-lg font-bold leading-snug text-dark-900 md:text-xl font-montserrat [overflow-wrap:anywhere]">
           {property.title}
         </h3>
+
+        <PropertyStarRating propertyId={property.id} size="sm" />
 
         <p className="break-words text-sm leading-relaxed text-dark-500 font-montserrat [overflow-wrap:anywhere]">
           {property.location}

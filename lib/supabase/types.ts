@@ -294,6 +294,22 @@ export interface CompanyAsset {
   updated_at: string;
 }
 
+export interface PropertyLike {
+  id: string;
+  property_id: number;
+  visitor_id: string;
+  created_at: string;
+}
+
+export interface PropertyRating {
+  id: string;
+  property_id: number;
+  visitor_id: string;
+  rating: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface CompanySubscription {
   id: number;
   name: string;

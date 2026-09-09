@@ -14,6 +14,7 @@ import { trackFacebookEvent } from "@/lib/facebook/trackClient";
 import PropertyDetailsForm from "@/components/property/PropertyDetailsForm";
 import BookSiteVisitButton from "@/components/BookSiteVisitButton";
 import PropertyLocationMap from "@/components/PropertyLocationMap";
+import PropertyEngagementBar from "@/components/property/PropertyEngagementBar";
 
 export default function PropertyDetailPage({ params }: { params: { id: string } }) {
   const propertyId = parseInt(params.id, 10);
@@ -266,6 +267,9 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
               <div className="flex items-start gap-2 text-dark-600 mb-4 min-w-0">
                 <MapPin size={20} className="mr-0 shrink-0 mt-1 text-primary-600" />
                 <span className="break-words [overflow-wrap:anywhere]">{property.location}</span>
+              </div>
+              <div className="mb-4">
+                <PropertyEngagementBar propertyId={property.id} />
               </div>
               <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary-700 mb-6 break-words [overflow-wrap:anywhere]">
                 {property.status === "sold" ? (

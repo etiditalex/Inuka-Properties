@@ -6,6 +6,8 @@ Run in order in the Supabase SQL Editor:
 2. `supabase/storage.sql`
 3. `supabase/seed.sql` (optional sample data)
 
+Existing databases: run `supabase/migrations/property_engagement.sql` to enable property likes and star ratings.
+
 ## 2. Auth — create an admin user
 
 1. Run `supabase/migrations/fix_handle_new_user.sql` in the SQL Editor if user creation fails with **"Database error saving new user"**.

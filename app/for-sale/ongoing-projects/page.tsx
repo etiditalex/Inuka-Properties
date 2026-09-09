@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { MapPin, Bed, Square, Filter, Search, Clock, ArrowRight, Home, ChevronRight, X, SlidersHorizontal } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import PropertyEngagementBar from "@/components/property/PropertyEngagementBar";
 
 type PropertyType = "all" | "residential" | "commercial" | "beach" | "farm" | "affordable";
 
@@ -436,6 +437,10 @@ export default function OngoingProjectsPage() {
                         <h3 className="text-2xl md:text-3xl font-bold text-dark-900 mb-4 font-montserrat">
                           {project.title}
                         </h3>
+
+                        <div className="mb-4">
+                          <PropertyEngagementBar propertyId={project.id} />
+                        </div>
 
                         {/* Location */}
                         <div className="flex items-center text-dark-600 mb-4 font-montserrat">
