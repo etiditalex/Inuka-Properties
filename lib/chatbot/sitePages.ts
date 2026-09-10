@@ -263,8 +263,8 @@ const SITE_PAGES: ChatbotPage[] = [
     "page-book-visit",
     "page",
     "Book a site visit",
-    "/book-site-visit",
-    "Book a guided site visit online or via WhatsApp 0711 082084. Kibao Kiche Haven visits run every Wednesday and Saturday; other projects can be scheduled with the sales team.",
+    "#book-site-visit",
+    "Use the Book Site Visit button in the header to schedule a guided visit, or WhatsApp 0711 082084. Kibao Kiche Haven visits run every Wednesday and Saturday; other projects can be scheduled with the sales team.",
     ["book site visit", "schedule viewing", "see the land"]
   ),
   page(

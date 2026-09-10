@@ -5,6 +5,7 @@ import "./globals.css";
 import ConditionalLayout from "@/components/ConditionalLayout";
 import AdminAwareWidgets from "@/components/AdminAwareWidgets";
 import ContactAutoCapture from "@/components/ContactAutoCapture";
+import { BookSiteVisitProvider } from "@/components/BookSiteVisitContext";
 import JsonLd from "@/components/JsonLd";
 import {
   DEFAULT_OG_IMAGE,
@@ -155,9 +156,11 @@ export default function RootLayout({
                 gtag('config', 'G-GHFER2PFLE');
               `}
             </Script>
-            <ConditionalLayout>{children}</ConditionalLayout>
-            <ContactAutoCapture />
-            <AdminAwareWidgets />
+            <BookSiteVisitProvider>
+              <ConditionalLayout>{children}</ConditionalLayout>
+              <ContactAutoCapture />
+              <AdminAwareWidgets />
+            </BookSiteVisitProvider>
       </body>
     </html>
   );

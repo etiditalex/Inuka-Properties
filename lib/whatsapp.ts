@@ -18,16 +18,15 @@ export function generalSiteVisitWhatsAppUrl(): string {
   );
 }
 
-/** In-site booking form URL — captures the lead before WhatsApp. */
+/** Opens the booking popup on the current site (legacy page removed). */
 export function bookSiteVisitHref(options?: {
   propertyId?: number | null;
   source?: string;
 }): string {
-  const params = new URLSearchParams();
+  const params = new URLSearchParams({ "book-visit": "1" });
   if (options?.propertyId) params.set("property_id", String(options.propertyId));
   if (options?.source) params.set("source", options.source);
-  const query = params.toString();
-  return query ? `/book-site-visit?${query}` : "/book-site-visit";
+  return `/?${params.toString()}`;
 }
 
 export function siteVisitWhatsAppMessage(details: {

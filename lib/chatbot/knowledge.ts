@@ -349,4 +349,4 @@ export const COMPANY_PROFILE_PATH = "/downloads/Inuka-Afrika-Company-Profile.pdf
 export const PROPERTY_LISTINGS_PDF_PATH = "/downloads/inuka-12-13-25.pdf";
 export const DOWNLOADS_PAGE_PATH = "/testimonials/downloads";
 export const FOR_SALE_PATH = "/for-sale";
-export const BOOK_VISIT_PATH = "/book-site-visit";
+export const BOOK_VISIT_PATH = "#book-site-visit";

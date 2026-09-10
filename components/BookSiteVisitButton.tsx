@@ -1,7 +1,6 @@
 "use client";
 
-import { openBookSiteVisitSmart } from "@/lib/leads/captureLead";
-import { bookSiteVisitHref } from "@/lib/whatsapp";
+import { useBookSiteVisit } from "@/components/BookSiteVisitContext";
 
 type BookSiteVisitButtonProps = {
   propertyId?: number | null;
@@ -12,10 +11,7 @@ type BookSiteVisitButtonProps = {
   onNavigate?: () => void;
 };
 
-/**
- * Opens WhatsApp immediately when contact details are already known;
- * otherwise routes to the booking form to collect them.
- */
+/** Opens the site-visit booking popup. */
 export default function BookSiteVisitButton({
   propertyId,
   propertyTitle,
@@ -24,17 +20,18 @@ export default function BookSiteVisitButton({
   children = "Book Site Visit",
   onNavigate,
 }: BookSiteVisitButtonProps) {
-  const fallbackHref = bookSiteVisitHref({ propertyId, source });
-
-  const handleClick = async (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    onNavigate?.();
-    await openBookSiteVisitSmart({ propertyId, propertyTitle, source });
-  };
+  const { openBookSiteVisit } = useBookSiteVisit();
 
   return (
-    <a href={fallbackHref} onClick={handleClick} className={className}>
+    <button
+      type="button"
+      className={className}
+      onClick={() => {
+        onNavigate?.();
+        openBookSiteVisit({ propertyId, propertyTitle, source });
+      }}
+    >
       {children}
-    </a>
+    </button>
   );
 }

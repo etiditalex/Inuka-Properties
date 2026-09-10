@@ -611,7 +611,7 @@ export function getChatbotResponse(
 
   if (visitIntent) {
     return {
-      text: "Site visits are available for all current projects. Kibao Kiche Haven visits run every Wednesday and Saturday. Tell me which project you want to see, or book online / continue on WhatsApp.",
+      text: "Site visits are available for all current projects. Kibao Kiche Haven visits run every Wednesday and Saturday. Tell me which project you want to see, or use the Book Site Visit button to schedule one.",
       links: [
         { label: "Book a site visit", href: BOOK_VISIT_PATH },
         { label: "View properties", href: FOR_SALE_PATH },

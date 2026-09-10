@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Calendar, Tag, MapPin, Clock, ArrowRight, Home, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import BookSiteVisitButton from "@/components/BookSiteVisitButton";
 import { STATIC_NEWS_CATALOG } from "@/lib/news/catalog";
 
 export default function NewsPage() {
@@ -236,15 +237,14 @@ export default function NewsPage() {
                   {/* Action Buttons */}
                   <div className="flex flex-col sm:flex-row gap-3 mt-6">
                     {item.id === 1 ? (
-                      // Special button for site visit booking
-                      <Link
-                        href="/book-site-visit"
+                      <BookSiteVisitButton
+                        source="news"
                         className="flex items-center justify-center gap-2 bg-primary-800 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition font-montserrat"
                       >
                         <Clock size={18} />
                         Book Site Visit
                         <ArrowRight size={18} />
-                      </Link>
+                      </BookSiteVisitButton>
                     ) : (
                       <Link
                         href="/contact-us"

@@ -71,7 +71,6 @@ export async function getSitemapEntries(): Promise<MetadataRoute.Sitemap> {
     staticPage("/for-sale", 0.95, "daily", newestPropertyDate),
     staticPage("/for-sale/ongoing-projects", 0.9, "daily", newestPropertyDate),
     staticPage("/project-showcase", 0.85, "weekly"),
-    staticPage("/book-site-visit", 0.85, "monthly"),
     staticPage("/about-us", 0.8, "monthly"),
     staticPage("/about-us/who-we-are", 0.75, "monthly"),
     staticPage("/about-us/why-us", 0.75, "monthly"),

@@ -47,6 +47,11 @@ const nextConfig = {
         destination: "/bofa-phase-21",
         permanent: true,
       },
+      {
+        source: "/book-site-visit",
+        destination: "/?book-visit=1",
+        permanent: true,
+      },
     ];
   },
   async rewrites() {

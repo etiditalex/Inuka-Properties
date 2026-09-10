@@ -11,7 +11,6 @@ import {
   type ContactDetails,
 } from "@/lib/leads/contactAutofill";
 import {
-  bookSiteVisitHref,
   generalSiteVisitWhatsAppUrl,
   propertySiteVisitWhatsAppUrl,
   siteVisitWhatsAppMessage,
@@ -137,7 +136,7 @@ export async function captureLeadThenOpenWhatsApp(
 
 /**
  * If we already know the visitor, save lead (if needed) and open WhatsApp.
- * Otherwise send them to the booking form to collect details.
+ * Otherwise return "form" so the caller can open the booking popup.
  */
 export async function openBookSiteVisitSmart(options?: {
   propertyId?: number | null;
@@ -166,11 +165,6 @@ export async function openBookSiteVisitSmart(options?: {
     return "whatsapp";
   }
 
-  const href = bookSiteVisitHref({
-    propertyId: options?.propertyId,
-    source: options?.source,
-  });
-  window.location.href = href;
   return "form";
 }
 

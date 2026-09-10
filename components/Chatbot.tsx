@@ -12,6 +12,7 @@ import { hasInquiryContact, hasPriceIntent, parseChatContact } from "@/lib/chatb
 import { normalizeChatText } from "@/lib/chatbot/text";
 import type { ChatLink, ChatbotInquiryDraft, ChatbotKnowledge } from "@/lib/chatbot/types";
 import { loadSavedContact } from "@/lib/leads/contactAutofill";
+import { BOOK_VISIT_HASH, useBookSiteVisit } from "@/components/BookSiteVisitContext";
 
 type ChatMessage = {
   type: "user" | "bot";
@@ -19,7 +20,11 @@ type ChatMessage = {
   links?: ChatLink[];
 };
 
+const isBookVisitHref = (href: string) =>
+  href === BOOK_VISIT_HASH || href.startsWith("/book-site-visit") || href.startsWith("/?book-visit");
+
 const Chatbot = () => {
+  const { openBookSiteVisit } = useBookSiteVisit();
   const [isOpen, setIsOpen] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [knowledge, setKnowledge] = useState<ChatbotKnowledge>(() => getStaticChatbotKnowledge());
@@ -146,7 +151,7 @@ const Chatbot = () => {
       {
         type: "bot",
         content: `Thanks ${name}. I’ve sent your question to our sales team — it now appears on the admin inquiries dashboard and they will follow up shortly.`,
-        links: [{ label: "Or continue on WhatsApp", href: "/book-site-visit?source=chatbot" }],
+        links: [{ label: "Or continue on WhatsApp", href: BOOK_VISIT_HASH }],
       },
     ]);
   };
@@ -250,7 +255,15 @@ const Chatbot = () => {
 
   const handleWhatsAppClick = async () => {
     const { openBookSiteVisitSmart } = await import("@/lib/leads/captureLead");
-    await openBookSiteVisitSmart({ source: "chatbot" });
+    const result = await openBookSiteVisitSmart({ source: "chatbot" });
+    if (result === "form") {
+      openBookSiteVisit({ source: "chatbot" });
+    }
+  };
+
+  const handleBookVisitLink = () => {
+    setIsOpen(false);
+    openBookSiteVisit({ source: "chatbot" });
   };
 
   const quickQuestions = [
@@ -380,6 +393,19 @@ const Chatbot = () => {
                           const className =
                             "inline-flex items-center gap-1.5 text-xs font-semibold underline-offset-2 hover:underline";
                           const colorClass = message.type === "user" ? "text-white" : "text-primary-700";
+                          if (isBookVisitHref(link.href)) {
+                            return (
+                              <button
+                                key={`${link.href}-${link.label}`}
+                                type="button"
+                                onClick={handleBookVisitLink}
+                                className={`${className} ${colorClass} text-left`}
+                              >
+                                <ExternalLink size={12} />
+                                {link.label}
+                              </button>
+                            );
+                          }
                           if (file || link.href.startsWith("http")) {
                             return (
                               <a
