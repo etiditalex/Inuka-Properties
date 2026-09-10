@@ -26,6 +26,7 @@ import {
   Ticket,
   Megaphone,
   Package,
+  LayoutTemplate,
 } from "lucide-react";
 import { cn } from "@/lib/admin/utils";
 import { adminPath } from "@/lib/admin/path";
@@ -48,6 +49,7 @@ const navItems = [
   { segment: "newsletters", label: "Newsletters", icon: Mail },
   { segment: "email", label: "Email Automation", icon: Send },
   { segment: "facebook-ads", label: "Facebook Ads", icon: Megaphone },
+  { segment: "landing-pages", label: "Landing Pages", icon: LayoutTemplate },
   { segment: "sms", label: "SMS", icon: Smartphone },
   { segment: "ticketing", label: "IAPL Ticketing", icon: Ticket },
   { segment: "inventory", label: "Company Inventory", icon: Package },

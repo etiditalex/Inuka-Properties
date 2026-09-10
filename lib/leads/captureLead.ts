@@ -28,6 +28,7 @@ export type LeadPayload = {
   preferred_time?: string | null;
   message?: string | null;
   source?: string;
+  landing_page_id?: number | null;
 };
 
 export function resolveLeadSource(explicit?: string | null): string {

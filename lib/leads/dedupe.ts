@@ -167,6 +167,7 @@ type IncomingLead = {
   preferred_time?: string | null;
   message?: string | null;
   source?: string | null;
+  landing_page_id?: number | null;
 };
 
 function isAutoCaptureMessage(message: string | null | undefined): boolean {
@@ -193,6 +194,10 @@ export function buildLeadEnrichment(
     updates.property_name = incoming.property_name || existing.property_name;
   } else if (!existing.property_name && incoming.property_name) {
     updates.property_name = incoming.property_name;
+  }
+
+  if (incoming.landing_page_id && incoming.landing_page_id !== existing.landing_page_id) {
+    updates.landing_page_id = incoming.landing_page_id;
   }
 
   if (incoming.preferred_date && !existing.preferred_date) {

@@ -2,6 +2,15 @@ export type PropertyStatus = "available" | "ongoing" | "sold";
 export type ContentStatus = "draft" | "published";
 export type InquiryStatus = "new" | "read" | "responded" | "archived";
 export type LeadStatus = "new" | "contacted" | "qualified" | "converted" | "lost";
+export type LandingPageTemplate = "offer" | "lead_magnet" | "urgency";
+export type LandingPageChannel =
+  | "facebook"
+  | "instagram"
+  | "google"
+  | "tiktok"
+  | "whatsapp"
+  | "email"
+  | "other";
 
 export interface Profile {
   id: string;
@@ -120,6 +129,7 @@ export interface PropertyLead {
   phone: string;
   property_id: number | null;
   property_name: string | null;
+  landing_page_id?: number | null;
   preferred_date: string | null;
   preferred_time: string | null;
   message: string | null;
@@ -128,6 +138,40 @@ export interface PropertyLead {
   notes: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface LandingPage {
+  id: number;
+  slug: string;
+  name: string;
+  property_id: number | null;
+  campaign_name: string | null;
+  utm_campaign: string | null;
+  channel: LandingPageChannel;
+  template: LandingPageTemplate;
+  headline: string;
+  subheadline: string | null;
+  badge_text: string | null;
+  cta_text: string;
+  form_heading: string | null;
+  form_subheading: string | null;
+  thank_you_message: string | null;
+  hero_image: string | null;
+  highlights: string[];
+  body_html: string | null;
+  offer_price: string | null;
+  offer_size: string | null;
+  payment_plan_note: string | null;
+  show_price: boolean;
+  show_plots_remaining: boolean;
+  show_whatsapp: boolean;
+  show_call: boolean;
+  show_testimonials: boolean;
+  pixel_enabled: boolean;
+  published: boolean;
+  created_at: string;
+  updated_at: string;
+  properties?: Property | null;
 }
 
 export interface SiteSetting {

@@ -18,9 +18,16 @@ type PropertyDetailsFormProps = {
   propertyTitle: string;
   source?: string;
   message?: string;
+  landingPageId?: number | null;
   /** Fire Facebook Lead event for campaign property */
   trackLead?: boolean;
   showHeading?: boolean;
+  heading?: string;
+  subheading?: string;
+  ctaText?: string;
+  thankYouMessage?: string;
+  whatsAppAfterSubmit?: { url: string; label: string };
+  submitClassName?: string;
   className?: string;
 };
 
@@ -29,8 +36,15 @@ function PropertyDetailsFormInner({
   propertyTitle,
   source = "property_page",
   message,
+  landingPageId,
   trackLead = false,
   showHeading = true,
+  heading,
+  subheading,
+  ctaText = "Send Me Property Details",
+  thankYouMessage,
+  whatsAppAfterSubmit,
+  submitClassName,
   className = "",
 }: PropertyDetailsFormProps) {
   const searchParams = useSearchParams();
@@ -78,6 +92,7 @@ function PropertyDetailsFormInner({
             message ??
             `Requested property details for ${propertyTitle} via property page`,
           source: leadSource,
+          landing_page_id: landingPageId || null,
         }),
       });
       const data = await res.json();
@@ -97,7 +112,11 @@ function PropertyDetailsFormInner({
             property_id: propertyId,
             property_name: propertyTitle,
             page_path: window.location.pathname,
-            event_data: { source: leadSource, from_facebook_ad: fromFacebookAd },
+            event_data: {
+              source: leadSource,
+              from_facebook_ad: fromFacebookAd,
+              landing_page_id: landingPageId || null,
+            },
           },
           {
             customData: {
@@ -124,9 +143,23 @@ function PropertyDetailsFormInner({
           Check your email!
         </h3>
         <p className="text-dark-600 text-sm">
-          Property details for <strong>{propertyTitle}</strong> have been sent to{" "}
-          <strong>{form.email}</strong>. Our team will also reach out on WhatsApp shortly.
+          {thankYouMessage || (
+            <>
+              Property details for <strong>{propertyTitle}</strong> have been sent to{" "}
+              <strong>{form.email}</strong>. Our team will also reach out on WhatsApp shortly.
+            </>
+          )}
         </p>
+        {whatsAppAfterSubmit ? (
+          <a
+            href={whatsAppAfterSubmit.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#25D366] px-4 py-3 font-bold text-white hover:bg-[#1ebe5d]"
+          >
+            {whatsAppAfterSubmit.label}
+          </a>
+        ) : null}
       </div>
     );
   }
@@ -136,11 +169,15 @@ function PropertyDetailsFormInner({
       {showHeading && (
         <>
           <h3 className="text-xl font-bold text-dark-900 font-montserrat mb-2">
-            Get property details
+            {heading || "Get property details"}
           </h3>
           <p className="text-dark-600 text-sm mb-5">
-            Enter your details and we&apos;ll email you full project information for{" "}
-            <strong>{propertyTitle}</strong>.
+            {subheading || (
+              <>
+                Enter your details and we&apos;ll email you full project information for{" "}
+                <strong>{propertyTitle}</strong>.
+              </>
+            )}
           </p>
         </>
       )}
@@ -249,10 +286,13 @@ function PropertyDetailsFormInner({
         <button
           type="submit"
           disabled={submitting}
-          className="w-full bg-primary-600 text-white py-3.5 rounded-lg font-bold hover:bg-primary-700 transition flex items-center justify-center gap-2 disabled:opacity-60"
+          className={
+            submitClassName ||
+            "w-full bg-primary-600 text-white py-3.5 rounded-lg font-bold hover:bg-primary-700 transition flex items-center justify-center gap-2 disabled:opacity-60"
+          }
         >
           <Send size={18} />
-          {submitting ? "Sending..." : "Send Me Property Details"}
+          {submitting ? "Sending..." : ctaText}
         </button>
       </form>
     </div>

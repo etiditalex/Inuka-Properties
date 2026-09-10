@@ -4,7 +4,7 @@ import { getAdminBasePath } from "@/lib/admin/path";
 
 export default function robots(): MetadataRoute.Robots {
   const adminBase = getAdminBasePath();
-  const disallow = ["/api/", "/admin/", `${adminBase}/`];
+  const disallow = ["/api/", "/admin/", `${adminBase}/`, "/lp/"];
   const unique = [...new Set(disallow)];
 
   return {

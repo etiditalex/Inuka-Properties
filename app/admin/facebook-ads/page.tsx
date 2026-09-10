@@ -17,6 +17,8 @@ import StatCard from "@/components/admin/StatCard";
 import { formatAdminDate } from "@/lib/admin/utils";
 import { exportFacebookAdsToPdf } from "@/lib/admin/facebook-ads-export";
 import { FACEBOOK_CAMPAIGN_PROPERTY_ID, FACEBOOK_PIXEL_ID } from "@/lib/facebook/pixel";
+import { adminPath } from "@/lib/admin/path";
+import Link from "next/link";
 
 type PixelEvent = {
   id: string;
@@ -128,8 +130,14 @@ export default function AdminFacebookAdsPage() {
                 className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-700 hover:underline"
               >
                 <ExternalLink size={14} />
-                View landing page
+                View listing landing page
               </a>
+              <Link
+                href={adminPath("landing-pages")}
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-700 hover:underline"
+              >
+                Create converting landing pages
+              </Link>
               <a
                 href="https://business.facebook.com/events_manager"
                 target="_blank"
