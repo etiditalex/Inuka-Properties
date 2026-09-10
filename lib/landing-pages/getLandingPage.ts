@@ -1,6 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
-import type { ClientTestimonial, LandingPage, Property } from "@/lib/supabase/types";
-import { asStringList } from "./defaults";
+import type { ClientTestimonial } from "@/lib/supabase/types";
+import {
+  getLandingPageById,
+  getPublishedLandingPageBySlug,
+  type LandingPageWithProperty,
+} from "@/lib/landing-pages/store";
+
+export type { LandingPageWithProperty };
 
 function getPublicClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -9,30 +15,12 @@ function getPublicClient() {
   return createClient(url, key);
 }
 
-export type LandingPageWithProperty = LandingPage & {
-  properties?: Property | null;
-};
-
-export function normalizeLandingPage(row: LandingPageWithProperty): LandingPageWithProperty {
-  return {
-    ...row,
-    highlights: asStringList(row.highlights),
-  };
+export async function fetchPublishedLandingPage(slug: string) {
+  return getPublishedLandingPageBySlug(slug);
 }
 
-export async function fetchPublishedLandingPage(slug: string) {
-  const supabase = getPublicClient();
-  if (!supabase) return null;
-
-  const { data, error } = await supabase
-    .from("landing_pages")
-    .select("*, properties(*)")
-    .eq("slug", slug)
-    .eq("published", true)
-    .maybeSingle();
-
-  if (error || !data) return null;
-  return normalizeLandingPage(data as LandingPageWithProperty);
+export async function fetchLandingPageById(id: number) {
+  return getLandingPageById(id);
 }
 
 export async function fetchLandingTestimonials(): Promise<ClientTestimonial[]> {

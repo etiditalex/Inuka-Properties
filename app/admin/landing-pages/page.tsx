@@ -19,7 +19,6 @@ import { adminPath } from "@/lib/admin/path";
 import { formatAdminDate } from "@/lib/admin/utils";
 import { campaignLandingUrl, channelConfig } from "@/lib/landing-pages/urls";
 import { LANDING_PAGE_TEMPLATES } from "@/lib/landing-pages/defaults";
-import { LANDING_PAGES_SETUP_MESSAGE, isMissingLandingPagesTable } from "@/lib/landing-pages/setup";
 
 function templateLabel(value: string) {
   return LANDING_PAGE_TEMPLATES.find((item) => item.value === value)?.label || value;
@@ -29,37 +28,35 @@ export default function AdminLandingPagesPage() {
   const [pages, setPages] = useState<LandingPage[]>([]);
   const [leadCounts, setLeadCounts] = useState<Record<number, number>>({});
   const [loading, setLoading] = useState(true);
-  const [missingTable, setMissingTable] = useState(false);
   const [copiedId, setCopiedId] = useState<number | null>(null);
 
   const load = async () => {
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from("landing_pages")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      setMissingTable(isMissingLandingPagesTable(error));
+    setLoading(true);
+    const res = await fetch("/api/admin/landing-pages", { credentials: "include" });
+    const json = await res.json();
+    if (!res.ok) {
       setPages([]);
       setLoading(false);
       return;
     }
+    setPages((json.pages as LandingPage[]) || []);
 
-    setMissingTable(false);
-    setPages((data as LandingPage[]) || []);
+    try {
+      const supabase = createClient();
+      const { data: leads } = await supabase
+        .from("property_leads")
+        .select("landing_page_id")
+        .not("landing_page_id", "is", null);
 
-    const { data: leads } = await supabase
-      .from("property_leads")
-      .select("landing_page_id")
-      .not("landing_page_id", "is", null);
-
-    const counts: Record<number, number> = {};
-    (leads || []).forEach((row: { landing_page_id?: number | null }) => {
-      if (!row.landing_page_id) return;
-      counts[row.landing_page_id] = (counts[row.landing_page_id] || 0) + 1;
-    });
-    setLeadCounts(counts);
+      const counts: Record<number, number> = {};
+      (leads || []).forEach((row: { landing_page_id?: number | null }) => {
+        if (!row.landing_page_id) return;
+        counts[row.landing_page_id] = (counts[row.landing_page_id] || 0) + 1;
+      });
+      setLeadCounts(counts);
+    } catch {
+      setLeadCounts({});
+    }
     setLoading(false);
   };
 
@@ -69,8 +66,15 @@ export default function AdminLandingPagesPage() {
 
   const handleDelete = async (id: number) => {
     if (!confirm("Delete this landing page? Leads already captured will be kept.")) return;
-    const supabase = createClient();
-    await supabase.from("landing_pages").delete().eq("id", id);
+    const res = await fetch(`/api/admin/landing-pages/${id}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}));
+      alert(json.error || "Could not delete landing page.");
+      return;
+    }
     load();
   };
 
@@ -99,12 +103,7 @@ export default function AdminLandingPagesPage() {
         </Link>
       </div>
 
-      {missingTable ? (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900">
-          <p className="font-semibold">Database table not found</p>
-          <p className="mt-2">{LANDING_PAGES_SETUP_MESSAGE}</p>
-        </div>
-      ) : loading ? (
+      {loading ? (
         <div className="flex h-48 items-center justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
         </div>

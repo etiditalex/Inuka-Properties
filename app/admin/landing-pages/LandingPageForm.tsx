@@ -18,7 +18,6 @@ import {
   emptyLandingPage,
   LANDING_PAGE_TEMPLATES,
 } from "@/lib/landing-pages/defaults";
-import { LANDING_PAGES_SETUP_MESSAGE, isMissingLandingPagesTable } from "@/lib/landing-pages/setup";
 import {
   autoUtmCampaign,
   campaignLandingUrl,
@@ -94,18 +93,14 @@ export default function LandingPageFormPage({ pageId, duplicateFromId }: Landing
   useEffect(() => {
     if (!pageId) return;
     async function load() {
-      const supabase = createClient();
-      const { data, error: loadError } = await supabase
-        .from("landing_pages")
-        .select("*")
-        .eq("id", pageId)
-        .single();
-      if (loadError) {
-        setError(loadError.message);
+      const res = await fetch(`/api/admin/landing-pages/${pageId}`, { credentials: "include" });
+      const json = await res.json();
+      if (!res.ok) {
+        setError(json.error || "Could not load landing page.");
         return;
       }
-      if (data) {
-        const page = data as LandingPage;
+      if (json.page) {
+        const page = json.page as LandingPage;
         const slug = page.slug || "";
         const generated = autoUtmCampaign(slug, page.channel);
         setUtmLocked(Boolean(page.utm_campaign && page.utm_campaign !== generated && page.utm_campaign !== slug));
@@ -122,18 +117,14 @@ export default function LandingPageFormPage({ pageId, duplicateFromId }: Landing
   useEffect(() => {
     if (pageId || !duplicateFromId) return;
     async function loadCopy() {
-      const supabase = createClient();
-      const { data, error: loadError } = await supabase
-        .from("landing_pages")
-        .select("*")
-        .eq("id", duplicateFromId)
-        .single();
-      if (loadError) {
-        setError(loadError.message);
+      const res = await fetch(`/api/admin/landing-pages/${duplicateFromId}`, { credentials: "include" });
+      const json = await res.json();
+      if (!res.ok) {
+        setError(json.error || "Could not duplicate landing page.");
         return;
       }
-      if (data) {
-        const page = data as LandingPage;
+      if (json.page) {
+        const page = json.page as LandingPage;
         setUtmLocked(false);
         setForm({
           ...duplicateLandingCopy(page),
@@ -219,25 +210,20 @@ export default function LandingPageFormPage({ pageId, duplicateFromId }: Landing
       return;
     }
 
-    const supabase = createClient();
-    const persist = (data: typeof payload) =>
-      isEdit
-        ? supabase.from("landing_pages").update(data).eq("id", pageId!)
-        : supabase.from("landing_pages").insert(data);
-
-    let { error: saveError } = await persist(payload);
-    if (saveError?.message.toLowerCase().includes("channel")) {
-      const { channel: _channel, ...withoutChannel } = payload;
-      ({ error: saveError } = await persist(withoutChannel as typeof payload));
-    }
+    const res = await fetch(
+      isEdit ? `/api/admin/landing-pages/${pageId}` : "/api/admin/landing-pages",
+      {
+        method: isEdit ? "PUT" : "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      }
+    );
+    const json = await res.json();
 
     setSaving(false);
-    if (saveError) {
-      setError(
-        isMissingLandingPagesTable(saveError)
-          ? LANDING_PAGES_SETUP_MESSAGE
-          : saveError.message
-      );
+    if (!res.ok) {
+      setError(json.error || "Could not save landing page.");
       return;
     }
     if (createAnother) {
