@@ -19,6 +19,13 @@ import {
   LANDING_PAGE_TEMPLATES,
 } from "@/lib/landing-pages/defaults";
 import { LANDING_PAGES_SETUP_MESSAGE, isMissingLandingPagesTable } from "@/lib/landing-pages/setup";
+import {
+  autoUtmCampaign,
+  campaignLandingUrl,
+  channelConfig,
+  duplicateLandingCopy,
+  LANDING_PAGE_CHANNELS,
+} from "@/lib/landing-pages/urls";
 
 type LandingPageFormProps = { pageId?: number; duplicateFromId?: number };
 
