@@ -1,30 +1,53 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, Clock, MapPin, User, Phone, Mail, Send, X } from "lucide-react";
-import { captureLeadThenOpenWhatsApp } from "@/lib/leads/captureLead";
+import { X } from "lucide-react";
+import {
+  captureLeadThenOpenWhatsApp,
+  prefillFromStoredContact,
+} from "@/lib/leads/captureLead";
 import { siteVisitWhatsAppMessage, whatsAppUrl } from "@/lib/whatsapp";
+
+const LOCATIONS = [
+  "Tulivu Haven",
+  "Msabaha Phase 8",
+  "Mwanda Phase 3 (sold out)",
+  "Kibao Kiche Haven",
+  "Bofa Platinum",
+  "Chumani Phase 6",
+  "Kikambala Phase 2",
+  "Chumani Phase 3",
+  "Ocean View Gardens",
+  "Mtondia Highway Gardens",
+  "Malindi Airport Gardens",
+  "Other / Not Sure",
+];
 
 interface BookSiteVisitModalProps {
   isOpen: boolean;
   onClose: () => void;
+  propertyId?: number | null;
+  propertyTitle?: string | null;
+  source?: string;
 }
 
-function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitModalProps) {
+function BookSiteVisitModal({
+  isOpen,
+  onClose,
+  propertyId,
+  propertyTitle,
+  source = "site_visit_modal",
+}: BookSiteVisitModalProps) {
   const [formData, setFormData] = useState({
     name: "",
-    email: "",
     phone: "",
     property: "",
     preferredDate: "",
-    preferredTime: "",
-    message: "",
   });
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [fallbackUrl, setFallbackUrl] = useState<string | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -49,48 +72,33 @@ function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitModalProps) {
 
   useEffect(() => {
     if (!isOpen) {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
-      setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        property: "",
-        preferredDate: "",
-        preferredTime: "",
-        message: "",
-      });
       setError(null);
       setFallbackUrl(null);
       setSubmitting(false);
+      return;
     }
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
-    };
-  }, [isOpen]);
+
+    const prefill = prefillFromStoredContact();
+    setFormData({
+      name: prefill.name,
+      phone: prefill.phone,
+      property: propertyTitle?.trim() || "",
+      preferredDate: "",
+    });
+  }, [isOpen, propertyTitle]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
     setError(null);
     setSubmitting(true);
 
     const url = whatsAppUrl(
       siteVisitWhatsAppMessage({
         name: formData.name,
-        email: formData.email,
+        email: "",
         phone: formData.phone,
         property: formData.property,
         preferredDate: formData.preferredDate,
-        preferredTime: formData.preferredTime,
-        message: formData.message,
       })
     );
     setFallbackUrl(url);
@@ -98,14 +106,13 @@ function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitModalProps) {
     try {
       const { whatsappOpened } = await captureLeadThenOpenWhatsApp({
         name: formData.name,
-        email: formData.email,
+        email: "",
         phone: formData.phone,
         property: formData.property,
+        property_id: propertyId ?? null,
         property_name: formData.property,
-        preferred_date: formData.preferredDate,
-        preferred_time: formData.preferredTime,
-        message: formData.message,
-        source: "site_visit_modal",
+        preferred_date: formData.preferredDate || null,
+        source,
       });
 
       if (!whatsappOpened) {
@@ -116,15 +123,6 @@ function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitModalProps) {
         return;
       }
 
-      setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        property: "",
-        preferredDate: "",
-        preferredTime: "",
-        message: "",
-      });
       onClose();
     } catch {
       setError("Unable to save your details. You can still open WhatsApp manually below.");
@@ -134,257 +132,164 @@ function BookSiteVisitModal({ isOpen, onClose }: BookSiteVisitModalProps) {
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const properties = [
-    "Tulivu Haven",
-    "Msabaha Phase 8",
-    "Mwanda Phase 3 (sold out)",
-    "Kibao Kiche Haven",
-    "Bofa Platinum",
-    "Chumani Phase 6",
-    "Kikambala Phase 2",
-    "Chumani Phase 3",
-    "Ocean View Gardens",
-    "Mtondia Highway Gardens",
-    "Malindi Airport Gardens",
-    "Other / Not Sure",
-  ];
+  const fieldClass =
+    "w-full rounded-full border border-dark-200 bg-dark-50 px-5 py-2.5 text-dark-800 placeholder:text-dark-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-400";
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-dark-900/50 p-4 backdrop-blur-sm"
+        >
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm"
-          />
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="book-site-visit-title"
+            initial={{ opacity: 0, scale: 0.95, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            exit={{ opacity: 0, scale: 0.95, y: 16 }}
             onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-2xl"
           >
-            <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="sticky top-0 bg-white border-b border-dark-200 px-6 py-4 flex items-center justify-between rounded-t-xl">
-                <h2 className="text-2xl font-bold text-dark-900 font-montserrat">Book a Site Visit</h2>
-                <button
-                  onClick={onClose}
-                  className="p-2 hover:bg-dark-100 rounded-lg transition"
-                  aria-label="Close modal"
-                >
-                  <X size={24} className="text-dark-600" />
-                </button>
+            <div className="flex justify-end px-3 pt-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-full p-1.5 text-dark-400 transition hover:bg-dark-100 hover:text-dark-700"
+                aria-label="Close modal"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="bg-primary-700 px-6 py-8 text-center sm:px-10">
+              <h2
+                id="book-site-visit-title"
+                className="font-montserrat text-2xl font-bold tracking-tight text-white sm:text-3xl"
+              >
+                Book A Free Site Visit
+              </h2>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-5 px-6 py-8 sm:px-10">
+              {error && (
+                <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+                  <p className="mb-2 text-sm text-red-700">{error}</p>
+                  <a
+                    href={
+                      fallbackUrl ||
+                      whatsAppUrl("Hello! I would like to book a site visit.")
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-semibold text-primary-700 underline hover:text-primary-800"
+                  >
+                    Open WhatsApp manually
+                  </a>
+                </div>
+              )}
+
+              <div className="grid items-center gap-2 sm:grid-cols-[160px_1fr] sm:gap-6">
+                <label htmlFor="modal-name" className="text-sm font-medium text-dark-800">
+                  Name<span className="text-primary-600">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="modal-name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  autoComplete="name"
+                  className={fieldClass}
+                />
               </div>
 
-              <div className="p-6 md:p-8">
-                <div className="mb-6">
-                  <p className="text-dark-600 font-montserrat">
-                    Fill out the form below to book a site visit. Your details are saved for our
-                    team, then WhatsApp opens so we can confirm with you.
+              <div className="grid items-center gap-2 sm:grid-cols-[160px_1fr] sm:gap-6">
+                <label htmlFor="modal-phone" className="text-sm font-medium text-dark-800">
+                  Phone number<span className="text-primary-600">*</span>
+                </label>
+                <input
+                  type="tel"
+                  id="modal-phone"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  required
+                  autoComplete="tel"
+                  placeholder="07xxxxxx"
+                  className={fieldClass}
+                />
+              </div>
+
+              <div className="grid items-center gap-2 sm:grid-cols-[160px_1fr] sm:gap-6">
+                <label htmlFor="modal-property" className="text-sm font-medium text-dark-800">
+                  Location<span className="text-primary-600">*</span>
+                </label>
+                <select
+                  id="modal-property"
+                  name="property"
+                  value={formData.property}
+                  onChange={handleChange}
+                  required
+                  className={`${fieldClass} appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 24 24%27 stroke=%27%23495057%27%3E%3Cpath stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%272%27 d=%27M19 9l-7 7-7-7%27/%3E%3C/svg%3E')] bg-[length:1.1rem] bg-[right_1rem_center] bg-no-repeat pr-10`}
+                >
+                  <option value="">Location interested</option>
+                  {propertyTitle && !LOCATIONS.includes(propertyTitle) && (
+                    <option value={propertyTitle}>{propertyTitle}</option>
+                  )}
+                  {LOCATIONS.map((location) => (
+                    <option key={location} value={location}>
+                      {location}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid items-start gap-2 sm:grid-cols-[160px_1fr] sm:gap-6">
+                <label
+                  htmlFor="modal-date"
+                  className="pt-2.5 text-sm font-medium text-dark-800"
+                >
+                  Site visit date
+                </label>
+                <div>
+                  <input
+                    type="date"
+                    id="modal-date"
+                    name="preferredDate"
+                    value={formData.preferredDate}
+                    onChange={handleChange}
+                    min={new Date().toISOString().split("T")[0]}
+                    className={fieldClass}
+                  />
+                  <p className="mt-1.5 text-xs text-dark-400">
+                    When are you available for a free site visit?
                   </p>
                 </div>
-
-                {error && (
-                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-red-700 text-sm font-montserrat mb-3">{error}</p>
-                    <a
-                      href={
-                        fallbackUrl ||
-                        whatsAppUrl("Hello! I would like to book a site visit.")
-                      }
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-red-600 hover:text-red-700 underline font-semibold font-montserrat text-sm"
-                    >
-                      Open WhatsApp Manually
-                    </a>
-                  </div>
-                )}
-
-                <form onSubmit={handleSubmit} className="space-y-5 font-montserrat">
-                  <div className="grid md:grid-cols-2 gap-5">
-                    <div>
-                      <label
-                        htmlFor="modal-name"
-                        className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat"
-                      >
-                        <User size={16} className="inline mr-2" />
-                        Full Name *
-                      </label>
-                      <input
-                        type="text"
-                        id="modal-name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 font-montserrat"
-                      />
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="modal-phone"
-                        className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat"
-                      >
-                        <Phone size={16} className="inline mr-2" />
-                        Phone Number *
-                      </label>
-                      <input
-                        type="tel"
-                        id="modal-phone"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 font-montserrat"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="modal-email"
-                      className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat"
-                    >
-                      <Mail size={16} className="inline mr-2" />
-                      Email Address *
-                    </label>
-                    <input
-                      type="email"
-                      id="modal-email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 font-montserrat"
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="modal-property"
-                      className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat"
-                    >
-                      <MapPin size={16} className="inline mr-2" />
-                      Property of Interest *
-                    </label>
-                    <select
-                      id="modal-property"
-                      name="property"
-                      value={formData.property}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 font-montserrat"
-                    >
-                      <option value="">Select a property</option>
-                      {properties.map((prop) => (
-                        <option key={prop} value={prop}>
-                          {prop}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-5">
-                    <div>
-                      <label
-                        htmlFor="modal-date"
-                        className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat"
-                      >
-                        <Calendar size={16} className="inline mr-2" />
-                        Preferred Date *
-                      </label>
-                      <input
-                        type="date"
-                        id="modal-date"
-                        name="preferredDate"
-                        value={formData.preferredDate}
-                        onChange={handleChange}
-                        required
-                        min={new Date().toISOString().split("T")[0]}
-                        className="w-full px-4 py-3 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 font-montserrat"
-                      />
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="modal-time"
-                        className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat"
-                      >
-                        <Clock size={16} className="inline mr-2" />
-                        Preferred Time *
-                      </label>
-                      <select
-                        id="modal-time"
-                        name="preferredTime"
-                        value={formData.preferredTime}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 font-montserrat"
-                      >
-                        <option value="">Select time</option>
-                        <option value="09:00">9:00 AM</option>
-                        <option value="10:00">10:00 AM</option>
-                        <option value="11:00">11:00 AM</option>
-                        <option value="12:00">12:00 PM</option>
-                        <option value="13:00">1:00 PM</option>
-                        <option value="14:00">2:00 PM</option>
-                        <option value="15:00">3:00 PM</option>
-                        <option value="16:00">4:00 PM</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="modal-message"
-                      className="block text-sm font-semibold text-dark-900 mb-2 font-montserrat"
-                    >
-                      Additional Notes (Optional)
-                    </label>
-                    <textarea
-                      id="modal-message"
-                      name="message"
-                      value={formData.message}
-                      onChange={handleChange}
-                      rows={4}
-                      placeholder="Any specific requirements or questions..."
-                      className="w-full px-4 py-3 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 font-montserrat"
-                    />
-                  </div>
-
-                  <div className="flex gap-4 pt-2">
-                    <button
-                      type="button"
-                      onClick={onClose}
-                      className="flex-1 px-6 py-3 border border-dark-300 text-dark-700 rounded-lg font-semibold hover:bg-dark-50 transition font-montserrat"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={submitting}
-                      className="flex-1 bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition flex items-center justify-center gap-2 font-montserrat disabled:opacity-60"
-                    >
-                      <Send size={20} />
-                      {submitting ? "Saving..." : "Book Site Visit"}
-                    </button>
-                  </div>
-                </form>
               </div>
-            </div>
+
+              <div className="flex justify-end pt-2">
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="rounded-full bg-dark-800 px-8 py-3 font-semibold text-white transition hover:bg-primary-700 disabled:opacity-60"
+                >
+                  {submitting ? "Saving..." : "Book Site Visit"}
+                </button>
+              </div>
+            </form>
           </motion.div>
-        </>
+        </motion.div>
       )}
     </AnimatePresence>
   );

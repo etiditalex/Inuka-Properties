@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { Menu, X, ChevronDown, Phone, Mail, Facebook, Instagram, Linkedin, MessageCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import BookSiteVisitButton from "@/components/BookSiteVisitButton";
+import BookSiteVisitModal from "@/components/BookSiteVisitModal";
 import { getPropertySeo, getPropertyIdFromPathname } from "@/lib/propertySeo";
 import { isFeaturedProjectPath } from "@/lib/featuredProjects";
 
@@ -14,6 +14,7 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isBookVisitOpen, setIsBookVisitOpen] = useState(false);
   const pathname = usePathname();
 
   const propertyId = getPropertyIdFromPathname(pathname);
@@ -283,12 +284,13 @@ const Header = () => {
               </div>
             ))}
             {/* Book Site Visit Button */}
-            <BookSiteVisitButton
-              propertyId={propertyId}
-              propertyTitle={propertyTitle}
-              source={siteVisitSource}
+            <button
+              type="button"
+              onClick={() => setIsBookVisitOpen(true)}
               className="bg-red-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-red-700 transition shadow-md hover:shadow-lg"
-            />
+            >
+              Book Site Visit
+            </button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -370,17 +372,28 @@ const Header = () => {
                 </div>
               ))}
               {/* Book Site Visit Button - Mobile */}
-              <BookSiteVisitButton
-                propertyId={propertyId}
-                propertyTitle={propertyTitle}
-                source={siteVisitSource}
-                onNavigate={() => setIsMenuOpen(false)}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  setIsBookVisitOpen(true);
+                }}
                 className="block w-full text-center py-3 px-4 rounded-lg font-semibold transition bg-red-600 text-white hover:bg-red-700"
-              />
+              >
+                Book Site Visit
+              </button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      <BookSiteVisitModal
+        isOpen={isBookVisitOpen}
+        onClose={() => setIsBookVisitOpen(false)}
+        propertyId={propertyId}
+        propertyTitle={propertyTitle}
+        source={siteVisitSource}
+      />
     </header>
   );
 };
