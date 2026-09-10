@@ -5,6 +5,7 @@ import { MapPin } from "lucide-react";
 import type { Property } from "@/lib/supabase/types";
 import { cn } from "@/lib/admin/utils";
 import PropertyLocationMap from "@/components/PropertyLocationMap";
+import { isPosterListingImage, listingImageFitClass } from "@/lib/images";
 
 type PropertyPreviewProps = {
   property: Partial<Property>;
@@ -30,13 +31,13 @@ export default function PropertyPreview({ property }: PropertyPreviewProps) {
       </div>
       <div className="p-4">
         <div className="overflow-hidden rounded-xl border border-dark-200 shadow-md">
-          <div className="relative h-44">
+          <div className={`relative h-44 ${isPosterListingImage(property) ? "bg-neutral-100" : ""}`}>
             {property.image ? (
               <Image
                 src={property.image}
                 alt={property.title || "Property"}
                 fill
-                className="object-cover"
+                className={`${listingImageFitClass(property)} ${isPosterListingImage(property) ? "p-3" : ""}`}
                 unoptimized
               />
             ) : (

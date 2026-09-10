@@ -30,6 +30,7 @@ import {
   getNewestListingId,
 } from "@/lib/properties/sortProperties";
 import { FEATURED_SITELINK_PAGES } from "@/lib/featuredProjects";
+import { isPosterListingImage, listingImageFitClass } from "@/lib/images";
 
 function PropertyCarousel({ properties }: { properties: Property[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -112,12 +113,12 @@ function FeaturedProjectSpotlight({ property }: { property: Property }) {
           className="overflow-hidden rounded-2xl border border-primary-200/80 bg-white shadow-xl shadow-primary-900/5"
         >
           <div className="grid lg:grid-cols-2">
-            <div className="relative min-h-[260px] lg:min-h-[360px]">
+            <div className={`relative min-h-[220px] lg:min-h-[300px] ${isPosterListingImage(property) ? "bg-neutral-100" : ""}`}>
               <Image
                 src={property.image}
                 alt={property.title}
                 fill
-                className="object-cover"
+                className={`${listingImageFitClass(property)} ${isPosterListingImage(property) ? "p-5 sm:p-8" : ""}`}
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 priority
                 unoptimized

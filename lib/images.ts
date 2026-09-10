@@ -53,3 +53,29 @@ export function propertyImageProps(src: string) {
     unoptimized: shouldUseUnoptimizedImage(src),
   } as const;
 }
+
+/** Flyers/posters (e.g. Miliki Tezo na Inuka) should show in full, not cropped. */
+export function isPosterListingImage(property?: {
+  id?: number | null;
+  title?: string | null;
+  image?: string | null;
+  hero_image?: string | null;
+} | null) {
+  if (!property) return false;
+  if (property.id === 3) return true;
+  const title = (property.title || "").toLowerCase();
+  if (title.includes("miliki tezo")) return true;
+  const src = `${property.image || ""} ${property.hero_image || ""}`;
+  return src.includes("1787292087079-kg9108raxss");
+}
+
+export function listingImageFitClass(property?: {
+  id?: number | null;
+  title?: string | null;
+  image?: string | null;
+  hero_image?: string | null;
+} | null) {
+  return isPosterListingImage(property)
+    ? "object-contain object-center"
+    : "object-cover";
+}

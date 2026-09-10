@@ -8,7 +8,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { PROPERTY_DETAILS } from "@/lib/properties/detailFallback";
 import type { PropertyDetail } from "@/lib/properties/mapProperty";
-import { parseGalleryUrls, propertyImageProps } from "@/lib/images";
+import { isPosterListingImage, listingImageFitClass, parseGalleryUrls, propertyImageProps } from "@/lib/images";
 import { FACEBOOK_CAMPAIGN_PROPERTY_ID } from "@/lib/facebook/pixel";
 import { trackFacebookEvent } from "@/lib/facebook/trackClient";
 import PropertyDetailsForm from "@/components/property/PropertyDetailsForm";
@@ -209,7 +209,11 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
           >
             {/* Main Image */}
             <div 
-              className="relative h-[300px] sm:h-[400px] md:h-[500px] rounded-xl overflow-hidden cursor-pointer"
+              className={`relative rounded-xl overflow-hidden cursor-pointer ${
+                isPosterListingImage(property)
+                  ? "flex h-[280px] items-center justify-center bg-neutral-100 sm:h-[340px] md:h-[400px]"
+                  : "h-[300px] sm:h-[400px] md:h-[500px]"
+              }`}
               onClick={() => galleryImages.length ? setSelectedImageIndex(0) : null}
             >
               {heroImage ? (
@@ -217,7 +221,11 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
                   src={heroImage}
                   alt={imageAltBase}
                   fill
-                  className="object-cover"
+                  className={
+                    isPosterListingImage(property)
+                      ? "object-contain object-center p-3 sm:p-4"
+                      : "object-cover"
+                  }
                   unoptimized={propertyImageProps(heroImage).unoptimized}
                 />
               ) : (

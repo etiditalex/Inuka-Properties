@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { MapPin, Bed, Bath, Square, Home } from "lucide-react";
-import { propertyImageProps } from "@/lib/images";
+import { isPosterListingImage, listingImageFitClass, propertyImageProps } from "@/lib/images";
 import { propertyDetailPath } from "@/lib/propertySeo";
 import PropertyLikeButton from "@/components/property/PropertyLikeButton";
 import PropertyStarRating from "@/components/property/PropertyStarRating";
@@ -48,19 +48,20 @@ export default function PropertyListingCard({
   const typeLabel = formatTypeLabel(property.type);
   const isSold = property.status === "sold";
   const imageProps = property.image ? propertyImageProps(property.image) : null;
+  const posterFit = isPosterListingImage(property);
 
   return (
     <article
       className={`flex flex-col rounded-xl border border-dark-200/70 bg-white shadow-sm transition-shadow hover:shadow-md min-h-0 min-w-0 ${isSold ? "opacity-[0.97]" : ""} ${className}`}
     >
-      <div className={`relative w-full shrink-0 overflow-hidden rounded-t-xl ${imageHeightClass}`}>
+      <div className={`relative w-full shrink-0 overflow-hidden rounded-t-xl ${imageHeightClass} ${posterFit ? "bg-neutral-100" : ""}`}>
         {imageProps ? (
           <Image
             src={imageProps.src}
             alt={property.title}
             fill
             unoptimized={imageProps.unoptimized}
-            className={`object-cover ${isSold ? "opacity-80 saturate-[0.65]" : ""}`}
+            className={`${listingImageFitClass(property)} ${posterFit ? "p-3" : ""} ${isSold ? "opacity-80 saturate-[0.65]" : ""}`}
             sizes={imageSizes}
           />
         ) : (

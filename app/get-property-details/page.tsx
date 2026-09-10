@@ -9,6 +9,7 @@ import FacebookPixel from "@/components/FacebookPixel";
 import FacebookAdLandingCapture from "@/components/FacebookAdLandingCapture";
 import PropertyDetailsForm from "@/components/property/PropertyDetailsForm";
 import { FACEBOOK_CAMPAIGN_PROPERTY_ID } from "@/lib/facebook/pixel";
+import { isPosterListingImage, listingImageFitClass } from "@/lib/images";
 
 type PropertyPreview = {
   id: number;
@@ -83,8 +84,14 @@ function GetPropertyDetailsForm() {
               animate={{ opacity: 1, x: 0 }}
               className="rounded-2xl overflow-hidden shadow-lg bg-white"
             >
-              <div className="relative h-48">
-                <Image src={property.image} alt={property.title} fill className="object-cover" unoptimized />
+              <div className={`relative h-56 ${isPosterListingImage(property) ? "bg-neutral-100" : ""}`}>
+                <Image
+                  src={property.image}
+                  alt={property.title}
+                  fill
+                  className={`${listingImageFitClass(property)} ${isPosterListingImage(property) ? "p-3" : ""}`}
+                  unoptimized
+                />
               </div>
               <div className="p-6">
                 <h2 className="text-xl font-bold text-dark-900 font-montserrat">{property.title}</h2>
