@@ -1,10 +1,20 @@
 -- Facebook ad landing pages (admin-built converting pages at /lp/[slug])
+-- Run THIS file in the Supabase SQL Editor.
+-- Safe to run even if properties / property_leads are not in this database yet.
+
+CREATE OR REPLACE FUNCTION set_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at := NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
 CREATE TABLE IF NOT EXISTS landing_pages (
   id SERIAL PRIMARY KEY,
   slug TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
-  property_id INT REFERENCES properties(id) ON DELETE SET NULL,
+  property_id INT,
   campaign_name TEXT,
   utm_campaign TEXT,
   channel TEXT NOT NULL DEFAULT 'facebook'
@@ -53,7 +63,33 @@ DROP TRIGGER IF EXISTS trg_landing_pages_updated ON landing_pages;
 CREATE TRIGGER trg_landing_pages_updated BEFORE UPDATE ON landing_pages
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
-ALTER TABLE property_leads
-  ADD COLUMN IF NOT EXISTS landing_page_id INT REFERENCES landing_pages(id) ON DELETE SET NULL;
+DO $$
+BEGIN
+  IF to_regclass('public.properties') IS NOT NULL THEN
+    BEGIN
+      ALTER TABLE landing_pages
+        DROP CONSTRAINT IF EXISTS landing_pages_property_id_fkey;
+      ALTER TABLE landing_pages
+        ADD CONSTRAINT landing_pages_property_id_fkey
+        FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE SET NULL;
+    EXCEPTION WHEN duplicate_object THEN
+      NULL;
+    END;
+  END IF;
 
-CREATE INDEX IF NOT EXISTS idx_property_leads_landing_page ON property_leads (landing_page_id);
+  IF to_regclass('public.property_leads') IS NOT NULL THEN
+    BEGIN
+      ALTER TABLE property_leads
+        ADD COLUMN IF NOT EXISTS landing_page_id INT;
+      ALTER TABLE property_leads
+        DROP CONSTRAINT IF EXISTS property_leads_landing_page_id_fkey;
+      ALTER TABLE property_leads
+        ADD CONSTRAINT property_leads_landing_page_id_fkey
+        FOREIGN KEY (landing_page_id) REFERENCES landing_pages(id) ON DELETE SET NULL;
+      CREATE INDEX IF NOT EXISTS idx_property_leads_landing_page
+        ON property_leads (landing_page_id);
+    EXCEPTION WHEN duplicate_object THEN
+      NULL;
+    END;
+  END IF;
+END $$;

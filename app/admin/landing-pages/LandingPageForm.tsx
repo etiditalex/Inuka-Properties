@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ExternalLink, Save, Wand2 } from "lucide-react";
+import { ExternalLink, Save, Wand2, Copy } from "lucide-react";
 import AdminShell from "@/components/admin/AdminShell";
 import { AdminInput, AdminSelect, AdminTextarea, AdminToggle } from "@/components/admin/AdminForm";
 import ImageUpload from "@/components/admin/ImageUpload";
@@ -18,7 +18,7 @@ import {
   emptyLandingPage,
   LANDING_PAGE_TEMPLATES,
 } from "@/lib/landing-pages/defaults";
-import { campaignLandingUrl, channelConfig, duplicateLandingCopy, LANDING_PAGE_CHANNELS } from "@/lib/landing-pages/urls";
+import { autoUtmCampaign, campaignLandingUrl, channelConfig, duplicateLandingCopy, LANDING_PAGE_CHANNELS } from "@/lib/landing-pages/urls";
 
 type LandingPageFormProps = { pageId?: number; duplicateFromId?: number };
 
@@ -28,7 +28,10 @@ function toPayload(form: Partial<LandingPage>) {
     slug: slugify(form.slug || form.name || ""),
     property_id: form.property_id || null,
     campaign_name: form.campaign_name?.trim() || null,
-    utm_campaign: form.utm_campaign?.trim() || null,
+    utm_campaign:
+      form.utm_campaign?.trim() ||
+      autoUtmCampaign(slugify(form.slug || form.name || ""), form.channel) ||
+      null,
     channel: (form.channel || "facebook") as LandingPageChannel,
     template: (form.template || "offer") as LandingPageTemplate,
     headline: form.headline?.trim() || "",
@@ -63,6 +66,7 @@ export default function LandingPageFormPage({ pageId, duplicateFromId }: Landing
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+  const [utmLocked, setUtmLocked] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -95,7 +99,14 @@ export default function LandingPageFormPage({ pageId, duplicateFromId }: Landing
       }
       if (data) {
         const page = data as LandingPage;
-        setForm({ ...page, highlights: asStringList(page.highlights) });
+        const slug = page.slug || "";
+        const generated = autoUtmCampaign(slug, page.channel);
+        setUtmLocked(Boolean(page.utm_campaign && page.utm_campaign !== generated && page.utm_campaign !== slug));
+        setForm({
+          ...page,
+          highlights: asStringList(page.highlights),
+          utm_campaign: page.utm_campaign || generated,
+        });
       }
     }
     load();
@@ -116,6 +127,7 @@ export default function LandingPageFormPage({ pageId, duplicateFromId }: Landing
       }
       if (data) {
         const page = data as LandingPage;
+        setUtmLocked(false);
         setForm({
           ...duplicateLandingCopy(page),
           highlights: asStringList(page.highlights),
@@ -136,16 +148,28 @@ export default function LandingPageFormPage({ pageId, duplicateFromId }: Landing
       if (key === "name" && !isEdit && !current.slug) {
         next.slug = slugify(String(value || ""));
       }
+      if ((key === "name" || key === "slug") && !utmLocked) {
+        const slug = slugify(String(next.slug || next.name || ""));
+        next.utm_campaign = autoUtmCampaign(slug, next.channel);
+      }
+      if (key === "name" && !current.campaign_name) {
+        next.campaign_name = String(value || "");
+      }
       return next;
     });
 
   const fillFromListing = () => {
     if (!selectedProperty) return;
     const filled = copyFromProperty(selectedProperty);
+    setUtmLocked(false);
     setForm((current) => ({
       ...current,
       ...filled,
       channel: current.channel || filled.channel,
+      utm_campaign: autoUtmCampaign(
+        filled.slug || current.slug || "",
+        current.channel || filled.channel
+      ),
     }));
   };
 
@@ -159,7 +183,14 @@ export default function LandingPageFormPage({ pageId, duplicateFromId }: Landing
     setForm((current) => {
       const filled = copyFromProperty(property);
       if (!current.headline) {
-        return { ...current, ...filled, channel: current.channel || filled.channel };
+        return {
+          ...current,
+          ...filled,
+          channel: current.channel || filled.channel,
+          utm_campaign: utmLocked
+            ? current.utm_campaign
+            : autoUtmCampaign(filled.slug || "", current.channel || filled.channel),
+        };
       }
       return {
         ...current,
@@ -200,6 +231,7 @@ export default function LandingPageFormPage({ pageId, duplicateFromId }: Landing
     }
     if (createAnother) {
       setForm(emptyLandingPage);
+      setUtmLocked(false);
       router.replace(adminPath("landing-pages/new"));
       return;
     }
@@ -220,11 +252,15 @@ export default function LandingPageFormPage({ pageId, duplicateFromId }: Landing
   const handleChannelChange = (value: string) => {
     const next = value as LandingPageChannel;
     const config = channelConfig(next);
-    setForm((current) => ({
-      ...current,
-      channel: next,
-      pixel_enabled: config.usesPixel,
-    }));
+    setForm((current) => {
+      const slug = slugify(current.slug || current.name || "");
+      return {
+        ...current,
+        channel: next,
+        pixel_enabled: config.usesPixel,
+        utm_campaign: utmLocked ? current.utm_campaign : autoUtmCampaign(slug, next),
+      };
+    });
   };
 
   const propertyOptions = [
@@ -272,13 +308,47 @@ export default function LandingPageFormPage({ pageId, duplicateFromId }: Landing
               label="Campaign name"
               value={form.campaign_name || ""}
               onChange={(e) => update("campaign_name", e.target.value)}
+              hint="Internal label for this ad set"
             />
             <AdminInput
               label="UTM campaign"
               value={form.utm_campaign || ""}
-              onChange={(e) => update("utm_campaign", e.target.value)}
-              hint="Added to the destination URL so you can tell campaigns apart"
+              onChange={(e) => {
+                setUtmLocked(true);
+                update("utm_campaign", slugify(e.target.value));
+              }}
+              hint="Filled automatically from the slug and channel. Edit only if you need a custom tag."
             />
+            {campaignUrl ? (
+              <div className="rounded-xl border border-primary-100 bg-primary-50/60 p-4">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <p className="text-sm font-semibold text-dark-800">Generated campaign URL</p>
+                  <AdminButton variant="outline" size="sm" onClick={copyCampaignUrl}>
+                    <Copy size={14} />
+                    {copied ? "Copied" : "Copy URL"}
+                  </AdminButton>
+                </div>
+                <p className="break-all font-mono text-xs text-dark-700">{campaignUrl}</p>
+                <dl className="mt-3 grid gap-1 text-[11px] text-dark-600 sm:grid-cols-3">
+                  <div>
+                    <dt className="font-semibold text-dark-800">utm_source</dt>
+                    <dd>{channelConfig(form.channel).utmSource}</dd>
+                  </div>
+                  <div>
+                    <dt className="font-semibold text-dark-800">utm_medium</dt>
+                    <dd>{channelConfig(form.channel).utmMedium}</dd>
+                  </div>
+                  <div>
+                    <dt className="font-semibold text-dark-800">utm_campaign</dt>
+                    <dd>{form.utm_campaign || autoUtmCampaign(form.slug || "", form.channel)}</dd>
+                  </div>
+                </dl>
+              </div>
+            ) : (
+              <p className="text-xs text-dark-500">
+                Add a name or slug and pick a channel — the Facebook / Google UTM URL appears here automatically.
+              </p>
+            )}
             <AdminSelect
               label="Linked land listing"
               options={propertyOptions}
@@ -465,16 +535,18 @@ export default function LandingPageFormPage({ pageId, duplicateFromId }: Landing
             <AdminButton variant="outline" onClick={() => router.push(adminPath("landing-pages"))}>
               Cancel
             </AdminButton>
-            {form.published && campaignUrl ? (
+            {campaignUrl ? (
               <>
                 <AdminButton variant="outline" onClick={copyCampaignUrl}>
                   {copied ? "Copied" : "Copy campaign URL"}
                 </AdminButton>
-                <a href={campaignUrl} target="_blank" rel="noopener noreferrer">
-                  <AdminButton variant="outline">
-                    <ExternalLink size={16} /> Open live page
-                  </AdminButton>
-                </a>
+                {form.published ? (
+                  <a href={campaignUrl} target="_blank" rel="noopener noreferrer">
+                    <AdminButton variant="outline">
+                      <ExternalLink size={16} /> Open live page
+                    </AdminButton>
+                  </a>
+                ) : null}
               </>
             ) : null}
           </div>

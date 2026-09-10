@@ -598,7 +598,7 @@ CREATE TABLE IF NOT EXISTS landing_pages (
   id SERIAL PRIMARY KEY,
   slug TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
-  property_id INT REFERENCES properties(id) ON DELETE SET NULL,
+  property_id INT,
   campaign_name TEXT,
   utm_campaign TEXT,
   channel TEXT NOT NULL DEFAULT 'facebook'

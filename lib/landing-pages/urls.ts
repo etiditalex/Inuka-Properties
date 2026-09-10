@@ -1,4 +1,5 @@
 import type { LandingPage, LandingPageChannel } from "@/lib/supabase/types";
+import { slugify } from "@/lib/admin/utils";
 import { SITE_ORIGIN } from "@/lib/site";
 import { landingPagePath } from "./path";
 
@@ -72,6 +73,34 @@ export function channelConfig(channel?: string | null) {
   return LANDING_PAGE_CHANNELS.find((item) => item.value === channel) || LANDING_PAGE_CHANNELS[0];
 }
 
+const CHANNEL_UTM_SUFFIX: Record<LandingPageChannel, string> = {
+  facebook: "fb",
+  instagram: "ig",
+  google: "google",
+  tiktok: "tiktok",
+  whatsapp: "wa",
+  email: "email",
+  other: "lp",
+};
+
+/** Builds utm_campaign from the page slug + channel, e.g. tulivu-haven-fb */
+export function autoUtmCampaign(slug: string, channel?: string | null): string {
+  const config = channelConfig(channel);
+  const suffix = CHANNEL_UTM_SUFFIX[config.value];
+  let base = slugify(slug);
+  if (!base) return "";
+
+  const suffixes = Object.values(CHANNEL_UTM_SUFFIX).sort((a, b) => b.length - a.length);
+  for (const item of suffixes) {
+    if (base.endsWith(`-${item}`)) {
+      base = base.slice(0, -(item.length + 1));
+      break;
+    }
+  }
+
+  return base ? `${base}-${suffix}` : suffix;
+}
+
 export function landingPageAbsoluteUrl(slug: string): string {
   return `${SITE_ORIGIN}${landingPagePath(slug)}`;
 }
@@ -82,10 +111,11 @@ export function campaignLandingUrl(
   channel?: string | null
 ): string {
   const config = channelConfig(channel);
+  const campaign = utmCampaign?.trim() || autoUtmCampaign(slug, channel) || slug;
   const params = new URLSearchParams({
     utm_source: config.utmSource,
     utm_medium: config.utmMedium,
-    utm_campaign: utmCampaign?.trim() || slug,
+    utm_campaign: campaign,
   });
   return `${landingPageAbsoluteUrl(slug)}?${params.toString()}`;
 }
@@ -102,7 +132,7 @@ export function duplicateLandingCopy(page: LandingPage): Partial<LandingPage> {
     slug: `${page.slug}-copy-${stamp}`,
     property_id: page.property_id,
     campaign_name: page.campaign_name,
-    utm_campaign: page.utm_campaign,
+    utm_campaign: autoUtmCampaign(`${page.slug}-copy-${stamp}`, page.channel || "facebook"),
     channel: page.channel || "facebook",
     template: page.template,
     headline: page.headline,

@@ -1,5 +1,6 @@
 import { slugify } from "@/lib/admin/utils";
 import type { LandingPage, LandingPageChannel, LandingPageTemplate, Property } from "@/lib/supabase/types";
+import { autoUtmCampaign } from "@/lib/landing-pages/urls";
 
 export const LANDING_PAGE_TEMPLATES: { value: LandingPageTemplate; label: string; hint: string }[] =
   [
@@ -92,15 +93,16 @@ export function copyFromProperty(property: Property): Partial<LandingPage> {
     Array.isArray(property.features) && property.features.length > 0
       ? property.features.slice(0, 6)
       : DEFAULT_LANDING_HIGHLIGHTS;
-  const slug = slugify(`${property.title}-fb`);
+  const slug = slugify(property.title);
+  const channel: LandingPageChannel = "facebook";
 
   return {
     name: `${property.title} — Facebook Ad`,
     slug,
     property_id: property.id,
     campaign_name: property.title,
-    utm_campaign: slug,
-    channel: "facebook",
+    utm_campaign: autoUtmCampaign(slug, channel),
+    channel,
     headline: property.h1 || property.title,
     subheadline: `Secure your plot in ${property.location}. Flexible payment plan. Title deed processing included.`,
     badge_text:
