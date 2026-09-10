@@ -18,7 +18,7 @@ import {
   emptyLandingPage,
   LANDING_PAGE_TEMPLATES,
 } from "@/lib/landing-pages/defaults";
-import { autoUtmCampaign, campaignLandingUrl, channelConfig, duplicateLandingCopy, LANDING_PAGE_CHANNELS } from "@/lib/landing-pages/urls";
+import { LANDING_PAGES_SETUP_MESSAGE, isMissingLandingPagesTable } from "@/lib/landing-pages/setup";
 
 type LandingPageFormProps = { pageId?: number; duplicateFromId?: number };
 
@@ -226,7 +226,11 @@ export default function LandingPageFormPage({ pageId, duplicateFromId }: Landing
 
     setSaving(false);
     if (saveError) {
-      setError(saveError.message);
+      setError(
+        isMissingLandingPagesTable(saveError)
+          ? LANDING_PAGES_SETUP_MESSAGE
+          : saveError.message
+      );
       return;
     }
     if (createAnother) {

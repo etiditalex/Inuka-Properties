@@ -19,8 +19,7 @@ import { adminPath } from "@/lib/admin/path";
 import { formatAdminDate } from "@/lib/admin/utils";
 import { campaignLandingUrl, channelConfig } from "@/lib/landing-pages/urls";
 import { LANDING_PAGE_TEMPLATES } from "@/lib/landing-pages/defaults";
-
-const SETUP_SQL = `Run supabase/migrations/landing_pages.sql in the Supabase SQL Editor, then refresh this page.`;
+import { LANDING_PAGES_SETUP_MESSAGE, isMissingLandingPagesTable } from "@/lib/landing-pages/setup";
 
 function templateLabel(value: string) {
   return LANDING_PAGE_TEMPLATES.find((item) => item.value === value)?.label || value;
@@ -41,11 +40,7 @@ export default function AdminLandingPagesPage() {
       .order("created_at", { ascending: false });
 
     if (error) {
-      const missing =
-        error.message.toLowerCase().includes("landing_pages") ||
-        error.code === "42P01" ||
-        error.code === "PGRST205";
-      setMissingTable(missing);
+      setMissingTable(isMissingLandingPagesTable(error));
       setPages([]);
       setLoading(false);
       return;
@@ -107,7 +102,7 @@ export default function AdminLandingPagesPage() {
       {missingTable ? (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900">
           <p className="font-semibold">Database table not found</p>
-          <p className="mt-2">{SETUP_SQL}</p>
+          <p className="mt-2">{LANDING_PAGES_SETUP_MESSAGE}</p>
         </div>
       ) : loading ? (
         <div className="flex h-48 items-center justify-center">

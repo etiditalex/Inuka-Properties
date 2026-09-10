@@ -93,3 +93,9 @@ BEGIN
     END;
   END IF;
 END $$;
+
+GRANT SELECT ON landing_pages TO anon, authenticated;
+GRANT INSERT, UPDATE, DELETE ON landing_pages TO authenticated;
+GRANT USAGE, SELECT ON SEQUENCE landing_pages_id_seq TO authenticated, anon;
+
+NOTIFY pgrst, 'reload schema';
