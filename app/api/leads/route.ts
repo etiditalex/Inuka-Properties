@@ -1,18 +1,22 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { runLeadAutomation } from "@/lib/email/automation";
 import { runLeadSmsAutomation } from "@/lib/sms/automation";
 import { buildLeadEnrichment, findExistingPropertyLead, isAutoCaptureMessage } from "@/lib/leads/dedupe";
 import type { LeadAutomationInput } from "@/lib/email/automation";
 
-function getServiceClient() {
+function getServiceClient(): SupabaseClient | null {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return null;
   return createClient(url, key);
 }
 
-async function runAutomationsSafely(supabase: ReturnType<typeof createClient>, input: LeadAutomationInput, notifyAdmin = true) {
+async function runAutomationsSafely(
+  supabase: SupabaseClient,
+  input: LeadAutomationInput,
+  notifyAdmin = true
+) {
   const options = { notifyAdmin };
   const emptyEmail = { clientEmailSent: false, adminEmailSent: false, whatsAppAlertSent: false };
   const emptySms = { propertySmsSent: false, adminSmsSent: false };
