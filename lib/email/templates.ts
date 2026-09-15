@@ -11,17 +11,118 @@ function escapeHtml(text: string): string {
     .replace(/"/g, "&quot;");
 }
 
+function asRecord(value: unknown): Record<string, string> {
+  if (!value) return {};
+  if (typeof value === "object" && !Array.isArray(value)) {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .filter(([, item]) => item != null && String(item).trim())
+        .map(([key, item]) => [key, String(item).trim()])
+    );
+  }
+  return {};
+}
+
+function recordRowsHtml(record: Record<string, string>): string {
+  return Object.entries(record)
+    .map(
+      ([label, value]) =>
+        `<tr>
+          <td style="padding:10px 12px;font-weight:600;color:#0369a1;border-bottom:1px solid #e5e7eb;width:42%;vertical-align:top">${escapeHtml(label)}</td>
+          <td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;color:#111827">${escapeHtml(value)}</td>
+        </tr>`
+    )
+    .join("");
+}
+
+function sectionTable(title: string, record: Record<string, string>, accent = false): string {
+  const rows = recordRowsHtml(record);
+  if (!rows) return "";
+  const wrapStyle = accent
+    ? "margin:20px 0;padding:16px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px"
+    : "margin:20px 0";
+  return `
+    <div style="${wrapStyle}">
+      <h3 style="font-size:16px;color:#0c4a6e;margin:0 0 10px">${escapeHtml(title)}</h3>
+      <table style="width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden">${rows}</table>
+    </div>
+  `;
+}
+
+function paymentPlanHtml(
+  paymentPlan: Property["payment_plan"],
+  extraNote?: string | null
+): string {
+  const record = asRecord(paymentPlan);
+  const note =
+    extraNote?.trim() ||
+    (typeof paymentPlan === "string" && paymentPlan.trim() ? paymentPlan.trim() : "");
+
+  if (!Object.keys(record).length && !note) return "";
+
+  const table = Object.keys(record).length
+    ? `<table style="width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden">${recordRowsHtml(record)}</table>`
+    : "";
+  const noteBlock = note
+    ? `<p style="margin:${table ? "12px 0 0" : "0"};font-size:14px;line-height:1.7;color:#374151;white-space:pre-line">${escapeHtml(note)}</p>`
+    : "";
+
+  return `
+    <div style="margin:20px 0;padding:16px;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px">
+      <h3 style="font-size:16px;color:#065f46;margin:0 0 10px">Payment Plan</h3>
+      ${table}
+      ${noteBlock}
+    </div>
+  `;
+}
+
+function featuresHtml(features: string[] | null | undefined): string {
+  const items = (features || []).map((item) => String(item).trim()).filter(Boolean);
+  if (!items.length) return "";
+  return `
+    <div style="margin:20px 0">
+      <h3 style="font-size:16px;color:#0c4a6e;margin:0 0 10px">Project Features</h3>
+      <ul style="margin:0;padding:0 0 0 18px;color:#374151;font-size:14px;line-height:1.7">
+        ${items.map((item) => `<li style="margin:0 0 6px">${escapeHtml(item)}</li>`).join("")}
+      </ul>
+    </div>
+  `;
+}
+
+function availabilityHtml(property: Property): string {
+  const remaining =
+    property.total_units && property.total_units > 0
+      ? Math.max(0, property.total_units - (property.sold_units || 0))
+      : null;
+  const statusLabel =
+    property.status === "sold"
+      ? "Sold"
+      : property.status === "ongoing"
+        ? "Ongoing project"
+        : "Available";
+  const remainingLabel =
+    remaining == null ? "" : remaining > 0 ? `${remaining} plot${remaining === 1 ? "" : "s"} remaining` : "Sold out";
+
+  return `<p style="margin:4px 0;color:#4b5563"><strong>Availability:</strong> ${escapeHtml(
+    [statusLabel, remainingLabel].filter(Boolean).join(" · ")
+  )}</p>`;
+}
+
 export function buildPropertyDetailsEmail(params: {
   leadName: string;
-  property: Pick<Property, "id" | "title" | "location" | "price" | "size" | "description" | "image">;
+  property: Property;
+  paymentPlanNote?: string | null;
 }): { subject: string; html: string } {
-  const { leadName, property } = params;
+  const { leadName, property, paymentPlanNote } = params;
   const propertyUrl = `${siteUrl()}/for-sale/${property.id}`;
   const description = property.description
-    ? escapeHtml(property.description.slice(0, 600)) + (property.description.length > 600 ? "…" : "")
+    ? escapeHtml(property.description.length > 1800 ? `${property.description.slice(0, 1800)}…` : property.description)
     : "Contact us for full project details and to book a site visit.";
+  const typeLabel = property.type
+    ? property.type.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase())
+    : "";
 
-  const subject = `Property Details: ${property.title} — Inuka Afrika Properties`;
+  const subject = `Property Details & Payment Plan: ${property.title} — Inuka Afrika Properties`;
 
   const html = `
     <div style="font-family:Inter,Arial,sans-serif;max-width:640px;margin:0 auto;color:#111827">
@@ -32,14 +133,20 @@ export function buildPropertyDetailsEmail(params: {
       <div style="background:#fff;padding:24px;border:1px solid #e5e7eb;border-top:none">
         <p style="font-size:16px;line-height:1.6">Dear ${escapeHtml(leadName)},</p>
         <p style="font-size:15px;line-height:1.6;color:#374151">
-          Thank you for your interest. Here are the details for the project you enquired about:
+          Thank you for your interest. Here are the full details, pricing, and payment plan for the project you enquired about:
         </p>
         ${property.image ? `<img src="${escapeHtml(property.image)}" alt="${escapeHtml(property.title)}" style="width:100%;max-height:280px;object-fit:cover;border-radius:10px;margin:16px 0" />` : ""}
         <h2 style="font-size:20px;color:#0369a1;margin:20px 0 8px">${escapeHtml(property.title)}</h2>
         <p style="margin:4px 0;color:#4b5563"><strong>Location:</strong> ${escapeHtml(property.location)}</p>
+        ${typeLabel ? `<p style="margin:4px 0;color:#4b5563"><strong>Type:</strong> ${escapeHtml(typeLabel)}</p>` : ""}
         <p style="margin:4px 0;color:#4b5563"><strong>Price:</strong> ${escapeHtml(property.price)}</p>
         <p style="margin:4px 0;color:#4b5563"><strong>Size:</strong> ${escapeHtml(property.size)}</p>
+        ${availabilityHtml(property)}
         <p style="margin:16px 0;font-size:14px;line-height:1.7;color:#374151;white-space:pre-line">${description}</p>
+        ${sectionTable("Plot Pricing", asRecord(property.pricing))}
+        ${paymentPlanHtml(property.payment_plan, paymentPlanNote)}
+        ${sectionTable("Quick Information", asRecord(property.quick_info))}
+        ${featuresHtml(property.features)}
         <a href="${propertyUrl}" style="display:inline-block;background:#0284c7;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;margin:8px 8px 8px 0">View Full Listing</a>
         <a href="https://wa.me/254711082084?text=${encodeURIComponent(`Hi, I enquired about ${property.title}. I would like to book a site visit.`)}" style="display:inline-block;background:#16a34a;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;margin:8px 0">Chat on WhatsApp</a>
         <p style="margin-top:24px;font-size:13px;color:#6b7280">

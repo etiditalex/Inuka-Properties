@@ -7,7 +7,7 @@ import {
   type SmsAutomationSettings,
 } from "@/lib/sms/settings";
 import { buildAdminAlertSms, buildPropertyDetailsSms } from "@/lib/sms/templates";
-import type { LeadAutomationInput } from "@/lib/email/automation";
+import type { LeadAutomationInput, LeadAutomationOptions } from "@/lib/email/automation";
 import { getEmailAutomationSettings } from "@/lib/email/automation";
 
 export type { SmsAutomationSettings };
@@ -34,7 +34,12 @@ async function resolvePropertyForSms(
   source?: string | null
 ): Promise<Property | null> {
   if (propertyId) {
-    const { data } = await supabase.from("properties").select("*").eq("id", propertyId).single();
+    const { data } = await supabase
+      .from("properties")
+      .select("*")
+      .eq("id", propertyId)
+      .eq("published", true)
+      .maybeSingle();
     if (data) return data as Property;
   }
 
@@ -52,7 +57,12 @@ async function resolvePropertyForSms(
   if (source === "facebook_ad") {
     const fallbackId = settings.default_property_id ?? settings.facebook_landing_property_id;
     if (fallbackId) {
-      const { data } = await supabase.from("properties").select("*").eq("id", fallbackId).single();
+      const { data } = await supabase
+        .from("properties")
+        .select("*")
+        .eq("id", fallbackId)
+        .eq("published", true)
+        .maybeSingle();
       if (data) return data as Property;
     }
   }
@@ -93,7 +103,8 @@ async function logSms(
 
 export async function runLeadSmsAutomation(
   supabase: SupabaseClient,
-  input: LeadAutomationInput
+  input: LeadAutomationInput,
+  options?: LeadAutomationOptions
 ): Promise<{ propertySmsSent: boolean; adminSmsSent: boolean }> {
   const settings = await getSmsAutomationSettings(supabase);
   const emailSettings = await getEmailAutomationSettings(supabase);
@@ -137,7 +148,7 @@ export async function runLeadSmsAutomation(
     });
   }
 
-  if (settings.notify_admin_sms && settings.admin_sms_number) {
+  if (settings.notify_admin_sms && settings.admin_sms_number && options?.notifyAdmin !== false) {
     const message = buildAdminAlertSms({
       template: settings.admin_template,
       type: input.leadType,

@@ -5,9 +5,12 @@ import {
   buildInquiryAcknowledgmentEmail,
   buildPropertyDetailsEmail,
 } from "@/lib/email/templates";
+import { isPlaceholderLeadEmail } from "@/lib/leads/dedupe";
+import { getStaticPropertyDetail } from "@/lib/properties/getProperties";
 import { sendSms } from "@/lib/sms/provider";
 import { WHATSAPP_NUMBER } from "@/lib/whatsapp";
 import { SILENT_WHATSAPP_LEAD_NUMBERS } from "@/lib/whatsapp-internal";
+import type { PropertyDetail } from "@/lib/properties/mapProperty";
 
 export type EmailAutomationSettings = {
   auto_send_property_details: boolean;
@@ -34,6 +37,12 @@ const PROPERTY_EMAIL_SOURCES = new Set([
   "homepage_email_widget",
   "homepage_sms_widget",
   "get_property_details",
+  "instagram_ad",
+  "google_ad",
+  "tiktok_ad",
+  "whatsapp_campaign",
+  "email_campaign",
+  "landing_page",
 ]);
 
 export type LeadAutomationInput = {
@@ -49,7 +58,58 @@ export type LeadAutomationInput = {
   preferredTime?: string | null;
   subject?: string | null;
   source?: string | null;
+  landingPageId?: number | null;
 };
+
+export type LeadAutomationOptions = {
+  notifyAdmin?: boolean;
+};
+
+const UNSENDABLE_CLIENT_EMAILS = new Set([
+  "chatbot@inukaproperties.co.ke",
+]);
+
+export function isSendableClientEmail(email: string | null | undefined): boolean {
+  const normalized = (email || "").trim().toLowerCase();
+  if (!normalized || !normalized.includes("@")) return false;
+  if (isPlaceholderLeadEmail(normalized)) return false;
+  if (UNSENDABLE_CLIENT_EMAILS.has(normalized)) return false;
+  return true;
+}
+
+function isListedOnWebsite(property: Pick<Property, "published"> | null | undefined): boolean {
+  return property?.published === true;
+}
+
+function propertyFromStaticDetail(detail: PropertyDetail): Property {
+  return {
+    id: detail.id,
+    title: detail.title,
+    location: detail.location,
+    type: detail.type,
+    price: detail.price,
+    price_amount: null,
+    size: detail.size,
+    bedrooms: detail.bedrooms ?? null,
+    image: detail.image,
+    gallery: detail.gallery ?? [],
+    status: (detail.status as Property["status"]) || "available",
+    featured: false,
+    features: detail.features ?? [],
+    description: detail.description ?? null,
+    h1: detail.h1 ?? null,
+    map_link: detail.mapLink ?? null,
+    pricing: detail.pricing ?? {},
+    payment_plan: detail.paymentPlan ?? null,
+    quick_info: detail.quickInfo ?? {},
+    total_units: 0,
+    sold_units: 0,
+    auto_sold_out: false,
+    published: true,
+    created_at: "",
+    updated_at: "",
+  };
+}
 
 function getEmailConfig() {
   return {
@@ -72,6 +132,19 @@ export async function getEmailAutomationSettings(
   return { ...DEFAULT_EMAIL_AUTOMATION, ...(data.value as EmailAutomationSettings) };
 }
 
+async function fetchListedProperty(
+  supabase: SupabaseClient,
+  propertyId: number
+): Promise<Property | null> {
+  const { data } = await supabase.from("properties").select("*").eq("id", propertyId).maybeSingle();
+  if (data) {
+    return isListedOnWebsite(data as Property) ? (data as Property) : null;
+  }
+
+  const staticDetail = getStaticPropertyDetail(propertyId);
+  return staticDetail ? propertyFromStaticDetail(staticDetail) : null;
+}
+
 async function resolveProperty(
   supabase: SupabaseClient,
   propertyId: number | null | undefined,
@@ -80,8 +153,8 @@ async function resolveProperty(
   source?: string | null
 ): Promise<Property | null> {
   if (propertyId) {
-    const { data } = await supabase.from("properties").select("*").eq("id", propertyId).single();
-    if (data) return data as Property;
+    const byId = await fetchListedProperty(supabase, propertyId);
+    if (byId) return byId;
   }
 
   if (propertyName) {
@@ -99,8 +172,8 @@ async function resolveProperty(
   if (source && PROPERTY_EMAIL_SOURCES.has(source)) {
     const fallbackId = settings.default_property_id ?? settings.facebook_landing_property_id;
     if (fallbackId) {
-      const { data } = await supabase.from("properties").select("*").eq("id", fallbackId).single();
-      if (data) return data as Property;
+      const fallback = await fetchListedProperty(supabase, fallbackId);
+      if (fallback) return fallback;
     }
     const { data: latest } = await supabase
       .from("properties")
@@ -113,6 +186,20 @@ async function resolveProperty(
   }
 
   return null;
+}
+
+async function resolvePaymentPlanNote(
+  supabase: SupabaseClient,
+  landingPageId?: number | null
+): Promise<string | null> {
+  if (!landingPageId) return null;
+  const { data } = await supabase
+    .from("landing_pages")
+    .select("payment_plan_note")
+    .eq("id", landingPageId)
+    .maybeSingle();
+  const note = data?.payment_plan_note;
+  return typeof note === "string" && note.trim() ? note.trim() : null;
 }
 
 async function sendResendEmail(to: string, subject: string, html: string): Promise<boolean> {
@@ -302,12 +389,16 @@ async function sendClientAutoReply(
   supabase: SupabaseClient,
   settings: EmailAutomationSettings,
   input: LeadAutomationInput,
-  property: Property | null
+  property: Property | null,
+  paymentPlanNote?: string | null
 ): Promise<boolean> {
+  if (!isSendableClientEmail(input.email)) return false;
+
   if (settings.auto_send_property_details && property) {
     const { subject, html } = buildPropertyDetailsEmail({
       leadName: input.name,
       property,
+      paymentPlanNote,
     });
     const ok = await sendResendEmail(input.email, subject, html);
     await logEmail(supabase, {
@@ -390,23 +481,28 @@ async function sendAdminEmailAlert(
 
 export async function runLeadAutomation(
   supabase: SupabaseClient,
-  input: LeadAutomationInput
+  input: LeadAutomationInput,
+  options?: LeadAutomationOptions
 ): Promise<{ clientEmailSent: boolean; adminEmailSent: boolean; whatsAppAlertSent: boolean }> {
+  const notifyAdmin = options?.notifyAdmin !== false;
   const settings = await getEmailAutomationSettings(supabase);
-  const property = await resolveProperty(
-    supabase,
-    input.propertyId,
-    input.propertyName,
-    settings,
-    input.source
-  );
+  const [property, paymentPlanNote] = await Promise.all([
+    resolveProperty(
+      supabase,
+      input.propertyId,
+      input.propertyName,
+      settings,
+      input.source
+    ),
+    resolvePaymentPlanNote(supabase, input.landingPageId),
+  ]);
 
   const propertyTitle = property?.title ?? input.propertyName;
 
   const [clientEmailSent, adminEmailSent, whatsAppAlertSent] = await Promise.all([
-    sendClientAutoReply(supabase, settings, input, property),
-    sendAdminEmailAlert(supabase, settings, input, property),
-    sendAdminWhatsAppAlert(settings, { ...input, propertyTitle }),
+    sendClientAutoReply(supabase, settings, input, property, paymentPlanNote),
+    notifyAdmin ? sendAdminEmailAlert(supabase, settings, input, property) : Promise.resolve(false),
+    notifyAdmin ? sendAdminWhatsAppAlert(settings, { ...input, propertyTitle }) : Promise.resolve(false),
   ]);
 
   return { clientEmailSent, adminEmailSent, whatsAppAlertSent };

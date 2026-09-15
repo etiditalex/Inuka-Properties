@@ -107,7 +107,7 @@ export default function AdminEmailPage() {
                   label="Auto-send property details to leads"
                   checked={settings.auto_send_property_details}
                   onChange={(v) => setSettings((s) => ({ ...s, auto_send_property_details: v }))}
-                  description="Sends project info, price, location, and WhatsApp link when a property is identified"
+                  description="Sends listing details, pricing, payment plan, and WhatsApp link as soon as a published website property is identified"
                 />
                 <AdminToggle
                   label="Auto-reply to general enquiries"

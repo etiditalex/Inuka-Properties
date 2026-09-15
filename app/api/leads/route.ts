@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { runLeadAutomation } from "@/lib/email/automation";
 import { runLeadSmsAutomation } from "@/lib/sms/automation";
-import { buildLeadEnrichment, findExistingPropertyLead } from "@/lib/leads/dedupe";
+import { buildLeadEnrichment, findExistingPropertyLead, isAutoCaptureMessage } from "@/lib/leads/dedupe";
 
 function getServiceClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -55,7 +55,37 @@ export async function POST(request: Request) {
         await supabase.from("property_leads").update(enrichment).eq("id", existing.id);
       }
 
-      return NextResponse.json({ success: true, duplicate: true, id: existing.id });
+      // Repeat form submissions still get the property-details email immediately.
+      // Silent auto-capture visits should not re-mail the client.
+      if (isAutoCaptureMessage(message)) {
+        return NextResponse.json({ success: true, duplicate: true, id: existing.id });
+      }
+
+      const repeatInput = {
+        leadType: "lead" as const,
+        leadId: existing.id,
+        name,
+        email,
+        phone,
+        propertyId: property_id || existing.property_id || null,
+        propertyName: property_name || existing.property_name || null,
+        message,
+        preferredDate: preferred_date,
+        preferredTime: preferred_time,
+        source: source || "site_visit",
+        landingPageId: landing_page_id || existing.landing_page_id || null,
+      };
+
+      const automation = await runLeadAutomation(supabase, repeatInput, { notifyAdmin: false });
+      const smsAutomation = await runLeadSmsAutomation(supabase, repeatInput, { notifyAdmin: false });
+
+      return NextResponse.json({
+        success: true,
+        duplicate: true,
+        id: existing.id,
+        automation,
+        smsAutomation,
+      });
     }
 
     const { data: inserted, error } = await supabase
@@ -79,8 +109,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    const automation = await runLeadAutomation(supabase, {
-      leadType: "lead",
+    const automationInput = {
+      leadType: "lead" as const,
       leadId: inserted?.id,
       name,
       email,
@@ -91,21 +121,11 @@ export async function POST(request: Request) {
       preferredDate: preferred_date,
       preferredTime: preferred_time,
       source: source || "site_visit",
-    });
+      landingPageId: landing_page_id || null,
+    };
 
-    const smsAutomation = await runLeadSmsAutomation(supabase, {
-      leadType: "lead",
-      leadId: inserted?.id,
-      name,
-      email,
-      phone,
-      propertyId: property_id || null,
-      propertyName: property_name || null,
-      message,
-      preferredDate: preferred_date,
-      preferredTime: preferred_time,
-      source: source || "site_visit",
-    });
+    const automation = await runLeadAutomation(supabase, automationInput);
+    const smsAutomation = await runLeadSmsAutomation(supabase, automationInput);
 
     return NextResponse.json({ success: true, automation, smsAutomation });
   } catch {

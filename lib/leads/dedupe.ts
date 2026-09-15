@@ -170,7 +170,7 @@ type IncomingLead = {
   landing_page_id?: number | null;
 };
 
-function isAutoCaptureMessage(message: string | null | undefined): boolean {
+export function isAutoCaptureMessage(message: string | null | undefined): boolean {
   return (message || "").trim().toLowerCase().startsWith("auto-captured");
 }
 
