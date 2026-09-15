@@ -380,17 +380,22 @@ export async function sendSms(
   const { provider, senderId: defaultSender } = getSmsConfig();
   const from = senderId || defaultSender;
 
-  switch (provider) {
-    case "celcom":
-      return sendViaCelcom(to, message, from);
-    case "generic":
-    case "bulk":
-      return sendViaGenericApi(to, message, from);
-    case "africas_talking":
-      return sendViaAfricasTalking(to, message, from);
-    case "okaysms":
-    default:
-      return sendViaOkaySms(to, message, from);
+  try {
+    switch (provider) {
+      case "celcom":
+        return await sendViaCelcom(to, message, from);
+      case "generic":
+      case "bulk":
+        return await sendViaGenericApi(to, message, from);
+      case "africas_talking":
+        return await sendViaAfricasTalking(to, message, from);
+      case "okaysms":
+      default:
+        return await sendViaOkaySms(to, message, from);
+    }
+  } catch (error) {
+    console.error("[sms] send failed", error);
+    return { ok: false, error: error instanceof Error ? error.message : "SMS send failed" };
   }
 }
 

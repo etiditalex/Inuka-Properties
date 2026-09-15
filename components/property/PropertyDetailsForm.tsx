@@ -95,9 +95,9 @@ function PropertyDetailsFormInner({
           landing_page_id: landingPageId || null,
         }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || "Could not submit. Please try again.");
+        setError(typeof data.error === "string" ? data.error : "Could not submit. Please try again.");
         return;
       }
 

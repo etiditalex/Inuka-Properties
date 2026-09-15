@@ -3,8 +3,8 @@ import { adminPath } from "@/lib/admin/path";
 
 const siteUrl = () => process.env.NEXT_PUBLIC_SITE_URL || "https://www.inukaproperties.co.ke";
 
-function escapeHtml(text: string): string {
-  return text
+function escapeHtml(text: unknown): string {
+  return String(text ?? "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
@@ -76,8 +76,12 @@ function paymentPlanHtml(
   `;
 }
 
-function featuresHtml(features: string[] | null | undefined): string {
-  const items = (features || []).map((item) => String(item).trim()).filter(Boolean);
+function featuresHtml(features: unknown): string {
+  const items = Array.isArray(features)
+    ? features.map((item) => String(item).trim()).filter(Boolean)
+    : typeof features === "string"
+      ? features.split("\n").map((item) => item.trim()).filter(Boolean)
+      : [];
   if (!items.length) return "";
   return `
     <div style="margin:20px 0">
@@ -115,12 +119,15 @@ export function buildPropertyDetailsEmail(params: {
 }): { subject: string; html: string } {
   const { leadName, property, paymentPlanNote } = params;
   const propertyUrl = `${siteUrl()}/for-sale/${property.id}`;
-  const description = property.description
-    ? escapeHtml(property.description.length > 1800 ? `${property.description.slice(0, 1800)}…` : property.description)
+  const rawDescription = typeof property.description === "string" ? property.description : "";
+  const description = rawDescription
+    ? escapeHtml(rawDescription.length > 1800 ? `${rawDescription.slice(0, 1800)}…` : rawDescription)
     : "Contact us for full project details and to book a site visit.";
-  const typeLabel = property.type
-    ? property.type.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase())
-    : "";
+  const imageUrl = typeof property.image === "string" ? property.image : "";
+  const typeLabel =
+    typeof property.type === "string" && property.type
+      ? property.type.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase())
+      : "";
 
   const subject = `Property Details & Payment Plan: ${property.title} — Inuka Afrika Properties`;
 
@@ -135,7 +142,7 @@ export function buildPropertyDetailsEmail(params: {
         <p style="font-size:15px;line-height:1.6;color:#374151">
           Thank you for your interest. Here are the full details, pricing, and payment plan for the project you enquired about:
         </p>
-        ${property.image ? `<img src="${escapeHtml(property.image)}" alt="${escapeHtml(property.title)}" style="width:100%;max-height:280px;object-fit:cover;border-radius:10px;margin:16px 0" />` : ""}
+        ${imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(property.title)}" style="width:100%;max-height:280px;object-fit:cover;border-radius:10px;margin:16px 0" />` : ""}
         <h2 style="font-size:20px;color:#0369a1;margin:20px 0 8px">${escapeHtml(property.title)}</h2>
         <p style="margin:4px 0;color:#4b5563"><strong>Location:</strong> ${escapeHtml(property.location)}</p>
         ${typeLabel ? `<p style="margin:4px 0;color:#4b5563"><strong>Type:</strong> ${escapeHtml(typeLabel)}</p>` : ""}

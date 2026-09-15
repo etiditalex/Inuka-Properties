@@ -212,24 +212,27 @@ async function sendResendEmail(to: string, subject: string, html: string): Promi
     return false;
   }
 
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${resendApiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ from: fromEmail, to: [to], subject, html }),
-  });
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${resendApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ from: fromEmail, to: [to], subject, html }),
+    });
 
-  if (!res.ok) {
-    const errBody = await res.text().catch(() => "");
-    if (process.env.NODE_ENV === "development") {
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => "");
       console.error("[email] Resend failed:", res.status, errBody);
+      return false;
     }
+
+    return true;
+  } catch (error) {
+    console.error("[email] Resend request failed", error);
     return false;
   }
-
-  return true;
 }
 
 async function logEmail(
@@ -246,17 +249,21 @@ async function logEmail(
     errorMessage?: string;
   }
 ) {
-  await supabase.from("email_automation_log").insert({
-    lead_type: entry.leadType,
-    lead_id: entry.leadId ?? null,
-    recipient_email: entry.recipientEmail,
-    recipient_name: entry.recipientName ?? null,
-    property_id: entry.propertyId ?? null,
-    property_title: entry.propertyTitle ?? null,
-    email_type: entry.emailType,
-    status: entry.status,
-    error_message: entry.errorMessage ?? null,
-  });
+  try {
+    await supabase.from("email_automation_log").insert({
+      lead_type: entry.leadType,
+      lead_id: entry.leadId ?? null,
+      recipient_email: entry.recipientEmail,
+      recipient_name: entry.recipientName ?? null,
+      property_id: entry.propertyId ?? null,
+      property_title: entry.propertyTitle ?? null,
+      email_type: entry.emailType,
+      status: entry.status,
+      error_message: entry.errorMessage ?? null,
+    });
+  } catch (error) {
+    console.error("[email] failed to write automation log", error);
+  }
 }
 
 function formatPhoneForWhatsApp(phone: string): string {
@@ -392,13 +399,37 @@ async function sendClientAutoReply(
   property: Property | null,
   paymentPlanNote?: string | null
 ): Promise<boolean> {
-  if (!isSendableClientEmail(input.email)) return false;
+  try {
+    if (!isSendableClientEmail(input.email)) return false;
 
-  if (settings.auto_send_property_details && property) {
-    const { subject, html } = buildPropertyDetailsEmail({
+    if (settings.auto_send_property_details && property) {
+      const { subject, html } = buildPropertyDetailsEmail({
+        leadName: input.name,
+        property,
+        paymentPlanNote,
+      });
+      const ok = await sendResendEmail(input.email, subject, html);
+      await logEmail(supabase, {
+        leadType: input.leadType,
+        leadId: input.leadId,
+        recipientEmail: input.email,
+        recipientName: input.name,
+        propertyId: property.id,
+        propertyTitle: property.title,
+        emailType: "property_details",
+        status: ok ? "sent" : "failed",
+        errorMessage: ok ? undefined : "Resend send failed",
+      });
+      return ok;
+    }
+
+    if (!settings.auto_send_inquiry_acknowledgment) return false;
+
+    const { subject, html } = buildInquiryAcknowledgmentEmail({
       leadName: input.name,
-      property,
-      paymentPlanNote,
+      propertyTitle: property?.title ?? input.propertyName,
+      message: input.message,
+      subject: input.subject,
     });
     const ok = await sendResendEmail(input.email, subject, html);
     await logEmail(supabase, {
@@ -406,36 +437,17 @@ async function sendClientAutoReply(
       leadId: input.leadId,
       recipientEmail: input.email,
       recipientName: input.name,
-      propertyId: property.id,
-      propertyTitle: property.title,
+      propertyId: property?.id ?? input.propertyId,
+      propertyTitle: property?.title ?? input.propertyName,
       emailType: "property_details",
       status: ok ? "sent" : "failed",
       errorMessage: ok ? undefined : "Resend send failed",
     });
     return ok;
+  } catch (error) {
+    console.error("[email] client auto-reply failed", error);
+    return false;
   }
-
-  if (!settings.auto_send_inquiry_acknowledgment) return false;
-
-  const { subject, html } = buildInquiryAcknowledgmentEmail({
-    leadName: input.name,
-    propertyTitle: property?.title ?? input.propertyName,
-    message: input.message,
-    subject: input.subject,
-  });
-  const ok = await sendResendEmail(input.email, subject, html);
-  await logEmail(supabase, {
-    leadType: input.leadType,
-    leadId: input.leadId,
-    recipientEmail: input.email,
-    recipientName: input.name,
-    propertyId: property?.id ?? input.propertyId,
-    propertyTitle: property?.title ?? input.propertyName,
-    emailType: "property_details",
-    status: ok ? "sent" : "failed",
-    errorMessage: ok ? undefined : "Resend send failed",
-  });
-  return ok;
 }
 
 async function sendAdminEmailAlert(
@@ -484,26 +496,31 @@ export async function runLeadAutomation(
   input: LeadAutomationInput,
   options?: LeadAutomationOptions
 ): Promise<{ clientEmailSent: boolean; adminEmailSent: boolean; whatsAppAlertSent: boolean }> {
-  const notifyAdmin = options?.notifyAdmin !== false;
-  const settings = await getEmailAutomationSettings(supabase);
-  const [property, paymentPlanNote] = await Promise.all([
-    resolveProperty(
-      supabase,
-      input.propertyId,
-      input.propertyName,
-      settings,
-      input.source
-    ),
-    resolvePaymentPlanNote(supabase, input.landingPageId),
-  ]);
+  try {
+    const notifyAdmin = options?.notifyAdmin !== false;
+    const settings = await getEmailAutomationSettings(supabase);
+    const [property, paymentPlanNote] = await Promise.all([
+      resolveProperty(
+        supabase,
+        input.propertyId,
+        input.propertyName,
+        settings,
+        input.source
+      ),
+      resolvePaymentPlanNote(supabase, input.landingPageId),
+    ]);
 
-  const propertyTitle = property?.title ?? input.propertyName;
+    const propertyTitle = property?.title ?? input.propertyName;
 
-  const [clientEmailSent, adminEmailSent, whatsAppAlertSent] = await Promise.all([
-    sendClientAutoReply(supabase, settings, input, property, paymentPlanNote),
-    notifyAdmin ? sendAdminEmailAlert(supabase, settings, input, property) : Promise.resolve(false),
-    notifyAdmin ? sendAdminWhatsAppAlert(settings, { ...input, propertyTitle }) : Promise.resolve(false),
-  ]);
+    const [clientEmailSent, adminEmailSent, whatsAppAlertSent] = await Promise.all([
+      sendClientAutoReply(supabase, settings, input, property, paymentPlanNote),
+      notifyAdmin ? sendAdminEmailAlert(supabase, settings, input, property) : Promise.resolve(false),
+      notifyAdmin ? sendAdminWhatsAppAlert(settings, { ...input, propertyTitle }) : Promise.resolve(false),
+    ]);
 
-  return { clientEmailSent, adminEmailSent, whatsAppAlertSent };
+    return { clientEmailSent, adminEmailSent, whatsAppAlertSent };
+  } catch (error) {
+    console.error("[email] lead automation failed", error);
+    return { clientEmailSent: false, adminEmailSent: false, whatsAppAlertSent: false };
+  }
 }

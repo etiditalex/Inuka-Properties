@@ -106,6 +106,7 @@ export async function runLeadSmsAutomation(
   input: LeadAutomationInput,
   options?: LeadAutomationOptions
 ): Promise<{ propertySmsSent: boolean; adminSmsSent: boolean }> {
+  try {
   const settings = await getSmsAutomationSettings(supabase);
   const emailSettings = await getEmailAutomationSettings(supabase);
 
@@ -174,6 +175,10 @@ export async function runLeadSmsAutomation(
   }
 
   return { propertySmsSent, adminSmsSent };
+  } catch (error) {
+    console.error("[sms] lead automation failed", error);
+    return { propertySmsSent: false, adminSmsSent: false };
+  }
 }
 
 export async function getSmsInsights(supabase: SupabaseClient) {
