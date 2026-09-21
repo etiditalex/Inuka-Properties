@@ -15,6 +15,7 @@ import PropertyDetailsForm from "@/components/property/PropertyDetailsForm";
 import BookSiteVisitButton from "@/components/BookSiteVisitButton";
 import PropertyLocationMap from "@/components/PropertyLocationMap";
 import PropertyEngagementBar from "@/components/property/PropertyEngagementBar";
+import PropertyShareButtons from "@/components/property/PropertyShareButtons";
 import { hydratePropertyEngagement } from "@/lib/properties/engagementClient";
 
 export default function PropertyDetailView({
@@ -280,6 +281,11 @@ export default function PropertyDetailView({
             className="bg-white rounded-xl shadow-lg p-4 sm:p-6 md:p-8"
           >
             <div className="mb-6 min-w-0">
+              <PropertyShareButtons
+                propertyId={property.id}
+                title={property.title}
+                location={property.location}
+              />
               <h1 className="text-2xl sm:text-3xl font-bold text-dark-900 mb-4 break-words [overflow-wrap:anywhere]">
                 {pageTitle}
               </h1>
