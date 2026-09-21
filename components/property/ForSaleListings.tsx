@@ -7,6 +7,7 @@ import Link from "next/link";
 import PropertyListingCard from "@/components/PropertyListingCard";
 import { STATIC_PROPERTY_CATALOG, type CatalogProperty } from "@/lib/properties/catalog";
 import { sortPropertiesNewestFirst, getNewestListingId } from "@/lib/properties/sortProperties";
+import { hydratePropertyEngagement } from "@/lib/properties/engagementClient";
 
 type PropertyType = "all" | "residential" | "commercial" | "beach" | "farm" | "affordable";
 
@@ -25,6 +26,7 @@ export default function ForSaleListings({ initialProperties }: ForSaleListingsPr
     fetch("/api/content/properties", { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => {
+        if (data.engagement) hydratePropertyEngagement(data.engagement);
         if (data.properties?.length) setProperties(sortPropertiesNewestFirst(data.properties));
       })
       .catch(() => {});

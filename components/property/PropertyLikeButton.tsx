@@ -43,8 +43,6 @@ export default function PropertyLikeButton({
     );
   }
 
-  const circleOnly = likeCount <= 0 && variant === "overlay";
-
   return (
     <button
       type="button"
@@ -56,20 +54,16 @@ export default function PropertyLikeButton({
         event.stopPropagation();
         void toggleLike();
       }}
-      className={`absolute right-3 top-3 z-10 flex items-center justify-center rounded-full border border-dark-100/80 bg-white shadow-md transition hover:bg-dark-50 disabled:opacity-60 pointer-events-auto ${
-        circleOnly ? "h-10 w-10" : "min-w-[2.5rem] flex-col px-2 py-1.5"
-      }`}
+      className="absolute right-3 top-3 z-10 flex min-w-[2.5rem] flex-col items-center justify-center rounded-full border border-dark-100/80 bg-white px-2 py-1.5 shadow-md transition hover:bg-dark-50 disabled:opacity-60 pointer-events-auto"
     >
       <Heart
         size={20}
         strokeWidth={1.5}
         className={liked ? "fill-red-500 text-red-500" : "fill-none text-dark-900"}
       />
-      {likeCount > 0 && (
-        <span className="text-[10px] font-semibold leading-none text-dark-600">
-          {formatCount(likeCount)}
-        </span>
-      )}
+      <span className="text-[10px] font-semibold leading-none text-dark-600">
+        {formatCount(likeCount)}
+      </span>
     </button>
   );
 }

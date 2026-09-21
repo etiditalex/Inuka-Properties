@@ -8,6 +8,7 @@ import Image from "next/image";
 import StructuredData from "@/components/StructuredData";
 import GoogleReviewsSection from "@/components/GoogleReviewsSection";
 import PropertyListingCard from "@/components/PropertyListingCard";
+import { hydratePropertyEngagement } from "@/lib/properties/engagementClient";
 
 interface Property {
   id: number;
@@ -178,6 +179,7 @@ function PropertyCardsSection() {
     fetch("/api/content/properties", { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => {
+        if (data.engagement) hydratePropertyEngagement(data.engagement);
         if (!data.properties?.length) return;
         const homepage = getHomepageProperties(data.properties, 4);
         if (homepage.length) setHomeFeaturedProperties(homepage);

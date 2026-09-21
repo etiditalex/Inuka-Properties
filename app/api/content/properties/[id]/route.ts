@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchPropertyDetail } from "@/lib/properties/getProperties";
+import { fetchPropertyEngagement } from "@/lib/properties/engagement";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -18,5 +19,7 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ property });
+  const engagement = await fetchPropertyEngagement(property.id, null).catch(() => null);
+
+  return NextResponse.json({ property, engagement });
 }

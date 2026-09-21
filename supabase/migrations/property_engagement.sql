@@ -40,6 +40,22 @@ DROP POLICY IF EXISTS "Admin full access property ratings" ON property_ratings;
 CREATE POLICY "Admin full access property ratings" ON property_ratings
   FOR ALL USING (auth.role() = 'authenticated');
 
+DROP POLICY IF EXISTS "Public insert property likes" ON property_likes;
+CREATE POLICY "Public insert property likes" ON property_likes
+  FOR INSERT WITH CHECK (TRUE);
+
+DROP POLICY IF EXISTS "Public delete property likes" ON property_likes;
+CREATE POLICY "Public delete property likes" ON property_likes
+  FOR DELETE USING (TRUE);
+
+DROP POLICY IF EXISTS "Public insert property ratings" ON property_ratings;
+CREATE POLICY "Public insert property ratings" ON property_ratings
+  FOR INSERT WITH CHECK (TRUE);
+
+DROP POLICY IF EXISTS "Public update property ratings" ON property_ratings;
+CREATE POLICY "Public update property ratings" ON property_ratings
+  FOR UPDATE USING (TRUE) WITH CHECK (TRUE);
+
 DROP TRIGGER IF EXISTS trg_property_ratings_updated ON property_ratings;
 CREATE TRIGGER trg_property_ratings_updated BEFORE UPDATE ON property_ratings
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();

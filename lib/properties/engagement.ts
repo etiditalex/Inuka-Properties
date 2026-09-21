@@ -3,6 +3,14 @@ import {
   EMPTY_ENGAGEMENT,
   type PropertyEngagementStats,
 } from "@/lib/properties/engagementTypes";
+import {
+  emptyEngagementMap,
+  fetchEngagementFromSettings,
+  mutateEngagementStore,
+  setRatingInStore,
+  statsFromStore,
+  toggleLikeInStore,
+} from "@/lib/properties/engagementSettings";
 
 export {
   EMPTY_ENGAGEMENT,
@@ -21,6 +29,22 @@ type RpcRow = {
   my_rating: number | null;
 };
 
+function isMissingEngagementRelation(error?: { message?: string; code?: string } | null) {
+  const message = (error?.message || "").toLowerCase();
+  const code = error?.code || "";
+  return (
+    code === "PGRST202" ||
+    code === "PGRST205" ||
+    code === "42P01" ||
+    code === "42883" ||
+    message.includes("schema cache") ||
+    ((message.includes("property_likes") ||
+      message.includes("property_ratings") ||
+      message.includes("get_property_engagement")) &&
+      (message.includes("does not exist") || message.includes("could not find")))
+  );
+}
+
 function toStats(row: Partial<RpcRow> | undefined): PropertyEngagementStats {
   const avg = Number(row?.rating_avg ?? 0);
   return {
@@ -32,14 +56,10 @@ function toStats(row: Partial<RpcRow> | undefined): PropertyEngagementStats {
   };
 }
 
-function emptyMap(ids: number[]): Record<number, PropertyEngagementStats> {
-  return Object.fromEntries(ids.map((id) => [id, { ...EMPTY_ENGAGEMENT }]));
-}
-
 async function fetchEngagementFallback(
   ids: number[],
   visitorId: string | null
-): Promise<Record<number, PropertyEngagementStats> | null> {
+): Promise<Record<number, PropertyEngagementStats> | "missing" | null> {
   const supabase = createServiceClient();
   if (!supabase) return null;
 
@@ -62,9 +82,16 @@ async function fetchEngagementFallback(
       : Promise.resolve({ data: [] as { property_id: number; rating: number }[], error: null }),
   ]);
 
+  if (
+    isMissingEngagementRelation(likesRes.error) ||
+    isMissingEngagementRelation(ratingsRes.error)
+  ) {
+    return "missing";
+  }
+
   if (likesRes.error && ratingsRes.error) return null;
 
-  const map = emptyMap(ids);
+  const map = emptyEngagementMap(ids);
   const likeTotals = new Map<number, number>();
   const ratingTotals = new Map<number, { sum: number; count: number }>();
 
@@ -107,7 +134,7 @@ export async function fetchEngagementMap(
   if (uniqueIds.length === 0) return {};
 
   const supabase = createServiceClient();
-  if (!supabase) return emptyMap(uniqueIds);
+  if (!supabase) return emptyEngagementMap(uniqueIds);
 
   const { data, error } = await supabase.rpc("get_property_engagement", {
     p_ids: uniqueIds,
@@ -115,7 +142,7 @@ export async function fetchEngagementMap(
   });
 
   if (!error && Array.isArray(data)) {
-    const map = emptyMap(uniqueIds);
+    const map = emptyEngagementMap(uniqueIds);
     for (const row of data as RpcRow[]) {
       map[row.property_id] = toStats(row);
     }
@@ -123,7 +150,9 @@ export async function fetchEngagementMap(
   }
 
   const fallback = await fetchEngagementFallback(uniqueIds, visitorId);
-  return fallback ?? emptyMap(uniqueIds);
+  if (fallback && fallback !== "missing") return fallback;
+
+  return fetchEngagementFromSettings(supabase, uniqueIds, visitorId);
 }
 
 export async function fetchPropertyEngagement(
@@ -141,25 +170,34 @@ export async function togglePropertyLike(
   const supabase = createServiceClient();
   if (!supabase) return null;
 
-  const { data: existing } = await supabase
+  const { data: existing, error: existingError } = await supabase
     .from("property_likes")
     .select("id")
     .eq("property_id", propertyId)
     .eq("visitor_id", visitorId)
     .maybeSingle();
 
-  if (existing?.id) {
-    const { error } = await supabase.from("property_likes").delete().eq("id", existing.id);
-    if (error) throw new Error(error.message);
-  } else {
-    const { error } = await supabase.from("property_likes").insert({
-      property_id: propertyId,
-      visitor_id: visitorId,
-    });
-    if (error && error.code !== "23505") throw new Error(error.message);
+  if (!isMissingEngagementRelation(existingError)) {
+    if (existingError) throw new Error(existingError.message);
+
+    if (existing?.id) {
+      const { error } = await supabase.from("property_likes").delete().eq("id", existing.id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await supabase.from("property_likes").insert({
+        property_id: propertyId,
+        visitor_id: visitorId,
+      });
+      if (error && error.code !== "23505") throw new Error(error.message);
+    }
+
+    return fetchPropertyEngagement(propertyId, visitorId);
   }
 
-  return fetchPropertyEngagement(propertyId, visitorId);
+  const store = await mutateEngagementStore(supabase, (next) => {
+    toggleLikeInStore(next, propertyId, visitorId);
+  });
+  return statsFromStore(store, propertyId, visitorId);
 }
 
 export async function setPropertyRating(
@@ -180,6 +218,15 @@ export async function setPropertyRating(
     { onConflict: "property_id,visitor_id" }
   );
 
-  if (error) throw new Error(error.message);
-  return fetchPropertyEngagement(propertyId, visitorId);
+  if (!error) {
+    return fetchPropertyEngagement(propertyId, visitorId);
+  }
+  if (!isMissingEngagementRelation(error)) {
+    throw new Error(error.message);
+  }
+
+  const store = await mutateEngagementStore(supabase, (next) => {
+    setRatingInStore(next, propertyId, visitorId, rating);
+  });
+  return statsFromStore(store, propertyId, visitorId);
 }

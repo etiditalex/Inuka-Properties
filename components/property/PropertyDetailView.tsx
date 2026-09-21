@@ -15,6 +15,7 @@ import PropertyDetailsForm from "@/components/property/PropertyDetailsForm";
 import BookSiteVisitButton from "@/components/BookSiteVisitButton";
 import PropertyLocationMap from "@/components/PropertyLocationMap";
 import PropertyEngagementBar from "@/components/property/PropertyEngagementBar";
+import { hydratePropertyEngagement } from "@/lib/properties/engagementClient";
 
 export default function PropertyDetailView({
   propertyId,
@@ -32,6 +33,9 @@ export default function PropertyDetailView({
     fetch(`/api/content/properties/${propertyId}`, { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
+        if (data?.engagement) {
+          hydratePropertyEngagement({ [String(data.property?.id ?? propertyId)]: data.engagement });
+        }
         setProperty(data?.property ?? staticFallback ?? null);
       })
       .catch(() => {
