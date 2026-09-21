@@ -19,24 +19,28 @@ const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
   display: "swap",
+  preload: true,
 });
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-playfair",
   display: "swap",
+  preload: false,
 });
 
 const montserrat = Montserrat({
   subsets: ["latin"],
   variable: "--font-montserrat",
   display: "swap",
+  preload: true,
 });
 
 const dancingScript = Dancing_Script({
   subsets: ["latin"],
   variable: "--font-dancing-script",
   display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {

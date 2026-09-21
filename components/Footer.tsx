@@ -132,8 +132,23 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/contact-us" className="text-dark-300 hover:text-primary-400 transition text-sm">
-                  Contact Us
+                <Link href="/iapl-insider/blogs" className="text-dark-300 hover:text-primary-400 transition text-sm">
+                  Blogs
+                </Link>
+              </li>
+              <li>
+                <Link href="/iapl-insider/news" className="text-dark-300 hover:text-primary-400 transition text-sm">
+                  News
+                </Link>
+              </li>
+              <li>
+                <Link href="/services" className="text-dark-300 hover:text-primary-400 transition text-sm">
+                  Services
+                </Link>
+              </li>
+              <li>
+                <Link href="/site-map" className="text-dark-300 hover:text-primary-400 transition text-sm">
+                  Sitemap
                 </Link>
               </li>
             </ul>
@@ -215,6 +230,9 @@ const Footer = () => {
               © {currentYear} Inuka Afrika Properties Limited. All rights reserved.
             </p>
             <div className="flex gap-6 flex-wrap">
+              <Link href="/site-map" className="hover:text-primary-400 transition">
+                Sitemap
+              </Link>
               <Link href="/cookie-policy" className="hover:text-primary-400 transition">
                 Cookie Policy
               </Link>

@@ -35,6 +35,8 @@ if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
 }
 
 const nextConfig = {
+  poweredByHeader: false,
+  compress: true,
   async redirects() {
     return [
       {
@@ -65,6 +67,39 @@ const nextConfig = {
   },
   images: {
     remotePatterns,
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 60 * 60 * 24 * 30,
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+  },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        ],
+      },
+      {
+        source: "/sitemap.xml",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=3600, s-maxage=3600",
+          },
+        ],
+      },
+      {
+        source: "/robots.txt",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=86400, s-maxage=86400",
+          },
+        ],
+      },
+    ];
   },
 };
 

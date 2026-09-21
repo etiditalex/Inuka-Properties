@@ -1,8 +1,10 @@
 import type { MetadataRoute } from "next";
-import { BLOG_ARTICLE_SLUGS, BLOG_POSTS } from "@/lib/blogPosts";
+import { BLOG_POSTS } from "@/lib/blogPosts";
 import { PROPERTY_SEO } from "@/lib/propertySeo";
 import { fetchPublishedProperties } from "@/lib/properties/getProperties";
+import { fetchPublishedBlogSummaries } from "@/lib/content/publishedBlogs";
 import { SITE_ORIGIN } from "@/lib/site";
+import { FEATURED_SITELINK_PAGES } from "@/lib/featuredProjects";
 
 type SitemapEntry = MetadataRoute.Sitemap[number];
 
@@ -90,6 +92,8 @@ export async function getSitemapEntries(): Promise<MetadataRoute.Sitemap> {
     staticPage("/iapl-insider/blogs", 0.8, "weekly"),
     staticPage("/iapl-insider/news", 0.65, "weekly"),
     staticPage("/iapl-insider/market-research", 0.65, "monthly"),
+    staticPage("/site-map", 0.4, "weekly"),
+    staticPage("/get-property-details", 0.5, "monthly"),
     staticPage("/testimonials", 0.7, "monthly"),
     staticPage("/testimonials/client-testimonials", 0.65, "monthly"),
     staticPage("/testimonials/video-gallery", 0.65, "monthly"),
@@ -100,38 +104,52 @@ export async function getSitemapEntries(): Promise<MetadataRoute.Sitemap> {
     staticPage("/cookie-policy", 0.3, "yearly"),
   ];
 
-  const propertyRoutes: SitemapEntry[] = [...propertyById.entries()]
-    .sort((a, b) => b[0] - a[0])
-    .flatMap(([id, property]) => {
-      const seo = PROPERTY_SEO.find((entry) => entry.id === id);
-      const numbered: SitemapEntry = {
-        url: `${SITE_ORIGIN}/for-sale/${id}`,
-        ...(property.lastModified ? { lastModified: property.lastModified } : {}),
-        changeFrequency: "weekly" as const,
-        priority: seo?.slug ? Math.min(property.priority, 0.8) : property.priority,
-      };
-      if (!seo?.slug) return [numbered];
-      return [
-        {
-          url: `${SITE_ORIGIN}/${seo.slug}`,
-          ...(property.lastModified ? { lastModified: property.lastModified } : {}),
-          changeFrequency: "weekly" as const,
-          priority: property.priority,
-        },
-        numbered,
-      ];
-    });
-
-  const blogRoutes: SitemapEntry[] = BLOG_POSTS.filter((post) =>
-    BLOG_ARTICLE_SLUGS.has(post.slug)
-  ).map((post) => ({
-    url: `${SITE_ORIGIN}/iapl-insider/blogs/${post.slug}`,
-    lastModified: parseDate(post.date),
-    changeFrequency: "monthly" as const,
-    priority: 0.8,
+  const featuredRoutes: SitemapEntry[] = FEATURED_SITELINK_PAGES.map((page) => ({
+    url: `${SITE_ORIGIN}${page.href}`,
+    ...(newestPropertyDate ? { lastModified: newestPropertyDate } : {}),
+    changeFrequency: "weekly" as const,
+    priority: 0.98,
   }));
 
-  return [...staticRoutes, ...propertyRoutes, ...blogRoutes];
+  const propertyRoutes: SitemapEntry[] = [...propertyById.entries()]
+    .sort((a, b) => b[0] - a[0])
+    .map(([id, property]) => {
+      const seo = PROPERTY_SEO.find((entry) => entry.id === id);
+      const path = seo?.slug ? `/${seo.slug}` : `/for-sale/${id}`;
+      return {
+        url: `${SITE_ORIGIN}${path}`,
+        ...(property.lastModified ? { lastModified: property.lastModified } : {}),
+        changeFrequency: "weekly" as const,
+        priority: property.priority,
+      };
+    });
+
+  let blogPosts = BLOG_POSTS;
+  try {
+    blogPosts = await fetchPublishedBlogSummaries();
+  } catch {
+    blogPosts = BLOG_POSTS;
+  }
+
+  const seenBlogUrls = new Set<string>();
+  const blogRoutes: SitemapEntry[] = blogPosts
+    .filter((post) => post.slug !== "why-mombasa-is-ideal-place-to-buy-houses-2026")
+    .map((post) => ({
+      url: `${SITE_ORIGIN}/iapl-insider/blogs/${post.slug}`,
+      lastModified: parseDate(post.date),
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    }))
+    .filter((entry) => {
+      if (seenBlogUrls.has(entry.url)) return false;
+      seenBlogUrls.add(entry.url);
+      return true;
+    });
+
+  const all = [...staticRoutes, ...featuredRoutes, ...propertyRoutes, ...blogRoutes];
+  const unique = new Map<string, SitemapEntry>();
+  for (const entry of all) unique.set(entry.url, entry);
+  return [...unique.values()];
 }
 
 function escapeXml(value: string): string {

@@ -68,6 +68,19 @@ const Header = () => {
       ],
     },
     {
+      name: "Services",
+      href: "/services",
+      dropdown: [
+        { name: "Residential Properties", href: "/services/residential-properties" },
+        { name: "Commercial Properties", href: "/services/commercial-properties" },
+        { name: "Beach Properties", href: "/services/beach-properties" },
+        { name: "Farm Land", href: "/services/farm-land" },
+        { name: "Affordable Housing", href: "/services/affordable-housing" },
+        { name: "Property Management", href: "/services/property-management" },
+        { name: "Title Issuance", href: "/services/title-issuance" },
+      ],
+    },
+    {
       name: "Testimonials",
       href: "/testimonials",
       dropdown: [
@@ -82,6 +95,7 @@ const Header = () => {
   ];
 
   const isNavItemActive = (href: string) => {
+    if (href === "/") return pathname === "/";
     if (href === "/for-sale") {
       return (
         Boolean(pathname?.startsWith("/for-sale")) ||

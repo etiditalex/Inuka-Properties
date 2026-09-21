@@ -4,15 +4,30 @@ import { getAdminBasePath } from "@/lib/admin/path";
 
 export default function robots(): MetadataRoute.Robots {
   const adminBase = getAdminBasePath();
-  const disallow = ["/api/", "/admin/", `${adminBase}/`, "/lp/"];
-  const unique = [...new Set(disallow)];
+  const privatePaths = ["/api/", "/admin/", `${adminBase}/`, "/lp/", "/support"];
+  const disallow = [...new Set(privatePaths)];
 
   return {
     rules: [
       {
         userAgent: "*",
+        allow: ["/", "/for-sale", "/iapl-insider", "/about-us", "/services", "/testimonials"],
+        disallow,
+      },
+      {
+        userAgent: "Googlebot",
         allow: "/",
-        disallow: unique,
+        disallow,
+      },
+      {
+        userAgent: "Googlebot-Image",
+        allow: "/",
+        disallow,
+      },
+      {
+        userAgent: "Bingbot",
+        allow: "/",
+        disallow,
       },
     ],
     sitemap: `${SITE_ORIGIN}/sitemap.xml`,
