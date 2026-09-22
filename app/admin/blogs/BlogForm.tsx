@@ -62,9 +62,10 @@ export default function BlogFormPage({ postId }: BlogFormProps) {
     setSaving(true);
     setError("");
     const supabase = createClient();
+    const { id: _id, created_at: _createdAt, updated_at: _updatedAt, ...payload } = form;
     const { error: saveError } = isEdit
-      ? await supabase.from("blog_posts").update(form).eq("id", postId!)
-      : await supabase.from("blog_posts").insert(form);
+      ? await supabase.from("blog_posts").update(payload).eq("id", postId!)
+      : await supabase.from("blog_posts").insert(payload);
     setSaving(false);
     if (saveError) { setError(saveError.message); return; }
     router.push(adminPath("blogs"));
