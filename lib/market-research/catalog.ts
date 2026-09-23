@@ -6,6 +6,7 @@ export type WebsiteMarketReport = {
   report_type: string;
   sort_order: number;
   file_url?: string | null;
+  image_url?: string | null;
 };
 
 export type WebsiteMarketInsight = {
@@ -26,6 +27,7 @@ export const STATIC_MARKET_REPORTS: WebsiteMarketReport[] = [
     report_date: "2024-01-15",
     report_type: "Market Report",
     sort_order: 0,
+    image_url: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767596630/kilifi_investment_swq82s.jpg",
   },
   {
     id: 2,
@@ -35,6 +37,7 @@ export const STATIC_MARKET_REPORTS: WebsiteMarketReport[] = [
     report_date: "2024-01-10",
     report_type: "Investment Guide",
     sort_order: 1,
+    image_url: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767286495/Ocean_View_Gardens_2_eyxuaz.jpg",
   },
   {
     id: 3,
@@ -44,6 +47,7 @@ export const STATIC_MARKET_REPORTS: WebsiteMarketReport[] = [
     report_date: "2024-01-05",
     report_type: "Sector Analysis",
     sort_order: 2,
+    image_url: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1774342011/Msabaha_phase_8_fc1tuh.jpg",
   },
 ];
 

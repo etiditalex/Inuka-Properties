@@ -106,11 +106,14 @@ CREATE TABLE IF NOT EXISTS market_research_reports (
   report_date DATE NOT NULL,
   report_type TEXT NOT NULL,
   file_url TEXT,
+  image_url TEXT,
   sort_order INT NOT NULL DEFAULT 0,
   published BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE market_research_reports ADD COLUMN IF NOT EXISTS image_url TEXT;
 
 CREATE TABLE IF NOT EXISTS market_research_insights (
   id SERIAL PRIMARY KEY,

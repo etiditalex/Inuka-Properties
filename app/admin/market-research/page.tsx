@@ -5,6 +5,7 @@ import { Plus, Pencil, Trash2, Download } from "lucide-react";
 import AdminShell from "@/components/admin/AdminShell";
 import AdminButton from "@/components/admin/AdminButton";
 import { AdminInput, AdminTextarea, AdminSelect } from "@/components/admin/AdminForm";
+import ImageUpload from "@/components/admin/ImageUpload";
 import MarketResearchPreview from "@/components/admin/preview/MarketResearchPreview";
 import { createClient } from "@/lib/supabase/client";
 import type { MarketResearchInsight, MarketResearchReport } from "@/lib/supabase/types";
@@ -51,10 +52,15 @@ export default function AdminMarketResearchPage() {
   const saveReport = async () => {
     if (!editingReport) return;
     const supabase = createClient();
-    if (editingReport.id) {
-      await supabase.from("market_research_reports").update(editingReport).eq("id", editingReport.id);
-    } else {
-      await supabase.from("market_research_reports").insert(editingReport);
+    const payload = { ...editingReport, image_url: editingReport.image_url || null };
+    const write = (row: Partial<MarketResearchReport>) =>
+      row.id
+        ? supabase.from("market_research_reports").update(row).eq("id", row.id)
+        : supabase.from("market_research_reports").insert(row);
+    const first = await write(payload);
+    if (first.error && /image_url/i.test(first.error.message)) {
+      const { image_url: _image, ...withoutImage } = payload;
+      await write(withoutImage);
     }
     setEditingReport(null);
     load();
@@ -117,11 +123,18 @@ export default function AdminMarketResearchPage() {
         </div>
       ) : tab === "reports" ? (
         <div className="space-y-4">
-          <AdminButton size="sm" onClick={() => setEditingReport({ title: "", description: "", report_date: new Date().toISOString().split("T")[0], report_type: "Market Report", sort_order: reports.length })}>
+          <AdminButton size="sm" onClick={() => setEditingReport({ title: "", description: "", report_date: new Date().toISOString().split("T")[0], report_type: "Market Report", image_url: "", sort_order: reports.length })}>
             <Plus size={14} /> Add Report
           </AdminButton>
           {editingReport && (
             <div className="rounded-2xl border border-dark-200 bg-white p-6 space-y-4">
+              <ImageUpload
+                label="Card image"
+                folder="market-research"
+                value={editingReport.image_url || ""}
+                onChange={(url) => setEditingReport({ ...editingReport, image_url: url })}
+                hint="Shown beside the title on the Market Research page."
+              />
               <AdminInput label="Title" value={editingReport.title || ""} onChange={(e) => setEditingReport({ ...editingReport, title: e.target.value })} />
               <AdminTextarea label="Description" value={editingReport.description || ""} onChange={(e) => setEditingReport({ ...editingReport, description: e.target.value })} rows={3} />
               <AdminInput label="Date" type="date" value={editingReport.report_date || ""} onChange={(e) => setEditingReport({ ...editingReport, report_date: e.target.value })} />

@@ -1,20 +1,39 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { BarChart3, TrendingUp, MapPin, Download } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight, BarChart3, ChevronRight, Home, MapPin, TrendingUp } from "lucide-react";
+import { propertyImageProps } from "@/lib/images";
 import {
   STATIC_MARKET_INSIGHTS,
   STATIC_MARKET_REPORTS,
 } from "@/lib/market-research/catalog";
 
-const formatIsoDate = (isoDate: string) => {
-  const parts = isoDate.split("-");
-  if (parts.length !== 3) return isoDate;
-  const [year, month, day] = parts;
-  if (!year || !month || !day) return isoDate;
-  return `${day}/${month}/${year}`;
+type ReportCard = {
+  title: string;
+  description: string;
+  date: string;
+  type: string;
+  fileUrl?: string | null;
+  imageUrl?: string | null;
 };
+
+const FALLBACK_IMAGES = [
+  "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767596630/kilifi_investment_swq82s.jpg",
+  "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767286495/Ocean_View_Gardens_2_eyxuaz.jpg",
+  "https://res.cloudinary.com/dyfnobo9r/image/upload/v1774342011/Msabaha_phase_8_fc1tuh.jpg",
+];
+
+function formatReportDate(isoDate: string) {
+  const date = new Date(`${isoDate}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return isoDate;
+  return date.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
 
 export default function MarketResearchPage() {
   const iconMap = {
@@ -23,18 +42,20 @@ export default function MarketResearchPage() {
     TrendingUp,
   } as const;
 
-  const staticReports = STATIC_MARKET_REPORTS.map((r) => ({
-    title: r.title,
-    description: r.description,
-    date: r.report_date,
-    type: r.report_type,
+  const staticReports: ReportCard[] = STATIC_MARKET_REPORTS.map((report) => ({
+    title: report.title,
+    description: report.description,
+    date: report.report_date,
+    type: report.report_type,
+    fileUrl: report.file_url,
+    imageUrl: report.image_url,
   }));
 
-  const staticInsights = STATIC_MARKET_INSIGHTS.map((i) => ({
-    icon: iconMap[i.icon as keyof typeof iconMap] ?? TrendingUp,
-    title: i.title,
-    value: i.value,
-    description: i.description,
+  const staticInsights = STATIC_MARKET_INSIGHTS.map((insight) => ({
+    icon: iconMap[insight.icon as keyof typeof iconMap] ?? TrendingUp,
+    title: insight.title,
+    value: insight.value,
+    description: insight.description,
   }));
 
   const [reports, setReports] = useState(staticReports);
@@ -42,26 +63,36 @@ export default function MarketResearchPage() {
 
   useEffect(() => {
     fetch("/api/content/market-research")
-      .then((r) => r.json())
+      .then((response) => response.json())
       .then((data) => {
         if (data.reports?.length) {
           setReports(
-            data.reports.map((r: { title: string; description: string; report_date: string; report_type: string; file_url?: string }) => ({
-              title: r.title,
-              description: r.description,
-              date: r.report_date,
-              type: r.report_type,
-              fileUrl: r.file_url,
-            }))
+            data.reports.map(
+              (report: {
+                title: string;
+                description: string;
+                report_date: string;
+                report_type: string;
+                file_url?: string | null;
+                image_url?: string | null;
+              }) => ({
+                title: report.title,
+                description: report.description,
+                date: report.report_date,
+                type: report.report_type,
+                fileUrl: report.file_url,
+                imageUrl: report.image_url,
+              })
+            )
           );
         }
         if (data.insights?.length) {
           setInsights(
-            data.insights.map((i: { icon: string; title: string; value: string; description: string }) => ({
-              icon: i.icon === "MapPin" ? MapPin : i.icon === "BarChart3" ? BarChart3 : TrendingUp,
-              title: i.title,
-              value: i.value,
-              description: i.description,
+            data.insights.map((insight: { icon: string; title: string; value: string; description: string }) => ({
+              icon: insight.icon === "MapPin" ? MapPin : insight.icon === "BarChart3" ? BarChart3 : TrendingUp,
+              title: insight.title,
+              value: insight.value,
+              description: insight.description,
             }))
           );
         }
@@ -70,88 +101,82 @@ export default function MarketResearchPage() {
   }, []);
 
   return (
-    <div className="pt-24 pb-20">
-      <section className="bg-gradient-to-r from-primary-600 to-primary-800 text-white py-16">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center"
-          >
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 font-serif">Market Research</h1>
-            <p className="text-xl text-primary-100 max-w-2xl mx-auto">
-              Data-driven insights to guide your property investment decisions
-            </p>
-          </motion.div>
-        </div>
-      </section>
+    <div className="bg-white pb-20 pt-28">
+      <section className="container mx-auto px-4 md:px-6">
+        <nav aria-label="Breadcrumb" className="mb-8 flex items-center gap-2 text-sm font-semibold text-neutral-900">
+          <Link href="/" aria-label="Home" className="inline-flex text-neutral-900 hover:text-primary-700">
+            <Home size={18} strokeWidth={1.75} />
+          </Link>
+          <ChevronRight size={16} className="text-neutral-500" />
+          <span>Market Research</span>
+        </nav>
 
-      <section className="container mx-auto px-4 py-12">
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
-          {insights.map((insight, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-white p-6 rounded-xl shadow-lg text-center"
-            >
-              <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <insight.icon size={32} className="text-primary-700" />
-              </div>
-              <div className="text-3xl font-bold text-primary-700 mb-2">{insight.value}</div>
-              <h3 className="text-lg font-semibold text-dark-900 mb-2">{insight.title}</h3>
-              <p className="text-sm text-dark-600">{insight.description}</p>
-            </motion.div>
-          ))}
-        </div>
-
-        <div className="space-y-6">
-          {reports.map((report, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition"
-            >
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="bg-primary-100 text-primary-700 px-3 py-1 rounded-full text-sm font-semibold">
-                      {report.type}
-                    </span>
-                    <span className="text-sm text-dark-600">{formatIsoDate(report.date)}</span>
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {reports.map((report, index) => {
+            const image = report.imageUrl || FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
+            const imageProps = propertyImageProps(image);
+            return (
+              <article
+                key={`${report.title}-${index}`}
+                className="flex h-full flex-col border border-neutral-200 bg-[#f5f5f5] p-4 sm:p-5"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="relative h-[72px] w-[104px] shrink-0 overflow-hidden bg-neutral-200">
+                    <Image
+                      src={imageProps.src}
+                      alt=""
+                      fill
+                      className="object-cover"
+                      sizes="104px"
+                      unoptimized={imageProps.unoptimized}
+                    />
                   </div>
-                  <h3 className="text-xl font-bold text-dark-900 mb-2">{report.title}</h3>
-                  <p className="text-dark-600">{report.description}</p>
+                  <h2 className="text-[15px] font-bold leading-snug text-neutral-900 sm:text-base">
+                    {report.title}
+                  </h2>
                 </div>
-                <button
-                  type="button"
-                  className="bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition flex items-center gap-2"
-                  onClick={() => {
-                    const fileUrl = (report as { fileUrl?: string }).fileUrl;
-                    if (fileUrl) window.open(fileUrl, "_blank");
-                  }}
-                >
-                  <Download size={20} />
-                  Download Report
-                </button>
-              </div>
-            </motion.div>
-          ))}
+                <p className="mt-5 text-center text-sm text-neutral-500">{formatReportDate(report.date)}</p>
+                <p className="mt-3 line-clamp-4 flex-1 text-center text-sm leading-relaxed text-neutral-600">
+                  {report.description}
+                </p>
+                {report.fileUrl ? (
+                  <a
+                    href={report.fileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-6 inline-flex items-center justify-center gap-1 text-center text-sm font-bold uppercase tracking-wide text-neutral-900 hover:text-primary-700"
+                  >
+                    Read more
+                    <ArrowRight size={15} />
+                  </a>
+                ) : (
+                  <p className="mt-6 inline-flex items-center justify-center gap-1 text-center text-sm font-bold uppercase tracking-wide text-neutral-900">
+                    Read more
+                    <ArrowRight size={15} />
+                  </p>
+                )}
+              </article>
+            );
+          })}
         </div>
       </section>
+
+      {insights.length > 0 ? (
+        <section className="container mx-auto mt-16 px-4 md:px-6">
+          <div className="grid gap-6 md:grid-cols-3">
+            {insights.map((insight, index) => (
+              <div key={index} className="rounded-xl bg-white p-6 text-center shadow-lg">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary-100">
+                  <insight.icon size={32} className="text-primary-700" />
+                </div>
+                <div className="mb-2 text-3xl font-bold text-primary-700">{insight.value}</div>
+                <h3 className="mb-2 text-lg font-semibold text-dark-900">{insight.title}</h3>
+                <p className="text-sm text-dark-600">{insight.description}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }
-
-
-
-
-
-
-
-

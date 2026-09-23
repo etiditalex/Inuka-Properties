@@ -90,6 +90,7 @@ export interface MarketResearchReport {
   report_date: string;
   report_type: string;
   file_url: string | null;
+  image_url: string | null;
   sort_order: number;
   published: boolean;
   created_at: string;
