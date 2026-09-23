@@ -88,7 +88,7 @@ export default function BlogFormPage({ postId }: BlogFormProps) {
             value={form.content_html || ""}
             onChange={(e) => update("content_html", e.target.value)}
             rows={12}
-            hint="Use HTML tags: <p>, <h2>, <ul>, <li>, <strong>, etc."
+            hint="Leave a blank line between paragraphs. A short line on its own becomes a heading. You can still use HTML."
           />
           <AdminSelect label="Status" options={statusOptions} value={form.status || "draft"} onChange={(e) => update("status", e.target.value as ContentStatus)} />
           {error && <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}

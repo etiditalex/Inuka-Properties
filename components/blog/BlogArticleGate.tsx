@@ -1,3 +1,4 @@
+import BlogArticleBody from "@/components/blog/BlogArticleBody";
 import BlogArticleLayout, { type BlogArticleLayoutProps } from "@/components/blog/BlogArticleLayout";
 import { blogContentIsEditorWritten, catalogPostUnchanged } from "@/lib/blog/editorContent";
 import { fetchPublishedBlogBySlug, publishedDate } from "@/lib/content/publishedBlogs";
@@ -31,10 +32,7 @@ export default async function BlogArticleGate(props: BlogArticleLayoutProps) {
       articleSchema={articleSchema}
     >
       {blogContentIsEditorWritten(post) ? (
-        <div
-          className="prose prose-lg max-w-none"
-          dangerouslySetInnerHTML={{ __html: post.content_html || "" }}
-        />
+        <BlogArticleBody html={post.content_html || ""} />
       ) : (
         props.children
       )}

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Calendar, Tag, User } from "lucide-react";
 import { formatIsoDate } from "@/lib/admin/utils";
+import { formatBlogArticleHtml } from "@/lib/blog/formatArticleHtml";
 import type { BlogPost } from "@/lib/supabase/types";
 
 type BlogPreviewProps = {
@@ -65,8 +66,8 @@ export default function BlogPreview({ post }: BlogPreviewProps) {
         </p>
         {post.content_html && (
           <div
-            className="prose prose-sm mt-4 max-w-none text-dark-700"
-            dangerouslySetInnerHTML={{ __html: post.content_html.slice(0, 500) + "..." }}
+            className="mt-4 max-h-80 overflow-auto"
+            dangerouslySetInnerHTML={{ __html: formatBlogArticleHtml(post.content_html) }}
           />
         )}
       </div>

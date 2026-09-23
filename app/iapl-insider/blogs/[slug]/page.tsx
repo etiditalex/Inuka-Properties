@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import BlogArticleBody from "@/components/blog/BlogArticleBody";
 import BlogArticleLayout from "@/components/blog/BlogArticleLayout";
 import {
   fetchPublishedBlogBySlug,
@@ -65,10 +66,7 @@ export default async function DynamicBlogArticlePage({ params }: Props) {
       publishedIso={post.date}
       articleSchema={articleSchema}
     >
-      <div
-        className="prose prose-lg max-w-none"
-        dangerouslySetInnerHTML={{ __html: post.content_html || `<p>${post.excerpt}</p>` }}
-      />
+      <BlogArticleBody html={post.content_html || post.excerpt} />
     </BlogArticleLayout>
   );
 }
