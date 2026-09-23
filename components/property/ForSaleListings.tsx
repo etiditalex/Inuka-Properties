@@ -32,6 +32,12 @@ export default function ForSaleListings({ initialProperties }: ForSaleListingsPr
       .catch(() => {});
   }, []);
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const area = params.get("area") || params.get("q");
+    if (area) setSearchQuery(area);
+  }, []);
   const [locationFilter, setLocationFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });

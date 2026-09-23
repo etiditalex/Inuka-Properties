@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import {
   FEATURED_SITELINK_PAGES,
   GOOGLE_MAPS_PLACE_URL,
+  GOOGLE_PLACE_ID,
   OFFICE_MAPS_SEARCH_URL,
 } from "@/lib/featuredProjects";
 import { SITE_ORIGIN } from "@/lib/site";
@@ -158,7 +159,12 @@ export const organizationSchema = {
   foundingDate: "2016",
   telephone: "+254-711-082084",
   email: "info@inukaproperties.co.ke",
-  priceRange: "KES",
+  priceRange: "KES 395,000+",
+  identifier: {
+    "@type": "PropertyValue",
+    propertyID: "googlePlaceId",
+    value: GOOGLE_PLACE_ID,
+  },
   currenciesAccepted: "KES",
   paymentAccepted: "Cash, Bank Transfer, M-Pesa, Installment Plan",
   hasMap: GOOGLE_MAPS_PLACE_URL,
@@ -277,9 +283,61 @@ export const websiteSchema = {
     "@type": "SearchAction",
     target: {
       "@type": "EntryPoint",
-      urlTemplate: `${SITE_ORIGIN}/for-sale?q={search_term_string}`,
+      urlTemplate: `${SITE_ORIGIN}/for-sale?area={search_term_string}`,
     },
     "query-input": "required name=search_term_string",
+  },
+};
+
+const PLOT_FINDER_AREAS = ["Mariakani", "Tezo", "Bofa", "Malindi", "Msabaha", "Mtondia"] as const;
+
+/** Hidden JSON-LD for the homepage plot finder. Not rendered as page text. */
+export const plotFinderSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": `${SITE_ORIGIN}/#find-a-kilifi-plot`,
+  url: `${SITE_ORIGIN}/#find-a-kilifi-plot`,
+  name: "Find a Kilifi plot that matches your plan",
+  description:
+    "Inuka Afrika Properties has guided coastal buyers for over ten years. Open listings begin at KES 395,000 in Mariakani, Tezo, Bofa, Malindi, Msabaha, and Mtondia.",
+  isPartOf: { "@id": `${SITE_ORIGIN}/#website` },
+  about: { "@id": `${SITE_ORIGIN}/#organization` },
+  mainEntity: {
+    "@type": "Service",
+    "@id": `${SITE_ORIGIN}/#kilifi-plot-sales`,
+    name: "Kilifi County plot sales",
+    serviceType: "Land and plot sales",
+    provider: { "@id": `${SITE_ORIGIN}/#organization` },
+    areaServed: PLOT_FINDER_AREAS.map((name) => ({
+      "@type": "Place",
+      name: `${name}, Kilifi County, Kenya`,
+    })),
+    offers: {
+      "@type": "AggregateOffer",
+      lowPrice: 395000,
+      priceCurrency: "KES",
+      availability: "https://schema.org/InStock",
+      url: absoluteUrl("/for-sale"),
+      seller: { "@id": `${SITE_ORIGIN}/#organization` },
+    },
+    potentialAction: [
+      {
+        "@type": "SearchAction",
+        target: {
+          "@type": "EntryPoint",
+          urlTemplate: `${SITE_ORIGIN}/for-sale?area={search_term_string}`,
+        },
+        "query-input": "required name=search_term_string",
+      },
+      {
+        "@type": "CommunicateAction",
+        name: "Talk to an Expert",
+        target: {
+          "@type": "EntryPoint",
+          urlTemplate: "tel:+254711082084",
+        },
+      },
+    ],
   },
 };
 
