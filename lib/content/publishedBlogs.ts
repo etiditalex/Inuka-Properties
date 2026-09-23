@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { unstable_noStore as noStore } from "next/cache";
 import { BLOG_POSTS, mergePublishedWithCatalog, type BlogPostListItem } from "@/lib/blogPosts";
+import { isMarketResearchPost } from "@/lib/market-research/catalog";
 
 export type PublishedBlog = BlogPostListItem & {
   content_html?: string | null;
@@ -45,7 +46,31 @@ export async function fetchPublishedBlogSummaries(): Promise<BlogPostListItem[]>
     slug: post.slug,
   }));
 
-  return mergePublishedWithCatalog(fromDb);
+  return mergePublishedWithCatalog(fromDb).filter((post) => !isMarketResearchPost(post.category));
+}
+
+export async function fetchPublishedMarketResearchSummaries(): Promise<BlogPostListItem[]> {
+  const supabase = getPublicClient();
+  if (!supabase) return [];
+
+  const { data } = await supabase
+    .from("blog_posts")
+    .select("id, title, excerpt, author, published_at, image, category, slug")
+    .eq("status", "published")
+    .order("published_at", { ascending: false });
+
+  return (data || [])
+    .filter((post) => isMarketResearchPost(post.category))
+    .map((post) => ({
+      id: post.id,
+      title: post.title,
+      excerpt: post.excerpt,
+      author: post.author,
+      date: publishedDate(post.published_at),
+      image: post.image,
+      category: post.category,
+      slug: post.slug,
+    }));
 }
 
 export async function fetchPublishedBlogBySlug(slug: string): Promise<PublishedBlog | null> {

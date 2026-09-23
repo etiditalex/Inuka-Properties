@@ -1,3 +1,9 @@
+export const MARKET_RESEARCH_CATEGORY = "Market Research";
+
+export function isMarketResearchPost(category: string | null | undefined): boolean {
+  return (category || "").trim().toLowerCase() === MARKET_RESEARCH_CATEGORY.toLowerCase();
+}
+
 export type WebsiteMarketReport = {
   id: number;
   title: string;

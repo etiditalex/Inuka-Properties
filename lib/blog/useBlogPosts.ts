@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { BLOG_POSTS, mergePublishedWithCatalog, type BlogPostListItem } from "@/lib/blogPosts";
+import { isMarketResearchPost } from "@/lib/market-research/catalog";
 
 export function useBlogPosts(): {
   posts: BlogPostListItem[];
@@ -38,7 +39,7 @@ export function useBlogPosts(): {
           })
         );
 
-        setPosts(mergePublishedWithCatalog(fromDb));
+        setPosts(mergePublishedWithCatalog(fromDb).filter((post) => !isMarketResearchPost(post.category)));
       })
       .catch(() => {})
       .finally(() => setLoading(false));

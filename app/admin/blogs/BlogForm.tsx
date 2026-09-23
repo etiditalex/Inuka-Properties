@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { BlogPost, ContentStatus } from "@/lib/supabase/types";
 import { slugify } from "@/lib/admin/utils";
 import { adminPath } from "@/lib/admin/path";
+import { MARKET_RESEARCH_CATEGORY } from "@/lib/market-research/catalog";
 import { Save } from "lucide-react";
 
 const empty: Partial<BlogPost> = {
@@ -30,12 +31,20 @@ const statusOptions = [
   { value: "published", label: "Published" },
 ];
 
-type BlogFormProps = { postId?: number };
+type BlogFormProps = {
+  postId?: number;
+  section?: "blog" | "market-research";
+};
 
-export default function BlogFormPage({ postId }: BlogFormProps) {
+export default function BlogFormPage({ postId, section = "blog" }: BlogFormProps) {
   const router = useRouter();
   const isEdit = Boolean(postId);
-  const [form, setForm] = useState<Partial<BlogPost>>(empty);
+  const isResearch = section === "market-research";
+  const listPath = isResearch ? "market-research" : "blogs";
+  const publicPrefix = isResearch ? "/iapl-insider/market-research" : "/iapl-insider/blogs";
+  const [form, setForm] = useState<Partial<BlogPost>>(() =>
+    isResearch ? { ...empty, category: MARKET_RESEARCH_CATEGORY } : empty
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -63,21 +72,29 @@ export default function BlogFormPage({ postId }: BlogFormProps) {
     setError("");
     const supabase = createClient();
     const { id: _id, created_at: _createdAt, updated_at: _updatedAt, ...payload } = form;
+    if (isResearch) payload.category = MARKET_RESEARCH_CATEGORY;
     const { error: saveError } = isEdit
       ? await supabase.from("blog_posts").update(payload).eq("id", postId!)
       : await supabase.from("blog_posts").insert(payload);
     setSaving(false);
     if (saveError) { setError(saveError.message); return; }
-    router.push(adminPath("blogs"));
+    router.push(adminPath(listPath));
   };
 
   return (
-    <AdminShell title={isEdit ? "Edit Blog" : "New Blog"} subtitle="Content will match the IAPL Insider blog layout">
+    <AdminShell
+      title={isEdit ? (isResearch ? "Edit Market Research" : "Edit Blog") : isResearch ? "New Market Research" : "New Blog"}
+      subtitle={isResearch ? "This article appears on the Market Research page" : "Content will match the IAPL Insider blog layout"}
+    >
       <div className="grid gap-6 xl:grid-cols-2">
         <div className="space-y-5 rounded-2xl border border-dark-200/60 bg-white p-6 shadow-sm">
           <AdminInput label="Title" value={form.title || ""} onChange={(e) => update("title", e.target.value)} />
-          <AdminInput label="Slug" value={form.slug || ""} onChange={(e) => update("slug", e.target.value)} hint="URL: /iapl-insider/blogs/[slug]" />
-          <AdminInput label="Category" value={form.category || ""} onChange={(e) => update("category", e.target.value)} />
+          <AdminInput label="Slug" value={form.slug || ""} onChange={(e) => update("slug", e.target.value)} hint={`URL: ${publicPrefix}/[slug]`} />
+          {isResearch ? (
+            <AdminInput label="Category" value={MARKET_RESEARCH_CATEGORY} readOnly onChange={() => undefined} />
+          ) : (
+            <AdminInput label="Category" value={form.category || ""} onChange={(e) => update("category", e.target.value)} />
+          )}
           <AdminInput label="Author" value={form.author || ""} onChange={(e) => update("author", e.target.value)} />
           <AdminInput label="Published Date" type="date" value={form.published_at || ""} onChange={(e) => update("published_at", e.target.value)} />
           <AdminInput label="Hero Image URL" value={form.image || ""} onChange={(e) => update("image", e.target.value)} />
@@ -93,7 +110,7 @@ export default function BlogFormPage({ postId }: BlogFormProps) {
           <AdminSelect label="Status" options={statusOptions} value={form.status || "draft"} onChange={(e) => update("status", e.target.value as ContentStatus)} />
           {error && <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
           <div className="flex gap-3">
-            <AdminButton onClick={handleSave} loading={saving}><Save size={16} /> Save Blog</AdminButton>
+            <AdminButton onClick={handleSave} loading={saving}><Save size={16} /> {isResearch ? "Save Article" : "Save Blog"}</AdminButton>
             <AdminButton variant="outline" onClick={() => router.back()}>Cancel</AdminButton>
           </div>
         </div>

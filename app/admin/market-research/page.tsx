@@ -1,21 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Pencil, Trash2, Download } from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import AdminShell from "@/components/admin/AdminShell";
 import AdminButton from "@/components/admin/AdminButton";
 import { AdminInput, AdminTextarea, AdminSelect } from "@/components/admin/AdminForm";
-import ImageUpload from "@/components/admin/ImageUpload";
-import MarketResearchPreview from "@/components/admin/preview/MarketResearchPreview";
-import { createClient } from "@/lib/supabase/client";
-import type { MarketResearchInsight, MarketResearchReport } from "@/lib/supabase/types";
-import { useWebsiteImport } from "@/lib/admin/useWebsiteImport";
-
-const reportTypes = [
-  { value: "Market Report", label: "Market Report" },
-  { value: "Investment Guide", label: "Investment Guide" },
-  { value: "Sector Analysis", label: "Sector Analysis" },
-];
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import type { BlogPost, MarketResearchInsight } from "@/lib/supabase/types";
+import { formatIsoDate } from "@/lib/admin/utils";
+import { adminPath } from "@/lib/admin/path";
+import { isMarketResearchPost } from "@/lib/market-research/catalog";
 
 const iconOptions = [
   { value: "TrendingUp", label: "Trending Up" },
@@ -24,45 +20,35 @@ const iconOptions = [
 ];
 
 export default function AdminMarketResearchPage() {
-  const [reports, setReports] = useState<MarketResearchReport[]>([]);
+  const [posts, setPosts] = useState<BlogPost[]>([]);
   const [insights, setInsights] = useState<MarketResearchInsight[]>([]);
-  const [tab, setTab] = useState<"reports" | "insights">("reports");
-  const [editingReport, setEditingReport] = useState<Partial<MarketResearchReport> | null>(null);
+  const [tab, setTab] = useState<"posts" | "insights">("posts");
   const [editingInsight, setEditingInsight] = useState<Partial<MarketResearchInsight> | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
+    if (!isSupabaseConfigured()) {
+      setLoading(false);
+      return;
+    }
     const supabase = createClient();
-    const [{ data: r }, { data: i }] = await Promise.all([
-      supabase.from("market_research_reports").select("*").order("sort_order"),
+    const [{ data: blogRows }, { data: insightRows }] = await Promise.all([
+      supabase.from("blog_posts").select("*").order("published_at", { ascending: false }),
       supabase.from("market_research_insights").select("*").order("sort_order"),
     ]);
-    setReports((r as MarketResearchReport[]) || []);
-    setInsights((i as MarketResearchInsight[]) || []);
+    setPosts(((blogRows as BlogPost[]) || []).filter((post) => isMarketResearchPost(post.category)));
+    setInsights((insightRows as MarketResearchInsight[]) || []);
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
-  const { importing, importMessage, runImport } = useWebsiteImport(
-    "/api/admin/import-market-research",
-    "Import all market research reports and insights from the public website? Existing items with the same ID will be updated."
-  );
-
-  const saveReport = async () => {
-    if (!editingReport) return;
+  const deletePost = async (id: number) => {
+    if (!confirm("Delete this market research article?")) return;
     const supabase = createClient();
-    const payload = { ...editingReport, image_url: editingReport.image_url || null };
-    const write = (row: Partial<MarketResearchReport>) =>
-      row.id
-        ? supabase.from("market_research_reports").update(row).eq("id", row.id)
-        : supabase.from("market_research_reports").insert(row);
-    const first = await write(payload);
-    if (first.error && /image_url/i.test(first.error.message)) {
-      const { image_url: _image, ...withoutImage } = payload;
-      await write(withoutImage);
-    }
-    setEditingReport(null);
+    await supabase.from("blog_posts").delete().eq("id", id);
     load();
   };
 
@@ -78,13 +64,6 @@ export default function AdminMarketResearchPage() {
     load();
   };
 
-  const deleteReport = async (id: number) => {
-    if (!confirm("Delete report?")) return;
-    const supabase = createClient();
-    await supabase.from("market_research_reports").delete().eq("id", id);
-    load();
-  };
-
   const deleteInsight = async (id: number) => {
     if (!confirm("Delete insight?")) return;
     const supabase = createClient();
@@ -93,99 +72,131 @@ export default function AdminMarketResearchPage() {
   };
 
   return (
-    <AdminShell title="Market Research" subtitle="Manage reports and insight stat cards">
+    <AdminShell title="Market Research" subtitle="Write articles the same way as blog posts">
       <div className="mb-6 flex flex-wrap justify-end gap-2">
-        <AdminButton variant="secondary" loading={importing} onClick={() => runImport(load)}>
-          <Download size={16} /> Import from website
-        </AdminButton>
-      </div>
-
-      {importMessage && (
-        <div
-          className={`mb-6 rounded-xl px-4 py-3 text-sm ${importMessage.toLowerCase().includes("failed") ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700"}`}
-        >
-          {importMessage}
-        </div>
-      )}
-
-      <div className="mb-6 grid gap-6 xl:grid-cols-2">
-        <MarketResearchPreview insights={insights} reports={reports} />
+        <Link href={adminPath("market-research/new")}>
+          <AdminButton>
+            <Plus size={16} /> New Article
+          </AdminButton>
+        </Link>
       </div>
 
       <div className="mb-4 flex gap-2">
-        <AdminButton variant={tab === "reports" ? "primary" : "outline"} size="sm" onClick={() => setTab("reports")}>Reports</AdminButton>
-        <AdminButton variant={tab === "insights" ? "primary" : "outline"} size="sm" onClick={() => setTab("insights")}>Insights</AdminButton>
+        <AdminButton variant={tab === "posts" ? "primary" : "outline"} size="sm" onClick={() => setTab("posts")}>
+          Articles
+        </AdminButton>
+        <AdminButton variant={tab === "insights" ? "primary" : "outline"} size="sm" onClick={() => setTab("insights")}>
+          Insights
+        </AdminButton>
       </div>
 
       {loading ? (
-        <div className="flex h-32 items-center justify-center">
+        <div className="flex h-48 items-center justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
         </div>
-      ) : tab === "reports" ? (
-        <div className="space-y-4">
-          <AdminButton size="sm" onClick={() => setEditingReport({ title: "", description: "", report_date: new Date().toISOString().split("T")[0], report_type: "Market Report", image_url: "", sort_order: reports.length })}>
-            <Plus size={14} /> Add Report
-          </AdminButton>
-          {editingReport && (
-            <div className="rounded-2xl border border-dark-200 bg-white p-6 space-y-4">
-              <ImageUpload
-                label="Card image"
-                folder="market-research"
-                value={editingReport.image_url || ""}
-                onChange={(url) => setEditingReport({ ...editingReport, image_url: url })}
-                hint="Shown beside the title on the Market Research page."
-              />
-              <AdminInput label="Title" value={editingReport.title || ""} onChange={(e) => setEditingReport({ ...editingReport, title: e.target.value })} />
-              <AdminTextarea label="Description" value={editingReport.description || ""} onChange={(e) => setEditingReport({ ...editingReport, description: e.target.value })} rows={3} />
-              <AdminInput label="Date" type="date" value={editingReport.report_date || ""} onChange={(e) => setEditingReport({ ...editingReport, report_date: e.target.value })} />
-              <AdminSelect label="Type" options={reportTypes} value={editingReport.report_type || ""} onChange={(e) => setEditingReport({ ...editingReport, report_type: e.target.value })} />
-              <AdminInput label="File URL (optional)" value={editingReport.file_url || ""} onChange={(e) => setEditingReport({ ...editingReport, file_url: e.target.value })} />
-              <div className="flex gap-2">
-                <AdminButton size="sm" onClick={saveReport}>Save</AdminButton>
-                <AdminButton size="sm" variant="outline" onClick={() => setEditingReport(null)}>Cancel</AdminButton>
+      ) : tab === "posts" ? (
+        posts.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-dark-200 bg-white py-16 text-center">
+            <p className="text-dark-500">No market research articles yet</p>
+            <Link href={adminPath("market-research/new")} className="mt-4 inline-block">
+              <AdminButton size="sm">Create first article</AdminButton>
+            </Link>
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {posts.map((post) => (
+              <div key={post.id} className="overflow-hidden rounded-2xl border border-dark-200/60 bg-white shadow-sm">
+                <div className="relative h-40 bg-neutral-100">
+                  {post.image ? (
+                    <Image src={post.image} alt={post.title} fill className="object-cover" unoptimized />
+                  ) : null}
+                  <span
+                    className={`absolute right-3 top-3 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                      post.status === "published" ? "bg-emerald-500 text-white" : "bg-dark-500 text-white"
+                    }`}
+                  >
+                    {post.status}
+                  </span>
+                </div>
+                <div className="p-4">
+                  <h3 className="line-clamp-2 font-bold text-dark-900 font-montserrat">{post.title}</h3>
+                  <p className="mt-1 text-xs text-dark-400">
+                    {formatIsoDate(post.published_at)} · {post.author}
+                  </p>
+                  <div className="mt-3 flex gap-2">
+                    <Link href={adminPath(`market-research/${post.id}`)} className="flex-1">
+                      <AdminButton variant="outline" size="sm" className="w-full">
+                        <Pencil size={14} /> Edit
+                      </AdminButton>
+                    </Link>
+                    <AdminButton variant="ghost" size="sm" onClick={() => deletePost(post.id)}>
+                      <Trash2 size={14} className="text-red-500" />
+                    </AdminButton>
+                  </div>
+                </div>
               </div>
-            </div>
-          )}
-          {reports.map((r) => (
-            <div key={r.id} className="flex items-center justify-between rounded-xl border border-dark-200 bg-white p-4">
-              <div>
-                <span className="text-xs font-semibold text-primary-600">{r.report_type}</span>
-                <h4 className="font-bold text-dark-900">{r.title}</h4>
-              </div>
-              <div className="flex gap-2">
-                <AdminButton variant="outline" size="sm" onClick={() => setEditingReport(r)}><Pencil size={14} /></AdminButton>
-                <AdminButton variant="ghost" size="sm" onClick={() => deleteReport(r.id)}><Trash2 size={14} className="text-red-500" /></AdminButton>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )
       ) : (
         <div className="space-y-4">
-          <AdminButton size="sm" onClick={() => setEditingInsight({ icon: "TrendingUp", title: "", value: "", description: "", sort_order: insights.length })}>
+          <AdminButton
+            size="sm"
+            onClick={() =>
+              setEditingInsight({ icon: "TrendingUp", title: "", value: "", description: "", sort_order: insights.length })
+            }
+          >
             <Plus size={14} /> Add Insight
           </AdminButton>
           {editingInsight && (
-            <div className="rounded-2xl border border-dark-200 bg-white p-6 space-y-4">
-              <AdminSelect label="Icon" options={iconOptions} value={editingInsight.icon || "TrendingUp"} onChange={(e) => setEditingInsight({ ...editingInsight, icon: e.target.value })} />
-              <AdminInput label="Title" value={editingInsight.title || ""} onChange={(e) => setEditingInsight({ ...editingInsight, title: e.target.value })} />
-              <AdminInput label="Value" value={editingInsight.value || ""} onChange={(e) => setEditingInsight({ ...editingInsight, value: e.target.value })} placeholder="15%" />
-              <AdminTextarea label="Description" value={editingInsight.description || ""} onChange={(e) => setEditingInsight({ ...editingInsight, description: e.target.value })} rows={2} />
+            <div className="space-y-4 rounded-2xl border border-dark-200 bg-white p-6">
+              <AdminSelect
+                label="Icon"
+                options={iconOptions}
+                value={editingInsight.icon || "TrendingUp"}
+                onChange={(e) => setEditingInsight({ ...editingInsight, icon: e.target.value })}
+              />
+              <AdminInput
+                label="Title"
+                value={editingInsight.title || ""}
+                onChange={(e) => setEditingInsight({ ...editingInsight, title: e.target.value })}
+              />
+              <AdminInput
+                label="Value"
+                value={editingInsight.value || ""}
+                onChange={(e) => setEditingInsight({ ...editingInsight, value: e.target.value })}
+                placeholder="15%"
+              />
+              <AdminTextarea
+                label="Description"
+                value={editingInsight.description || ""}
+                onChange={(e) => setEditingInsight({ ...editingInsight, description: e.target.value })}
+                rows={2}
+              />
               <div className="flex gap-2">
-                <AdminButton size="sm" onClick={saveInsight}>Save</AdminButton>
-                <AdminButton size="sm" variant="outline" onClick={() => setEditingInsight(null)}>Cancel</AdminButton>
+                <AdminButton size="sm" onClick={saveInsight}>
+                  Save
+                </AdminButton>
+                <AdminButton size="sm" variant="outline" onClick={() => setEditingInsight(null)}>
+                  Cancel
+                </AdminButton>
               </div>
             </div>
           )}
-          {insights.map((ins) => (
-            <div key={ins.id} className="flex items-center justify-between rounded-xl border border-dark-200 bg-white p-4">
+          {insights.map((insight) => (
+            <div key={insight.id} className="flex items-center justify-between rounded-xl border border-dark-200 bg-white p-4">
               <div>
-                <span className="text-2xl font-bold text-primary-700">{ins.value}</span>
-                <h4 className="font-bold text-dark-900">{ins.title}</h4>
-                <p className="text-xs text-dark-500">{ins.description}</p>
+                <span className="text-2xl font-bold text-primary-700">{insight.value}</span>
+                <h4 className="font-bold text-dark-900">{insight.title}</h4>
+                <p className="text-xs text-dark-500">{insight.description}</p>
               </div>
               <div className="flex gap-2">
-                <AdminButton variant="outline" size="sm" onClick={() => setEditingInsight(ins)}><Pencil size={14} /></AdminButton>
-                <AdminButton variant="ghost" size="sm" onClick={() => deleteInsight(ins.id)}><Trash2 size={14} className="text-red-500" /></AdminButton>
+                <AdminButton variant="outline" size="sm" onClick={() => setEditingInsight(insight)}>
+                  <Pencil size={14} />
+                </AdminButton>
+                <AdminButton variant="ghost" size="sm" onClick={() => deleteInsight(insight.id)}>
+                  <Trash2 size={14} className="text-red-500" />
+                </AdminButton>
               </div>
             </div>
           ))}

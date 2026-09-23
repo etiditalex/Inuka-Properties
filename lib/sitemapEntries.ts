@@ -2,7 +2,10 @@ import type { MetadataRoute } from "next";
 import { BLOG_POSTS } from "@/lib/blogPosts";
 import { PROPERTY_SEO } from "@/lib/propertySeo";
 import { fetchPublishedProperties } from "@/lib/properties/getProperties";
-import { fetchPublishedBlogSummaries } from "@/lib/content/publishedBlogs";
+import {
+  fetchPublishedBlogSummaries,
+  fetchPublishedMarketResearchSummaries,
+} from "@/lib/content/publishedBlogs";
 import { SITE_ORIGIN } from "@/lib/site";
 import { FEATURED_SITELINK_PAGES } from "@/lib/featuredProjects";
 
@@ -125,10 +128,15 @@ export async function getSitemapEntries(): Promise<MetadataRoute.Sitemap> {
     });
 
   let blogPosts = BLOG_POSTS;
+  let researchPosts: Awaited<ReturnType<typeof fetchPublishedMarketResearchSummaries>> = [];
   try {
-    blogPosts = await fetchPublishedBlogSummaries();
+    [blogPosts, researchPosts] = await Promise.all([
+      fetchPublishedBlogSummaries(),
+      fetchPublishedMarketResearchSummaries(),
+    ]);
   } catch {
     blogPosts = BLOG_POSTS;
+    researchPosts = [];
   }
 
   const seenBlogUrls = new Set<string>();
@@ -146,7 +154,14 @@ export async function getSitemapEntries(): Promise<MetadataRoute.Sitemap> {
       return true;
     });
 
-  const all = [...staticRoutes, ...featuredRoutes, ...propertyRoutes, ...blogRoutes];
+  const researchRoutes: SitemapEntry[] = researchPosts.map((post) => ({
+    url: `${SITE_ORIGIN}/iapl-insider/market-research/${post.slug}`,
+    lastModified: parseDate(post.date),
+    changeFrequency: "monthly" as const,
+    priority: 0.8,
+  }));
+
+  const all = [...staticRoutes, ...featuredRoutes, ...propertyRoutes, ...blogRoutes, ...researchRoutes];
   const unique = new Map<string, SitemapEntry>();
   for (const entry of all) unique.set(entry.url, entry);
   return [...unique.values()];

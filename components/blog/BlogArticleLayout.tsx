@@ -4,13 +4,15 @@ import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Calendar, ChevronRight, User } from "lucide-react";
 import {
   formatIsoDate,
   formatLongDateFromIso,
 } from "@/lib/blogPosts";
 import { useBlogPosts } from "@/lib/blog/useBlogPosts";
+import { isMarketResearchPost } from "@/lib/market-research/catalog";
+import type { BlogPostListItem } from "@/lib/blogPosts";
 import { buildBreadcrumbSchema } from "@/lib/seo";
 import { SITE_ORIGIN } from "@/lib/site";
 
@@ -28,6 +30,9 @@ export type BlogArticleLayoutProps = {
   publishedIso: string;
   articleSchema: Record<string, unknown>;
   metaExtra?: ReactNode;
+  archiveHref?: string;
+  archiveLabel?: string;
+  sectionName?: string;
   children: ReactNode;
 };
 
@@ -42,6 +47,9 @@ export default function BlogArticleLayout({
   publishedIso,
   articleSchema,
   metaExtra,
+  archiveHref = "/iapl-insider/blogs",
+  archiveLabel = "Blogs",
+  sectionName = "Blogs",
   children,
 }: BlogArticleLayoutProps) {
   const router = useRouter();
@@ -79,16 +87,52 @@ export default function BlogArticleLayout({
     [encodedTitle, encodedUrl]
   );
 
+  const isResearch = archiveHref === "/iapl-insider/market-research";
   const { posts } = useBlogPosts();
-  const sidebarPosts = useMemo(
-    () => posts.filter((post) => post.slug !== currentSlug).slice(0, 6),
-    [posts, currentSlug]
-  );
+  const [researchPosts, setResearchPosts] = useState<BlogPostListItem[]>([]);
+
+  useEffect(() => {
+    if (!isResearch) return;
+    fetch("/api/content/blogs", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => {
+        const articles: BlogPostListItem[] = (data.posts || [])
+          .filter((post: { category?: string }) => isMarketResearchPost(post.category))
+          .map(
+            (post: {
+              id: number;
+              title: string;
+              excerpt: string;
+              author: string;
+              published_at: string;
+              image: string;
+              category: string;
+              slug: string;
+            }) => ({
+              id: post.id,
+              title: post.title,
+              excerpt: post.excerpt,
+              author: post.author,
+              date: post.published_at.slice(0, 10),
+              image: post.image,
+              category: post.category,
+              slug: post.slug,
+            })
+          );
+        setResearchPosts(articles);
+      })
+      .catch(() => {});
+  }, [isResearch]);
+
+  const sidebarPosts = useMemo(() => {
+    const source = isResearch ? researchPosts : posts;
+    return source.filter((post) => post.slug !== currentSlug).slice(0, 6);
+  }, [currentSlug, isResearch, posts, researchPosts]);
 
   const breadcrumbSchema = buildBreadcrumbSchema([
     { name: "Home", path: "/" },
-    { name: "Blogs", path: "/iapl-insider/blogs" },
-    { name: displayTitle, path: `/iapl-insider/blogs/${currentSlug}` },
+    { name: sectionName, path: archiveHref },
+    { name: displayTitle, path: `${archiveHref}/${currentSlug}` },
   ]);
 
   const dateShort = formatIsoDate(publishedIso);
@@ -98,8 +142,8 @@ export default function BlogArticleLayout({
     e.preventDefault();
     const q = searchDraft.trim();
     const href = q
-      ? `/iapl-insider/blogs?q=${encodeURIComponent(q)}`
-      : "/iapl-insider/blogs";
+      ? `${archiveHref}?q=${encodeURIComponent(q)}`
+      : archiveHref;
     router.push(href);
   };
 
@@ -140,8 +184,8 @@ export default function BlogArticleLayout({
               <span className="text-white/50" aria-hidden>
                 /
               </span>
-              <Link href="/iapl-insider/blogs" className="hover:text-white">
-                Blogs
+              <Link href={archiveHref} className="hover:text-white">
+                {sectionName}
               </Link>
               <span className="text-white/50" aria-hidden>
                 /
@@ -164,11 +208,11 @@ export default function BlogArticleLayout({
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
           <main className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm md:p-8 lg:p-10">
             <Link
-              href="/iapl-insider/blogs"
+              href={archiveHref}
               className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-primary-600 hover:text-primary-700"
             >
               <ArrowLeft size={18} />
-              Back to blogs
+              {archiveLabel}
             </Link>
             <p className="mb-6 text-xs font-semibold uppercase tracking-wider text-secondary-700">
               {category}
@@ -241,7 +285,7 @@ export default function BlogArticleLayout({
                 {sidebarPosts.map((post) => (
                   <li key={post.slug} className="py-3 first:pt-0 last:pb-0">
                     <Link
-                      href={`/iapl-insider/blogs/${post.slug}`}
+                      href={`${archiveHref}/${post.slug}`}
                       className="group flex gap-2 text-sm text-neutral-700 hover:text-primary-700"
                     >
                       <ChevronRight
