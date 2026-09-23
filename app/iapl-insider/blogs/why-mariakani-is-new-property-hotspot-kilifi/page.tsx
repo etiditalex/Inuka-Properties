@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { MapPin, Phone } from "lucide-react";
-import BlogArticleLayout from "@/components/blog/BlogArticleLayout";
+import BlogArticleGate from "@/components/blog/BlogArticleGate";
 import BookSiteVisitButton from "@/components/BookSiteVisitButton";
 import { FACEBOOK_CAMPAIGN_PROPERTY_ID } from "@/lib/facebook/pixel";
 
@@ -45,7 +45,7 @@ export default function WhyMariakaniPropertyHotspotPage() {
   const tulivuPropertyId = FACEBOOK_CAMPAIGN_PROPERTY_ID;
 
   return (
-    <BlogArticleLayout
+    <BlogArticleGate
       currentSlug={SLUG}
       title={TITLE}
       heroTitle="Mariakani property investment guide"
@@ -310,6 +310,6 @@ export default function WhyMariakaniPropertyHotspotPage() {
           </Link>
         </div>
       </div>
-    </BlogArticleLayout>
+    </BlogArticleGate>
   );
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { MapPin } from "lucide-react";
-import BlogArticleLayout from "@/components/blog/BlogArticleLayout";
+import BlogArticleGate from "@/components/blog/BlogArticleGate";
 
 const HERO_IMAGE =
   "https://res.cloudinary.com/dyfnobo9r/image/upload/v1771578534/WhatsApp_Image_2026-02-16_at_10.12.29_zor4t2.jpg";
@@ -41,7 +41,7 @@ export default function WhyInvestingInTezoIsSmartMovePage() {
   };
 
   return (
-    <BlogArticleLayout
+    <BlogArticleGate
       currentSlug="why-investing-in-tezo-is-a-smart-move-2026"
       title={TITLE}
       heroImage={HERO_IMAGE}
@@ -309,6 +309,6 @@ export default function WhyInvestingInTezoIsSmartMovePage() {
           </Link>
         </div>
       </div>
-    </BlogArticleLayout>
+    </BlogArticleGate>
   );
 }

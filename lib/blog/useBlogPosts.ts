@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BLOG_POSTS, type BlogPostListItem } from "@/lib/blogPosts";
+import { BLOG_POSTS, mergePublishedWithCatalog, type BlogPostListItem } from "@/lib/blogPosts";
 
 export function useBlogPosts(): {
   posts: BlogPostListItem[];
@@ -11,7 +11,7 @@ export function useBlogPosts(): {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/content/blogs")
+    fetch("/api/content/blogs", { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => {
         if (!data.posts?.length) return;
@@ -31,20 +31,14 @@ export function useBlogPosts(): {
             title: p.title,
             excerpt: p.excerpt,
             author: p.author,
-            date: p.published_at,
+            date: p.published_at.slice(0, 10),
             image: p.image,
             category: p.category,
             slug: p.slug,
           })
         );
 
-        const staticSlugs = new Set(BLOG_POSTS.map((p) => p.slug));
-        const merged = [
-          ...fromDb.filter((p) => !staticSlugs.has(p.slug)),
-          ...BLOG_POSTS,
-        ].sort((a, b) => b.date.localeCompare(a.date));
-
-        setPosts(merged);
+        setPosts(mergePublishedWithCatalog(fromDb));
       })
       .catch(() => {})
       .finally(() => setLoading(false));

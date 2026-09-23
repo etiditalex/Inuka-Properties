@@ -204,6 +204,15 @@ export function formatLongDateFromIso(isoDate: string): string {
   return `${weekdays[date.getDay()]}, ${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
 }
 
+/** Published database rows replace catalog entries with the same slug or id. */
+export function mergePublishedWithCatalog(fromDb: BlogPostListItem[]): BlogPostListItem[] {
+  const dbSlugs = new Set(fromDb.map((post) => post.slug));
+  const dbIds = new Set(fromDb.map((post) => post.id));
+  return [...fromDb, ...BLOG_POSTS.filter((post) => !dbSlugs.has(post.slug) && !dbIds.has(post.id))].sort(
+    (a, b) => b.date.localeCompare(a.date)
+  );
+}
+
 export function getSidebarArticlePosts(
   currentSlug: string,
   limit = 6

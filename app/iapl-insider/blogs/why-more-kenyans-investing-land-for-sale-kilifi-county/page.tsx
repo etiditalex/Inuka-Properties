@@ -1,5 +1,5 @@
 import { MapPin } from "lucide-react";
-import BlogArticleLayout from "@/components/blog/BlogArticleLayout";
+import BlogArticleGate from "@/components/blog/BlogArticleGate";
 
 const HERO_IMAGE =
   "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767954926/why_land_investment_2_pryhrf.jpg";
@@ -40,7 +40,7 @@ export default function WhyMoreKenyansInvestingLandKilifiPage() {
   };
 
   return (
-    <BlogArticleLayout
+    <BlogArticleGate
       currentSlug="why-more-kenyans-investing-land-for-sale-kilifi-county"
       title={TITLE}
       heroTitle="Land for sale in Kilifi County"
@@ -272,6 +272,6 @@ export default function WhyMoreKenyansInvestingLandKilifiPage() {
         </p>
 
       </div>
-    </BlogArticleLayout>
+    </BlogArticleGate>
   );
 }

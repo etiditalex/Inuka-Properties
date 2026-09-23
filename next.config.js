@@ -35,6 +35,11 @@ if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
 }
 
 const nextConfig = {
+  experimental: {
+    staleTimes: {
+      dynamic: 0,
+    },
+  },
   poweredByHeader: false,
   compress: true,
   async redirects() {

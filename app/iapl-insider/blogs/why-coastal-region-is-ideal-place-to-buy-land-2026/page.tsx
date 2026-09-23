@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { MapPin } from "lucide-react";
-import BlogArticleLayout from "@/components/blog/BlogArticleLayout";
+import BlogArticleGate from "@/components/blog/BlogArticleGate";
 
 const HERO_IMAGE =
   "https://res.cloudinary.com/dyfnobo9r/image/upload/v1768631111/mombasa_2_dazxqj.jpg";
@@ -40,7 +40,7 @@ export default function WhyCoastalRegionIsIdealPlacePage() {
   };
 
   return (
-    <BlogArticleLayout
+    <BlogArticleGate
       currentSlug="why-coastal-region-is-ideal-place-to-buy-land-2026"
       title={TITLE}
       heroImage={HERO_IMAGE}
@@ -235,6 +235,6 @@ export default function WhyCoastalRegionIsIdealPlacePage() {
           opportunities remain accessible and growth potential is at its peak.
         </p>
       </div>
-    </BlogArticleLayout>
+    </BlogArticleGate>
   );
 }

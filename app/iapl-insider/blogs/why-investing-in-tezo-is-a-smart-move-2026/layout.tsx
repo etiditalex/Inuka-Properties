@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import { withPublishedBlogMetadata } from "@/lib/blog/withPublishedBlogMetadata";
 
-export const metadata: Metadata = {
+const fallbackMetadata: Metadata = {
   metadataBase: new URL("https://www.inukaproperties.co.ke"),
   title:
     "Why Investing in Tezo Is a Smart Move in 2026 | Inuka Afrika Properties",
@@ -66,6 +67,10 @@ export const metadata: Metadata = {
     },
   },
 };
+
+export async function generateMetadata(): Promise<Metadata> {
+  return withPublishedBlogMetadata("why-investing-in-tezo-is-a-smart-move-2026", fallbackMetadata);
+}
 
 export default function WhyInvestingInTezoLayout({
   children,

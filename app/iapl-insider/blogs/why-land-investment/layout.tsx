@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import { withPublishedBlogMetadata } from "@/lib/blog/withPublishedBlogMetadata";
 
-export const metadata: Metadata = {
+const fallbackMetadata: Metadata = {
   metadataBase: new URL('https://www.inukaproperties.co.ke'),
   title: "Why Land Investment: The Ultimate Guide to Building Wealth Through Real Estate | Inuka Afrika Properties",
   description: "Discover why land investment is one of the smartest financial decisions you can make. Learn about land investment benefits, strategies, and opportunities in Kenya. Expert insights from Inuka Afrika Properties.",
@@ -56,6 +57,10 @@ export const metadata: Metadata = {
     },
   },
 };
+
+export async function generateMetadata(): Promise<Metadata> {
+  return withPublishedBlogMetadata("why-land-investment", fallbackMetadata);
+}
 
 export default function WhyLandInvestmentLayout({
   children,

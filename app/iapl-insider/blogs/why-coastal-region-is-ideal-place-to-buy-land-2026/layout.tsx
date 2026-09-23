@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import { withPublishedBlogMetadata } from "@/lib/blog/withPublishedBlogMetadata";
 
-export const metadata: Metadata = {
+const fallbackMetadata: Metadata = {
   metadataBase: new URL('https://www.inukaproperties.co.ke'),
   title: "Why the Coastal region Is The Ideal Place To Buy Land In 2026 | Inuka Afrika Properties",
   description: "Discover why the Coastal region is the perfect destination to buy land in 2026. Explore Mariakani, Mtwapa, Kikambala, Kilifi, Malindi, Watamu, and Diani. Learn about infrastructure growth, affordable housing initiatives, and tourism opportunities. Expert insights from Inuka Afrika Properties.",
@@ -66,6 +67,13 @@ export const metadata: Metadata = {
     },
   },
 };
+
+export async function generateMetadata(): Promise<Metadata> {
+  return withPublishedBlogMetadata(
+    "why-coastal-region-is-ideal-place-to-buy-land-2026",
+    fallbackMetadata
+  );
+}
 
 export default function WhyCoastalRegionIsIdealPlaceLayout({
   children,

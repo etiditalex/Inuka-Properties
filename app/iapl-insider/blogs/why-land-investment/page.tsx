@@ -1,5 +1,5 @@
 import Link from "next/link";
-import BlogArticleLayout from "@/components/blog/BlogArticleLayout";
+import BlogArticleGate from "@/components/blog/BlogArticleGate";
 
 const HERO_IMAGE =
   "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767954926/why_land_investment_2_pryhrf.jpg";
@@ -39,7 +39,7 @@ export default function WhyLandInvestmentPage() {
   };
 
   return (
-    <BlogArticleLayout
+    <BlogArticleGate
       currentSlug="why-land-investment"
       title={TITLE}
       heroImage={HERO_IMAGE}
@@ -212,6 +212,6 @@ export default function WhyLandInvestmentPage() {
           now, while prices remain accessible and growth potential is high.
         </p>
       </div>
-    </BlogArticleLayout>
+    </BlogArticleGate>
   );
 }

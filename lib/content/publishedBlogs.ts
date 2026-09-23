@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
-import { BLOG_POSTS, type BlogPostListItem } from "@/lib/blogPosts";
+import { unstable_noStore as noStore } from "next/cache";
+import { BLOG_POSTS, mergePublishedWithCatalog, type BlogPostListItem } from "@/lib/blogPosts";
 
 export type PublishedBlog = BlogPostListItem & {
   content_html?: string | null;
@@ -7,11 +8,20 @@ export type PublishedBlog = BlogPostListItem & {
   hero_image_alt?: string | null;
 };
 
+export function publishedDate(value: string): string {
+  return value.slice(0, 10);
+}
+
 function getPublicClient() {
+  noStore();
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return null;
-  return createClient(url, key);
+  return createClient(url, key, {
+    global: {
+      fetch: (input, init) => fetch(input, { ...init, cache: "no-store" }),
+    },
+  });
 }
 
 export async function fetchPublishedBlogSummaries(): Promise<BlogPostListItem[]> {
@@ -29,16 +39,13 @@ export async function fetchPublishedBlogSummaries(): Promise<BlogPostListItem[]>
     title: post.title,
     excerpt: post.excerpt,
     author: post.author,
-    date: post.published_at,
+    date: publishedDate(post.published_at),
     image: post.image,
     category: post.category,
     slug: post.slug,
   }));
 
-  const staticSlugs = new Set(BLOG_POSTS.map((post) => post.slug));
-  return [...fromDb.filter((post) => !staticSlugs.has(post.slug)), ...BLOG_POSTS].sort((a, b) =>
-    b.date.localeCompare(a.date)
-  );
+  return mergePublishedWithCatalog(fromDb);
 }
 
 export async function fetchPublishedBlogBySlug(slug: string): Promise<PublishedBlog | null> {
@@ -59,7 +66,7 @@ export async function fetchPublishedBlogBySlug(slug: string): Promise<PublishedB
     title: data.title,
     excerpt: data.excerpt,
     author: data.author,
-    date: data.published_at,
+    date: publishedDate(data.published_at),
     image: data.image,
     category: data.category,
     slug: data.slug,

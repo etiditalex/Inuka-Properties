@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { withPublishedBlogMetadata } from "@/lib/blog/withPublishedBlogMetadata";
 
 const HERO =
   "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767954926/why_land_investment_2_pryhrf.jpg";
@@ -7,7 +8,7 @@ const HERO =
 const CANONICAL =
   "https://www.inukaproperties.co.ke/iapl-insider/blogs/why-more-kenyans-investing-land-for-sale-kilifi-county";
 
-export const metadata: Metadata = {
+const fallbackMetadata: Metadata = {
   metadataBase: new URL("https://www.inukaproperties.co.ke"),
   title:
     "Why More Kenyans Are Investing in Land for Sale in Kilifi County | Inuka Afrika Properties",
@@ -67,6 +68,13 @@ export const metadata: Metadata = {
     },
   },
 };
+
+export async function generateMetadata(): Promise<Metadata> {
+  return withPublishedBlogMetadata(
+    "why-more-kenyans-investing-land-for-sale-kilifi-county",
+    fallbackMetadata
+  );
+}
 
 export default function WhyMoreKenyansInvestingLandKilifiLayout({
   children,

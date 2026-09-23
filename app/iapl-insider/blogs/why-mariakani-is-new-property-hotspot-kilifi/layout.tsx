@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { withPublishedBlogMetadata } from "@/lib/blog/withPublishedBlogMetadata";
 
 const HERO =
   "https://res.cloudinary.com/dyfnobo9r/image/upload/v1781934535/Tulivu_haven_7_znzmct.jpg";
@@ -7,7 +8,7 @@ const HERO =
 const CANONICAL =
   "https://www.inukaproperties.co.ke/iapl-insider/blogs/why-mariakani-is-new-property-hotspot-kilifi";
 
-export const metadata: Metadata = {
+const fallbackMetadata: Metadata = {
   metadataBase: new URL("https://www.inukaproperties.co.ke"),
   title:
     "Why Mariakani is the New Property Hotspot in Kilifi | Inuka Afrika Properties",
@@ -67,6 +68,10 @@ export const metadata: Metadata = {
     },
   },
 };
+
+export async function generateMetadata(): Promise<Metadata> {
+  return withPublishedBlogMetadata("why-mariakani-is-new-property-hotspot-kilifi", fallbackMetadata);
+}
 
 export default function WhyMariakaniPropertyHotspotLayout({
   children,

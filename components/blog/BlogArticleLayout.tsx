@@ -9,8 +9,8 @@ import { ArrowLeft, Calendar, ChevronRight, User } from "lucide-react";
 import {
   formatIsoDate,
   formatLongDateFromIso,
-  getSidebarArticlePosts,
 } from "@/lib/blogPosts";
+import { useBlogPosts } from "@/lib/blog/useBlogPosts";
 import { buildBreadcrumbSchema } from "@/lib/seo";
 import { SITE_ORIGIN } from "@/lib/site";
 
@@ -79,7 +79,11 @@ export default function BlogArticleLayout({
     [encodedTitle, encodedUrl]
   );
 
-  const sidebarPosts = getSidebarArticlePosts(currentSlug);
+  const { posts } = useBlogPosts();
+  const sidebarPosts = useMemo(
+    () => posts.filter((post) => post.slug !== currentSlug).slice(0, 6),
+    [posts, currentSlug]
+  );
 
   const breadcrumbSchema = buildBreadcrumbSchema([
     { name: "Home", path: "/" },

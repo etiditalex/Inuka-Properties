@@ -8,7 +8,8 @@ import {
 import { BLOG_ARTICLE_SLUGS } from "@/lib/blogPosts";
 import { buildArticleMetadata, buildBlogPostingSchema } from "@/lib/seo";
 
-export const revalidate = 1800;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 export const dynamicParams = true;
 
 type Props = {

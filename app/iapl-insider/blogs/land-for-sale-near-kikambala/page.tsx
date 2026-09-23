@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { MapPin } from "lucide-react";
-import BlogArticleLayout from "@/components/blog/BlogArticleLayout";
+import BlogArticleGate from "@/components/blog/BlogArticleGate";
 
 const HERO_IMAGE =
   "https://res.cloudinary.com/dyfnobo9r/image/upload/v1778739554/land_for_sale_in_kikambala_u9t8mn.jpg";
@@ -41,7 +41,7 @@ export default function LandForSaleNearKikambalaPage() {
   };
 
   return (
-    <BlogArticleLayout
+    <BlogArticleGate
       currentSlug="land-for-sale-near-kikambala"
       title={TITLE}
       heroTitle="Land for sale near Kikambala"
@@ -191,6 +191,6 @@ export default function LandForSaleNearKikambalaPage() {
           Kenya.
         </p>
       </div>
-    </BlogArticleLayout>
+    </BlogArticleGate>
   );
 }

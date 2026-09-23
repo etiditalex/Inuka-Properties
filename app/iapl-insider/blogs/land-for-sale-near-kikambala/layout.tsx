@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { withPublishedBlogMetadata } from "@/lib/blog/withPublishedBlogMetadata";
 
 const HERO =
   "https://res.cloudinary.com/dyfnobo9r/image/upload/v1778739554/land_for_sale_in_kikambala_u9t8mn.jpg";
@@ -7,7 +8,7 @@ const HERO =
 const CANONICAL =
   "https://www.inukaproperties.co.ke/iapl-insider/blogs/land-for-sale-near-kikambala";
 
-export const metadata: Metadata = {
+const fallbackMetadata: Metadata = {
   metadataBase: new URL("https://www.inukaproperties.co.ke"),
   title:
     "Land for Sale Near Kikambala | Coastal Plots Kilifi County | Inuka Afrika Properties",
@@ -70,6 +71,10 @@ export const metadata: Metadata = {
     },
   },
 };
+
+export async function generateMetadata(): Promise<Metadata> {
+  return withPublishedBlogMetadata("land-for-sale-near-kikambala", fallbackMetadata);
+}
 
 export default function LandForSaleNearKikambalaLayout({
   children,
