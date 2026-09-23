@@ -162,7 +162,7 @@ export default function BlogArticleLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
         />
 
-        <div className="container mx-auto px-4 md:px-6">
+        <div className="mx-auto w-full px-4 md:px-6 lg:px-8">
           <nav
             aria-label="Breadcrumb"
             className="mb-6 flex flex-wrap items-center gap-2 text-sm font-medium text-neutral-500 md:mb-8"
@@ -193,7 +193,7 @@ export default function BlogArticleLayout({
             </div>
           ) : null}
 
-          <article className="mx-auto max-w-3xl py-10 md:py-14">
+          <article className="w-full py-10 md:py-14 lg:w-[75vw] lg:max-w-full">
             <h1 className="text-3xl font-bold leading-tight text-neutral-900 md:text-4xl">{displayTitle}</h1>
             <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-neutral-500">
               <span className="flex items-center gap-2">
