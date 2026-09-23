@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Calendar, ChevronRight, User } from "lucide-react";
+import { ArrowLeft, Calendar, ChevronRight, Home, User } from "lucide-react";
 import {
   formatIsoDate,
   formatLongDateFromIso,
@@ -14,6 +14,7 @@ import { useBlogPosts } from "@/lib/blog/useBlogPosts";
 import { isMarketResearchPost } from "@/lib/market-research/catalog";
 import type { BlogPostListItem } from "@/lib/blogPosts";
 import { buildBreadcrumbSchema } from "@/lib/seo";
+import { propertyImageProps } from "@/lib/images";
 import { SITE_ORIGIN } from "@/lib/site";
 
 export type BlogArticleLayoutProps = {
@@ -146,6 +147,70 @@ export default function BlogArticleLayout({
       : archiveHref;
     router.push(href);
   };
+
+  if (isResearch) {
+    const imageProps = heroImage ? propertyImageProps(heroImage) : null;
+
+    return (
+      <div className="min-h-screen bg-white pb-20 pt-28 font-montserrat md:pt-36">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+        />
+
+        <div className="container mx-auto px-4 md:px-6">
+          <nav
+            aria-label="Breadcrumb"
+            className="mb-6 flex flex-wrap items-center gap-2 text-sm font-medium text-neutral-500 md:mb-8"
+          >
+            <Link href="/" aria-label="Home" className="inline-flex text-neutral-700 hover:text-primary-700">
+              <Home size={18} strokeWidth={1.75} />
+            </Link>
+            <ChevronRight size={16} className="text-neutral-400" aria-hidden />
+            <Link href={archiveHref} className="text-neutral-700 hover:text-primary-700">
+              {sectionName}
+            </Link>
+            <ChevronRight size={16} className="text-neutral-400" aria-hidden />
+            <span className="text-neutral-600">{displayTitle}</span>
+          </nav>
+
+          {imageProps ? (
+            <div className="relative aspect-[21/9] min-h-[240px] w-full overflow-hidden bg-neutral-100 md:min-h-[420px]">
+              <Image
+                src={imageProps.src}
+                alt={heroImageAlt}
+                fill
+                priority
+                className="object-cover"
+                sizes="(min-width: 1280px) 1200px, 100vw"
+                quality={90}
+                unoptimized={imageProps.unoptimized}
+              />
+            </div>
+          ) : null}
+
+          <article className="mx-auto max-w-3xl py-10 md:py-14">
+            <h1 className="text-3xl font-bold leading-tight text-neutral-900 md:text-4xl">{displayTitle}</h1>
+            <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-neutral-500">
+              <span className="flex items-center gap-2">
+                <Calendar size={16} aria-hidden />
+                {dateLong}
+              </span>
+              <span className="flex items-center gap-2">
+                <User size={16} aria-hidden />
+                {author}
+              </span>
+            </div>
+            <div className="mt-8">{children}</div>
+          </article>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-neutral-100 pt-20 font-montserrat md:pt-24">
