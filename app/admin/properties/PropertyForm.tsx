@@ -11,6 +11,7 @@ import PropertyPreview from "@/components/admin/preview/PropertyPreview";
 import { createClient } from "@/lib/supabase/client";
 import type { Property, PropertyStatus } from "@/lib/supabase/types";
 import { adminPath } from "@/lib/admin/path";
+import { publishContentSignal } from "@/lib/notifications/publishClient";
 import { parseGalleryUrls } from "@/lib/images";
 import { Save } from "lucide-react";
 
@@ -169,14 +170,22 @@ export default function PropertyFormPage({ propertyId }: PropertyFormPageProps) 
       quick_info: linesToRecord(quickInfoText),
     };
 
-    const { error: saveError } = isEdit
-      ? await supabase.from("properties").update(payload).eq("id", propertyId!)
-      : await supabase.from("properties").insert(payload);
+    const { data: saved, error: saveError } = isEdit
+      ? await supabase.from("properties").update(payload).eq("id", propertyId!).select("id").single()
+      : await supabase.from("properties").insert(payload).select("id").single();
 
     setSaving(false);
     if (saveError) {
       setError(saveError.message);
       return;
+    }
+    if (payload.published && saved?.id && payload.title) {
+      void publishContentSignal({
+        kind: "property",
+        title: payload.title,
+        summary: [payload.location, payload.price].filter(Boolean).join(" · "),
+        path: `/for-sale/${saved.id}`,
+      });
     }
     router.push(adminPath("properties"));
   };

@@ -12,6 +12,7 @@ import type { BlogPost, ContentStatus } from "@/lib/supabase/types";
 import { slugify } from "@/lib/admin/utils";
 import { adminPath } from "@/lib/admin/path";
 import { MARKET_RESEARCH_CATEGORY } from "@/lib/market-research/catalog";
+import { publishContentSignal } from "@/lib/notifications/publishClient";
 import { Save } from "lucide-react";
 
 const empty: Partial<BlogPost> = {
@@ -78,6 +79,16 @@ export default function BlogFormPage({ postId, section = "blog" }: BlogFormProps
       : await supabase.from("blog_posts").insert(payload);
     setSaving(false);
     if (saveError) { setError(saveError.message); return; }
+    if (payload.status === "published" && payload.slug && payload.title) {
+      void publishContentSignal({
+        kind: isResearch ? "market-research" : "blog",
+        title: payload.title,
+        summary: payload.excerpt,
+        path: isResearch
+          ? `/iapl-insider/market-research/${payload.slug}`
+          : `/iapl-insider/blogs/${payload.slug}`,
+      });
+    }
     router.push(adminPath(listPath));
   };
 

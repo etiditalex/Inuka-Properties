@@ -17,6 +17,8 @@ function withNoIndex(response: NextResponse): NextResponse {
 
 /** Canonical host + HTTPS for production SEO + hidden admin path + Supabase auth. */
 export async function middleware(request: NextRequest) {
+  if (request.nextUrl.pathname === "/sw.js") return NextResponse.next();
+
   const host = request.headers.get("host") ?? "";
   const proto = request.headers.get("x-forwarded-proto") ?? "https";
 
