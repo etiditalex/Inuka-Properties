@@ -242,6 +242,7 @@ export interface DashboardStats {
   properties: number;
   availableProperties: number;
   soldProperties: number;
+  ongoingProperties?: number;
   blogs: number;
   news: number;
   newInquiries: number;

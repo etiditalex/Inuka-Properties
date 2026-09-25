@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import AdminSidebar from "./AdminSidebar";
 import AdminTopBar from "./AdminTopBar";
 import { useAdminShell } from "./AdminShellContext";
+import { Facebook, Instagram } from "lucide-react";
 import { cn } from "@/lib/admin/utils";
 import type { Profile } from "@/lib/supabase/types";
 import { uniquePropertyLeads } from "@/lib/leads/dedupe";
@@ -64,35 +65,63 @@ export default function AdminShell({ children, title, subtitle, contentClassName
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-dark-50 via-white to-primary-50/30">
+    <div className="flex min-h-screen flex-col bg-white">
+      <AdminTopBar
+        userName={profile?.full_name || undefined}
+        userEmail={profile?.email || undefined}
+        avatarUrl={profile?.avatar_url}
+        inquiryCount={badges.inquiries}
+        leadCount={badges.leads}
+      />
+
       {mobileOpen ? (
         <button
           type="button"
           aria-label="Close navigation menu"
-          className="fixed inset-0 z-30 bg-dark-900/50 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-20 bg-dark-900/40 lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
       ) : null}
 
-      <AdminSidebar badges={badges} logoUrl={profile?.avatar_url} />
+      <AdminSidebar badges={badges} />
 
-      <AdminTopBar
-        title={title}
-        subtitle={subtitle}
-        userName={profile?.full_name || undefined}
-        userEmail={profile?.email || undefined}
-        avatarUrl={profile?.avatar_url}
-      />
-
-      <main
+      <div
         className={cn(
-          "min-h-[calc(100vh-4rem)] p-4 transition-all duration-300 sm:p-6",
-          collapsed ? "lg:ml-[72px]" : "lg:ml-64",
-          contentClassName
+          "flex min-h-[calc(100vh-3.5rem)] flex-1 flex-col transition-all duration-300",
+          collapsed ? "lg:ml-[72px]" : "lg:ml-60"
         )}
       >
-        {children}
-      </main>
+        <main className={cn("flex-1 p-4 sm:p-6", contentClassName)}>
+          <div className="mb-5">
+            <h1 className="font-montserrat text-xl font-semibold text-dark-800">
+              {title}
+              {subtitle ? (
+                <span className="ml-2 text-sm font-normal text-dark-400">» {subtitle}</span>
+              ) : null}
+            </h1>
+          </div>
+          {children}
+        </main>
+
+        <footer className="mt-auto border-t border-dark-200 px-6 py-4 text-center text-sm text-primary-700">
+          <p>
+            Inuka Properties © {new Date().getFullYear()}
+            <span className="ml-3 inline-flex items-center gap-2 align-middle">
+              <a href="https://x.com/Inukaproperties" target="_blank" rel="noopener noreferrer" aria-label="X" className="hover:text-primary-900">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                </svg>
+              </a>
+              <a href="https://www.facebook.com/share/17aKSxGY2a/" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="hover:text-primary-900">
+                <Facebook size={14} />
+              </a>
+              <a href="https://www.instagram.com/inukaafrikaproperties?igsh=MXNtbHUxbTNuNzI2eQ==" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="hover:text-primary-900">
+                <Instagram size={14} />
+              </a>
+            </span>
+          </p>
+        </footer>
+      </div>
     </div>
   );
 }

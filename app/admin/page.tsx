@@ -10,10 +10,12 @@ import {
   Users,
   TrendingUp,
   ArrowRight,
+  ArrowUp,
   Building2,
+  Newspaper,
+  Hammer,
 } from "lucide-react";
 import AdminShell from "@/components/admin/AdminShell";
-import StatCard from "@/components/admin/StatCard";
 import { createClient } from "@/lib/supabase/client";
 import type { DashboardStats, Inquiry, PropertyLead } from "@/lib/supabase/types";
 import { formatAdminDate } from "@/lib/admin/utils";
@@ -25,6 +27,7 @@ export default function AdminDashboardPage() {
     properties: 0,
     availableProperties: 0,
     soldProperties: 0,
+    ongoingProperties: 0,
     blogs: 0,
     news: 0,
     newInquiries: 0,
@@ -42,6 +45,7 @@ export default function AdminDashboardPage() {
         { count: properties },
         { count: available },
         { count: sold },
+        { count: ongoing },
         { count: blogs },
         { count: news },
         { count: newInq },
@@ -52,6 +56,7 @@ export default function AdminDashboardPage() {
         supabase.from("properties").select("*", { count: "exact", head: true }),
         supabase.from("properties").select("*", { count: "exact", head: true }).eq("status", "available"),
         supabase.from("properties").select("*", { count: "exact", head: true }).eq("status", "sold"),
+        supabase.from("properties").select("*", { count: "exact", head: true }).eq("status", "ongoing"),
         supabase.from("blog_posts").select("*", { count: "exact", head: true }),
         supabase.from("news_items").select("*", { count: "exact", head: true }),
         supabase.from("inquiries").select("*", { count: "exact", head: true }).eq("status", "new"),
@@ -64,6 +69,7 @@ export default function AdminDashboardPage() {
         properties: properties || 0,
         availableProperties: available || 0,
         soldProperties: sold || 0,
+        ongoingProperties: ongoing || 0,
         blogs: blogs || 0,
         news: news || 0,
         newInquiries: newInq || 0,
@@ -78,44 +84,48 @@ export default function AdminDashboardPage() {
 
   const quickActions = [
     { href: adminPath("properties/new"), label: "Add Property", icon: MapPin, color: "from-primary-500 to-primary-700" },
-    { href: adminPath("blogs/new"), label: "Write Blog", icon: FileText, color: "from-secondary-500 to-secondary-700" },
-    { href: adminPath("inquiries"), label: "View Inquiries", icon: MessageSquare, color: "from-emerald-500 to-emerald-700" },
-    { href: adminPath("leads"), label: "Manage Leads", icon: Users, color: "from-violet-500 to-violet-700" },
+    { href: adminPath("blogs/new"), label: "Write Blog", icon: FileText, color: "from-primary-700 to-primary-900" },
+    { href: adminPath("inquiries"), label: "View Inquiries", icon: MessageSquare, color: "from-secondary-500 to-secondary-700" },
+    { href: adminPath("leads"), label: "Manage Leads", icon: Users, color: "from-secondary-600 to-secondary-800" },
   ];
 
   return (
-    <AdminShell title="Dashboard" subtitle="Overview of your property business">
+    <AdminShell title="Dashboard" subtitle="property overview">
       {loading ? (
         <div className="flex h-64 items-center justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
         </div>
       ) : (
         <>
-          {/* Stats grid */}
-          <div className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <StatCard title="Total Properties" value={stats.properties} icon={Building2} delay={0} />
-            <StatCard
-              title="Available Listings"
-              value={stats.availableProperties}
-              icon={MapPin}
-              gradient="from-emerald-500 to-emerald-700"
-              delay={0.1}
-            />
-            <StatCard
-              title="Sold Out"
-              value={stats.soldProperties}
-              icon={TrendingUp}
-              gradient="from-secondary-500 to-secondary-700"
-              delay={0.2}
-            />
-            <StatCard
-              title="New Leads"
-              value={stats.newLeads}
-              change={`${stats.newInquiries} new inquiries`}
-              icon={Users}
-              gradient="from-violet-500 to-violet-700"
-              delay={0.3}
-            />
+          <div className="mb-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {[
+              { title: "Available Listings", value: stats.availableProperties, icon: MapPin, tone: "bg-primary-600" },
+              { title: "Ongoing Projects", value: stats.ongoingProperties || 0, icon: Hammer, tone: "bg-primary-800" },
+              { title: "Sold Properties", value: stats.soldProperties, icon: TrendingUp, tone: "bg-secondary-600" },
+              { title: "Total Properties", value: stats.properties, icon: Building2, tone: "bg-secondary-500" },
+              { title: "New Leads", value: stats.newLeads, icon: Users, tone: "bg-primary-600" },
+              { title: "New Inquiries", value: stats.newInquiries, icon: MessageSquare, tone: "bg-primary-800" },
+              { title: "Blog Posts", value: stats.blogs, icon: FileText, tone: "bg-secondary-600" },
+              { title: "News Updates", value: stats.news, icon: Newspaper, tone: "bg-secondary-500" },
+            ].map((item) => {
+              const Icon = item.icon;
+              return (
+                <div key={item.title} className={`flex items-center gap-4 px-5 py-6 text-white ${item.tone}`}>
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white/20">
+                    <Icon size={26} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-montserrat text-3xl font-bold leading-none">{item.value}</span>
+                      <ArrowUp size={16} className="text-white/90" />
+                    </div>
+                    <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-white/90">
+                      {item.title}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           {/* Quick actions */}

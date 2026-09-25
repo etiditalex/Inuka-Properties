@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -34,7 +33,13 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAdminShell } from "./AdminShellContext";
-import { DEFAULT_OG_IMAGE } from "@/lib/seo";
+
+const shortcuts = [
+  { segment: "", label: "Dashboard", icon: BarChart3, color: "bg-primary-600" },
+  { segment: "properties", label: "Land Listings", icon: MapPin, color: "bg-primary-800" },
+  { segment: "leads", label: "Lead Generation", icon: Users, color: "bg-secondary-500" },
+  { segment: "inquiries", label: "Inquiries", icon: MessageSquare, color: "bg-secondary-700" },
+];
 
 const navItems = [
   { segment: "", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -60,10 +65,9 @@ const navItems = [
 
 type AdminSidebarProps = {
   badges?: { inquiries?: number; leads?: number };
-  logoUrl?: string | null;
 };
 
-export default function AdminSidebar({ badges = {}, logoUrl }: AdminSidebarProps) {
+export default function AdminSidebar({ badges = {} }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { collapsed, toggleCollapsed, mobileOpen, setMobileOpen } = useAdminShell();
@@ -81,24 +85,19 @@ export default function AdminSidebar({ badges = {}, logoUrl }: AdminSidebarProps
     setMobileOpen(false);
   };
 
-  const brandLogo = logoUrl || DEFAULT_OG_IMAGE;
-
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-primary-600/40 bg-gradient-to-b from-primary-700 via-primary-800 to-primary-900 transition-all duration-300",
-        collapsed ? "lg:w-[72px]" : "lg:w-64",
-        mobileOpen ? "w-64 translate-x-0" : "-translate-x-full w-64",
+        "fixed left-0 top-14 z-30 flex h-[calc(100vh-3.5rem)] flex-col border-r border-dark-200 bg-dark-50 transition-all duration-300",
+        collapsed ? "lg:w-[72px]" : "lg:w-60",
+        mobileOpen ? "w-60 translate-x-0" : "-translate-x-full w-60",
         "lg:translate-x-0"
       )}
     >
       <button
         type="button"
         onClick={toggleCollapsed}
-        className={cn(
-          "absolute top-7 z-50 hidden h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-primary-900 text-white shadow-lg transition hover:border-white/40 hover:bg-primary-600 lg:flex",
-          collapsed ? "-right-3.5" : "-right-3.5"
-        )}
+        className="absolute -right-3 top-4 z-50 hidden h-6 w-6 items-center justify-center rounded-full border border-dark-200 bg-white text-dark-500 shadow-sm hover:text-primary-700 lg:flex"
         aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
         {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
@@ -106,49 +105,30 @@ export default function AdminSidebar({ badges = {}, logoUrl }: AdminSidebarProps
 
       <div
         className={cn(
-          "flex h-16 shrink-0 items-center border-b border-white/10",
-          collapsed ? "justify-center px-2 lg:px-2" : "justify-between px-4"
+          "grid shrink-0 gap-2 border-b border-dark-200 p-3",
+          collapsed ? "grid-cols-1" : "grid-cols-4"
         )}
       >
-        <Link
-          href={adminPath()}
-          onClick={handleNavClick}
-          className={cn(
-            "flex items-center overflow-hidden",
-            collapsed ? "justify-center" : "gap-3"
-          )}
-        >
-          <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-white/20">
-            <Image
-              src={brandLogo}
-              alt="Inuka Afrika Properties"
-              fill
-              className="object-contain p-1"
-              unoptimized
-            />
-          </div>
-          <AnimatePresence initial={false}>
-            {!collapsed && (
-              <motion.div
-                initial={{ opacity: 0, width: 0 }}
-                animate={{ opacity: 1, width: "auto" }}
-                exit={{ opacity: 0, width: 0 }}
-                transition={{ duration: 0.2 }}
-                className="min-w-0 overflow-hidden"
-              >
-                <p className="truncate text-sm font-bold text-white font-montserrat">
-                  IAPL Console
-                </p>
-                <p className="truncate text-[10px] text-primary-100/80">
-                  Property Management
-                </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </Link>
+        {shortcuts.map((item) => {
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.label}
+              href={adminPath(item.segment)}
+              onClick={handleNavClick}
+              title={item.label}
+              className={cn(
+                "flex h-9 items-center justify-center rounded-md text-white shadow-sm",
+                item.color
+              )}
+            >
+              <Icon size={16} />
+            </Link>
+          );
+        })}
       </div>
 
-      <nav className="flex-1 space-y-1 overflow-y-auto overflow-x-hidden p-3">
+      <nav className="flex-1 space-y-0.5 overflow-y-auto overflow-x-hidden p-2">
         {navItems.map((item) => {
           const href = adminPath(item.segment);
           const isActive = item.exact
@@ -169,25 +149,18 @@ export default function AdminSidebar({ badges = {}, logoUrl }: AdminSidebarProps
               onClick={handleNavClick}
               title={collapsed ? item.label : undefined}
               className={cn(
-                "group relative flex items-center rounded-xl text-sm font-medium transition-all duration-200",
-                collapsed ? "justify-center px-2 py-2.5" : "gap-3 px-3 py-2.5",
+                "group relative flex items-center rounded-md text-sm font-medium transition-all duration-200",
+                collapsed ? "justify-center px-2 py-2" : "gap-3 px-3 py-2",
                 isActive
-                  ? "bg-white/15 text-white shadow-sm ring-1 ring-white/10"
-                  : "text-white/75 hover:bg-white/10 hover:text-white"
+                  ? "bg-primary-50 text-primary-800"
+                  : "text-dark-600 hover:bg-white hover:text-dark-900"
               )}
             >
-              {isActive && (
-                <motion.div
-                  layoutId="sidebar-active"
-                  className="absolute inset-0 rounded-xl bg-white/5"
-                  transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
-                />
-              )}
               <Icon
-                size={20}
+                size={18}
                 className={cn(
                   "relative shrink-0",
-                  isActive ? "text-secondary-200" : "text-white/70 group-hover:text-white"
+                  isActive ? "text-primary-700" : "text-secondary-600 group-hover:text-primary-700"
                 )}
               />
               <AnimatePresence initial={false}>
@@ -216,14 +189,14 @@ export default function AdminSidebar({ badges = {}, logoUrl }: AdminSidebarProps
         })}
       </nav>
 
-      <div className="border-t border-white/10 p-3">
+      <div className="border-t border-dark-200 p-3">
         <button
           type="button"
           onClick={handleLogout}
           disabled={loggingOut}
           title={collapsed ? "Sign Out" : undefined}
           className={cn(
-            "flex w-full items-center rounded-xl px-3 py-2.5 text-sm font-medium text-white/75 transition hover:bg-red-500/20 hover:text-red-100",
+            "flex w-full items-center rounded-md px-3 py-2 text-sm font-medium text-dark-600 transition hover:bg-white hover:text-primary-800",
             collapsed ? "justify-center" : "gap-3",
             loggingOut && "opacity-50"
           )}
