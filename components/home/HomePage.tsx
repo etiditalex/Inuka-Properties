@@ -676,14 +676,14 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-r from-dark-900/80 via-dark-900/70 to-dark-900/60"></div>
         
         <div className="container mx-auto px-4 py-20 relative z-10">
-          <div className="max-w-3xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
               className="text-center"
             >
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 font-montserrat drop-shadow-lg whitespace-nowrap">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 font-montserrat drop-shadow-lg leading-tight text-balance">
                 Coastal Gate To <span className="text-primary-300">Real Estate</span>
               </h1>
               <p className="text-lg md:text-xl text-white/90 mb-8 leading-relaxed drop-shadow-md max-w-4xl mx-auto font-montserrat">
