@@ -683,7 +683,7 @@ export default function HomePage() {
               transition={{ duration: 0.8 }}
               className="text-center"
             >
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 font-montserrat drop-shadow-lg leading-tight text-balance">
+              <h1 className="text-[2.125rem] sm:text-[2.5rem] md:text-[3.35rem] lg:text-[4.15rem] font-bold text-white mb-6 font-montserrat drop-shadow-lg leading-tight text-balance">
                 Coastal Gate To <span className="text-primary-300">Real Estate</span>
               </h1>
               <p className="text-lg md:text-xl text-white/90 mb-8 leading-relaxed drop-shadow-md max-w-4xl mx-auto font-montserrat">
