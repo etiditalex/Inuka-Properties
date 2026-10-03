@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Phone, Mail, MapPin, Facebook, Instagram, Linkedin, MessageCircle } from "lucide-react";
 import Image from "next/image";
+import { BRAND_HASHTAG, COASTAL_LOCATIONS } from "@/lib/coastalSeo";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -22,10 +23,23 @@ const Footer = () => {
                 />
               </div>
             </div>
-            <p className="text-dark-300 text-sm mb-4">
+            <p className="text-dark-300 text-sm mb-3">
               {yearsInBusiness} years of transforming the real estate landscape in Kenya. 
               Your trusted partner for affordable property solutions.
             </p>
+            <p className="text-primary-300 text-sm font-semibold mb-4">{BRAND_HASHTAG}</p>
+            <ul className="mb-4 flex flex-wrap gap-x-3 gap-y-1">
+              {COASTAL_LOCATIONS.slice(0, 9).map((location) => (
+                <li key={location.slug}>
+                  <Link
+                    href={`/locations/${location.slug}`}
+                    className="text-xs text-dark-300 hover:text-primary-400 transition"
+                  >
+                    {location.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
             <div className="flex gap-4">
               <a 
                 href="https://www.facebook.com/share/17aKSxGY2a/" 
@@ -147,8 +161,8 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/site-map" className="text-dark-300 hover:text-primary-400 transition text-sm">
-                  Sitemap
+                <Link href="/locations" className="text-dark-300 hover:text-primary-400 transition text-sm">
+                  Coastal Areas
                 </Link>
               </li>
             </ul>

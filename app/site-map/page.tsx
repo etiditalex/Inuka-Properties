@@ -26,6 +26,7 @@ function groupLabel(path: string) {
   if (path.startsWith("/for-sale") || path === "/project-showcase") return "Properties";
   if (path.startsWith("/iapl-insider")) return "IAPL Insider";
   if (path.startsWith("/about-us")) return "About";
+  if (path.startsWith("/locations")) return "Coastal areas";
   if (path.startsWith("/services")) return "Services";
   if (path.startsWith("/testimonials")) return "Testimonials";
   return "More pages";

@@ -9,6 +9,7 @@ import Image from "next/image";
 import { useBookSiteVisit } from "@/components/BookSiteVisitContext";
 import { getPropertySeo, getPropertyIdFromPathname } from "@/lib/propertySeo";
 import { isFeaturedProjectPath } from "@/lib/featuredProjects";
+import { COASTAL_LOCATIONS } from "@/lib/coastalSeo";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -45,6 +46,21 @@ const Header = () => {
       dropdown: [
         { name: "All Properties", href: "/for-sale" },
         { name: "Ongoing Projects", href: "/for-sale/ongoing-projects" },
+      ],
+    },
+    {
+      name: "Areas",
+      href: "/locations",
+      dropdown: [
+        { name: "All coastal areas", href: "/locations" },
+        ...COASTAL_LOCATIONS.filter((location) =>
+          ["mombasa", "kilifi", "kwale", "kikambala", "bofa", "chumani", "msabaha", "malindi", "diani"].includes(
+            location.slug
+          )
+        ).map((location) => ({
+          name: location.name,
+          href: `/locations/${location.slug}`,
+        })),
       ],
     },
     {

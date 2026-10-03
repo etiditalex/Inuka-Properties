@@ -8,6 +8,7 @@ import {
 } from "@/lib/content/publishedBlogs";
 import { SITE_ORIGIN } from "@/lib/site";
 import { FEATURED_SITELINK_PAGES } from "@/lib/featuredProjects";
+import { COASTAL_LOCATIONS } from "@/lib/coastalSeo";
 
 type SitemapEntry = MetadataRoute.Sitemap[number];
 
@@ -95,6 +96,10 @@ export async function getSitemapEntries(): Promise<MetadataRoute.Sitemap> {
     staticPage("/iapl-insider/blogs", 0.8, "weekly"),
     staticPage("/iapl-insider/news", 0.65, "weekly"),
     staticPage("/iapl-insider/market-research", 0.65, "monthly"),
+    staticPage("/locations", 0.9, "weekly"),
+    ...COASTAL_LOCATIONS.map((location) =>
+      staticPage(`/locations/${location.slug}`, 0.86, "weekly")
+    ),
     staticPage("/site-map", 0.4, "weekly"),
     staticPage("/get-property-details", 0.5, "monthly"),
     staticPage("/testimonials", 0.7, "monthly"),

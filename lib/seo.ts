@@ -6,6 +6,7 @@ import {
   OFFICE_MAPS_SEARCH_URL,
 } from "@/lib/featuredProjects";
 import { SITE_ORIGIN } from "@/lib/site";
+import { BRAND_SLOGAN, COASTAL_LOCATIONS } from "@/lib/coastalSeo";
 
 export const SITE_NAME = "Inuka Afrika Properties Limited";
 export const SITE_SHORT_NAME = "Inuka Afrika Properties";
@@ -56,12 +57,12 @@ export function buildPageMetadata({
 }: PageMetadataOptions): Metadata {
   const url = absoluteUrl(path);
   const fullTitle =
-    exactTitle || title.includes(SITE_SHORT_NAME)
+    exactTitle || /inuka/i.test(title)
       ? title
-      : `${title} | ${SITE_SHORT_NAME}`;
+      : `${title} | Inuka Properties`;
 
   return {
-    title: fullTitle,
+    title: { absolute: fullTitle },
     description,
     keywords,
     openGraph: {
@@ -154,8 +155,9 @@ export const organizationSchema = {
   url: SITE_ORIGIN,
   logo: DEFAULT_OG_IMAGE,
   image: DEFAULT_OG_IMAGE,
+  slogan: BRAND_SLOGAN,
   description:
-    "Leading real estate company in Kenya specializing in affordable residential, commercial, and beach properties in Kilifi County. 10 years of excellence in property solutions.",
+    "Inuka Properties sells land, plots, and property across Mombasa, Kilifi, and Kwale — Kikambala, Bofa, Chumani, Msabaha, Malindi, and Diani. The best real estate company in the coast region.",
   foundingDate: "2016",
   telephone: "+254-711-082084",
   email: "info@inukaproperties.co.ke",
@@ -205,13 +207,20 @@ export const organizationSchema = {
   },
   sameAs: [
     "https://www.facebook.com/InukaAfrikaProperties",
-    "https://www.instagram.com/inukafrikaproperties",
+    "https://www.instagram.com/inukaafrikaproperties",
     "https://www.linkedin.com/company/inuka-afrika-properties-limited",
+    "https://x.com/Inukaproperties",
+    "https://www.tiktok.com/@inukaafrikaproperties",
+    "https://www.threads.com/@inukaafrikaproperties",
     GOOGLE_MAPS_PLACE_URL,
     OFFICE_MAPS_SEARCH_URL,
   ],
   areaServed: [
+    { "@type": "AdministrativeArea", name: "Mombasa County" },
     { "@type": "AdministrativeArea", name: "Kilifi County" },
+    { "@type": "AdministrativeArea", name: "Kwale County" },
+    { "@type": "City", name: "Mombasa" },
+    { "@type": "City", name: "Nyali" },
     { "@type": "City", name: "Mariakani" },
     { "@type": "City", name: "Mtwapa" },
     { "@type": "Place", name: "Kikambala" },
@@ -221,18 +230,30 @@ export const organizationSchema = {
     { "@type": "Place", name: "Msabaha" },
     { "@type": "Place", name: "Mtondia" },
     { "@type": "City", name: "Malindi" },
-    { "@type": "City", name: "Nyali" },
-    { "@type": "City", name: "Mombasa" },
+    { "@type": "Place", name: "Diani" },
+    { "@type": "Place", name: "Ukunda" },
+    { "@type": "AdministrativeArea", name: "Coast Region, Kenya" },
   ],
   knowsAbout: [
+    "Inuka Properties",
+    "Land for sale in Mombasa",
+    "Plots for sale in Mombasa",
     "Land for sale in Kilifi County",
-    "Plots for sale in Mariakani",
+    "Plots for sale in Kilifi",
+    "Land for sale in Kwale",
+    "Land for sale in Kikambala",
+    "Plots for sale in Bofa",
+    "Land for sale in Chumani",
+    "Plots for sale in Msabaha",
+    "Land for sale in Malindi",
+    "Plots for sale in Diani",
+    "Land for sale in Mariakani",
     "Land for sale in Tezo",
-    "Bofa beach plots",
     "Malindi Airport Gardens",
     "Tulivu Haven",
     "Miliki Tezo na Inuka",
     "Affordable housing Kenya coast",
+    BRAND_SLOGAN,
   ],
   hasOfferCatalog: {
     "@type": "OfferCatalog",
@@ -262,7 +283,8 @@ export const websiteSchema = {
   name: SITE_NAME,
   url: SITE_ORIGIN,
   description:
-    "Land and property for sale in Kilifi County, Kenya — Mariakani, Mtwapa, Kikambala, Tezo, Malindi, Bofa, and the Kenyan coast.",
+    "Inuka Properties — land, plots, and property for sale in Mombasa, Kilifi, and Kwale, including Kikambala, Bofa, Chumani, Msabaha, Malindi, and Diani.",
+  slogan: BRAND_SLOGAN,
   publisher: {
     "@type": "Organization",
     "@id": `${SITE_ORIGIN}/#organization`,
@@ -289,7 +311,7 @@ export const websiteSchema = {
   },
 };
 
-const PLOT_FINDER_AREAS = ["Mariakani", "Tezo", "Bofa", "Malindi", "Msabaha", "Mtondia"] as const;
+const PLOT_FINDER_AREAS = COASTAL_LOCATIONS.map((location) => location.name);
 
 /** Hidden JSON-LD for the homepage plot finder. Not rendered as page text. */
 export const plotFinderSchema = {
@@ -297,20 +319,20 @@ export const plotFinderSchema = {
   "@type": "WebPage",
   "@id": `${SITE_ORIGIN}/#find-a-kilifi-plot`,
   url: `${SITE_ORIGIN}/#find-a-kilifi-plot`,
-  name: "Find a Kilifi plot that matches your plan",
+  name: "Find a coastal plot that matches your plan",
   description:
-    "Inuka Afrika Properties has guided coastal buyers for over ten years. Open listings begin at KES 395,000 in Mariakani, Tezo, Bofa, Malindi, Msabaha, and Mtondia.",
+    "Inuka Properties has guided coastal buyers for over ten years. Search land and plots in Mombasa, Kilifi, and Kwale — Kikambala, Bofa, Chumani, Msabaha, Malindi, and Diani. Open listings begin at KES 395,000.",
   isPartOf: { "@id": `${SITE_ORIGIN}/#website` },
   about: { "@id": `${SITE_ORIGIN}/#organization` },
   mainEntity: {
     "@type": "Service",
     "@id": `${SITE_ORIGIN}/#kilifi-plot-sales`,
-    name: "Kilifi County plot sales",
+    name: "Coastal land and plot sales",
     serviceType: "Land and plot sales",
     provider: { "@id": `${SITE_ORIGIN}/#organization` },
     areaServed: PLOT_FINDER_AREAS.map((name) => ({
       "@type": "Place",
-      name: `${name}, Kilifi County, Kenya`,
+      name: `${name}, Coastal Kenya`,
     })),
     offers: {
       "@type": "AggregateOffer",

@@ -6,11 +6,15 @@ import { ArrowRight, MapPin, Home, Building2, Waves, Sprout, TrendingUp, Chevron
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { whatsAppUrl } from "@/lib/whatsapp";
 import StructuredData from "@/components/StructuredData";
-import GoogleReviewsSection from "@/components/GoogleReviewsSection";
 import PropertyListingCard from "@/components/PropertyListingCard";
 import { hydratePropertyEngagement } from "@/lib/properties/engagementClient";
+import { cloudinarySized } from "@/lib/images";
+import { COASTAL_LOCATIONS } from "@/lib/coastalSeo";
+
+const GoogleReviewsSection = dynamic(() => import("@/components/GoogleReviewsSection"));
 
 interface Property {
   id: number;
@@ -103,7 +107,7 @@ function PropertyCarousel({ properties }: { properties: Property[] }) {
   );
 }
 
-const COASTAL_AREAS = ["Mariakani", "Tezo", "Bofa", "Malindi", "Msabaha", "Mtondia"] as const;
+const COASTAL_AREAS = COASTAL_LOCATIONS.map((location) => location.name);
 
 const PLOT_FINDER_POINTS = [
   "Title processing handled for buyers",
@@ -133,7 +137,7 @@ function CoastalPlotFinder() {
           className="mx-auto max-w-3xl text-center"
         >
           <h2 id="find-a-kilifi-plot-heading" className="font-montserrat text-3xl font-bold text-red-600 md:text-4xl">
-            Find a Kilifi plot that matches your plan.
+            Find a coastal plot that matches your plan.
           </h2>
           <p className="mt-3 font-montserrat text-base text-dark-700 md:text-lg">
             Inuka Afrika Properties has guided coastal buyers for over ten years.
@@ -155,7 +159,7 @@ function CoastalPlotFinder() {
                 aria-label="Choose a project area"
                 className="w-full appearance-none bg-transparent py-3 pl-4 pr-10 font-montserrat text-sm text-dark-600 focus:outline-none sm:text-base"
               >
-                <option value="">Choose a Kilifi area</option>
+                <option value="">Choose a coastal area</option>
                 {COASTAL_AREAS.map((name) => (
                   <option key={name} value={name}>
                     {name}
@@ -174,6 +178,19 @@ function CoastalPlotFinder() {
               View plots
             </button>
           </form>
+
+          <ul className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+            {COASTAL_LOCATIONS.map((location) => (
+              <li key={location.slug}>
+                <Link
+                  href={`/locations/${location.slug}`}
+                  className="font-montserrat text-sm text-primary-700 underline-offset-2 hover:underline"
+                >
+                  {location.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
 
           <ul className="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
             {PLOT_FINDER_POINTS.map((point) => (
@@ -264,7 +281,7 @@ function PropertyCardsSection() {
               Latest properties
             </h2>
             <p className="mt-2 text-dark-600">
-              Newest projects first — explore our latest land listings across Kilifi County.
+              Newest projects first — land and plots across Mombasa, Kilifi, and Kwale.
             </p>
           </div>
           {/* Desktop Grid - 4 columns */}
@@ -426,10 +443,12 @@ function PartnersCarouselSection() {
               >
                 <div className="w-48 h-32 md:w-64 md:h-40 bg-white rounded-lg shadow-md p-4 flex items-center justify-center hover:shadow-xl transition-all hover:scale-105">
                   <Image
-                    src={partner.logo}
-                    alt={partner.name}
+                    src={cloudinarySized(partner.logo, 480)}
+                    alt={`${partner.name} — partner of Inuka Properties`}
                     width={240}
                     height={140}
+                    sizes="240px"
+                    loading="lazy"
                     className="object-contain max-w-full max-h-full"
                   />
                 </div>
@@ -455,11 +474,15 @@ function CounterSection() {
       {/* Background Image */}
       <div className="absolute inset-0 w-full h-full">
         <Image
-          src="https://res.cloudinary.com/dyfnobo9r/image/upload/v1757597070/Bofa_Platinum_Estate_6_ptpthd.jpg"
-          alt="Bofa Platinum Estate"
+          src={cloudinarySized(
+            "https://res.cloudinary.com/dyfnobo9r/image/upload/v1757597070/Bofa_Platinum_Estate_6_ptpthd.jpg",
+            1400
+          )}
+          alt="Bofa plots for sale with Inuka Properties, Kilifi County"
           fill
+          sizes="100vw"
           className="object-cover"
-          quality={90}
+          quality={60}
         />
       </div>
       {/* Dark Overlay */}
@@ -564,7 +587,7 @@ export default function HomePage() {
     "@type": "RealEstateAgent",
     "name": "Inuka Afrika Properties Limited",
     "url": "https://www.inukaproperties.co.ke",
-    "description": "Real estate properties for sale in Kilifi County, Kenya. Properties available in Mariakani, Mtwapa, Kikambala, Bofa, Chumani, Tezo, Msabaha, Mtondia, and Malindi.",
+    "description": "Inuka Properties sells land, plots, and property in Mombasa, Kilifi, and Kwale, including Kikambala, Bofa, Chumani, Msabaha, Malindi, and Diani.",
     "address": {
       "@type": "PostalAddress",
       "streetAddress": "Links Road Opposite Kigothos Hotel",
@@ -579,8 +602,8 @@ export default function HomePage() {
       "longitude": "39.709"
     },
     "areaServed": [
-      "Kilifi", "Mariakani", "Mtwapa", "Kikambala", "Bofa", 
-      "Chumani", "Tezo", "Msabaha", "Mtondia", "Malindi", "Nyali"
+      "Mombasa", "Kilifi", "Kwale", "Nyali", "Kikambala", "Bofa",
+      "Chumani", "Msabaha", "Malindi", "Diani", "Mariakani", "Tezo"
     ],
     "hasOfferCatalog": {
       "@type": "OfferCatalog",
@@ -609,7 +632,7 @@ export default function HomePage() {
         "name": "Where are Inuka Afrika Properties located?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Inuka Afrika Properties Limited has properties in Kilifi County, Kenya, specifically in Mariakani, Mtwapa, Kikambala, Bofa, Chumani, Tezo, Msabaha, Mtondia, and Malindi. Our head office is located in Nyali, Mombasa at Links Road Opposite Kigothos Hotel."
+          "text": "Inuka Properties helps buyers searching for land, plots, and property in Mombasa County, Kilifi County, and Kwale County, including Kikambala, Bofa, Chumani, Msabaha, Malindi, and Diani. Open plot projects are in Kilifi County. The head office is in Nyali, Mombasa, at Links Road opposite Kigothos Hotel."
         }
       },
       {
@@ -664,12 +687,16 @@ export default function HomePage() {
         {/* Background Image */}
         <div className="absolute inset-0 w-full h-full">
           <Image
-            src="https://res.cloudinary.com/dyfnobo9r/image/upload/v1767596630/kilifi_investment_swq82s.jpg"
-            alt="Kilifi Investment Properties"
+            src={cloudinarySized(
+              "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767596630/kilifi_investment_swq82s.jpg",
+              1600
+            )}
+            alt="Inuka Properties — land and plots for sale on the Kenya coast"
             fill
+            sizes="100vw"
             className="object-cover"
             priority
-            quality={90}
+            quality={65}
           />
         </div>
         {/* Dark Overlay for Text Readability */}

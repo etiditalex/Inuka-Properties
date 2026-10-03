@@ -25,6 +25,13 @@ export function parseGalleryUrls(
   return urls;
 }
 
+/** Smaller Cloudinary delivery URL. Leaves already-transformed URLs unchanged. */
+export function cloudinarySized(src: string, width: number): string {
+  if (!src.includes("res.cloudinary.com/") || !src.includes("/image/upload/")) return src;
+  if (src.includes("/image/upload/f_auto") || src.includes("/image/upload/q_auto")) return src;
+  return src.replace("/image/upload/", `/image/upload/f_auto,q_auto,w_${width},c_limit/`);
+}
+
 export function isSupabaseStorageUrl(src: string): boolean {
   return src.includes(".supabase.co/storage/");
 }

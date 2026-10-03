@@ -13,6 +13,7 @@ import {
   siteNavigationSchema,
   websiteSchema,
 } from "@/lib/seo";
+import { COASTAL_SEARCH_KEYWORDS, HOME_META_DESCRIPTION } from "@/lib/coastalSeo";
 import { SITE_ORIGIN } from "@/lib/site";
 
 const inter = Inter({
@@ -46,36 +47,11 @@ const dancingScript = Dancing_Script({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),
   title: {
-    default: "Inuka Afrika Properties Limited | Real Estate in Kilifi, Mariakani, Mtwapa, Malindi",
-    template: "%s | Inuka Afrika Properties"
+    default: "Inuka Properties | Land & Plots in Mombasa, Kilifi & Kwale",
+    template: "%s | Inuka Properties"
   },
-  description: "Leading real estate company in Kenya specializing in affordable residential, commercial, and beach properties in Kilifi County. Properties available in Mariakani, Mtwapa, Kikambala, Bofa, Chumani, Tezo, Msabaha, Mtondia, and Malindi. 10 years of excellence in property solutions. Office located in Nyali, Mombasa.",
-  keywords: [
-    "real estate Kenya",
-    "properties Kilifi",
-    "land for sale Mariakani",
-    "properties Mtwapa",
-    "real estate Kikambala",
-    "land for sale Bofa",
-    "properties Chumani",
-    "real estate Tezo",
-    "properties Msabaha",
-    "land for sale Mtondia",
-    "real estate Malindi",
-    "affordable housing Kilifi County",
-    "beach properties Kenya",
-    "commercial properties coastal Kenya",
-    "residential plots Kilifi",
-    "property for sale Nyali",
-    "real estate developer Kenya",
-    "title deed issuance Kenya",
-    "property management Kenya",
-    "affordable housing Kenya",
-    "Miliki Tezo na Inuka",
-    "Tulivu Haven Mariakani",
-    "Bofa Platinum Kilifi",
-    "Malindi Airport Gardens",
-  ],
+  description: HOME_META_DESCRIPTION,
+  keywords: COASTAL_SEARCH_KEYWORDS,
   authors: [{ name: "Inuka Afrika Properties Limited" }],
   creator: "Inuka Afrika Properties Limited",
   publisher: "Inuka Afrika Properties Limited",
@@ -89,8 +65,8 @@ export const metadata: Metadata = {
     locale: "en_KE",
     url: SITE_ORIGIN,
     siteName: "Inuka Afrika Properties Limited",
-    title: "Inuka Afrika Properties Limited | Real Estate in Coastal Kenya",
-    description: "Leading real estate company in Kenya specializing in affordable residential, commercial, and beach properties in Kilifi County. Properties in Mariakani, Mtwapa, Kikambala, Bofa, Chumani, Tezo, Msabaha, Mtondia, and Malindi.",
+    title: "Inuka Properties | Land & Plots in Mombasa, Kilifi & Kwale",
+    description: HOME_META_DESCRIPTION,
     images: [
       {
         url: DEFAULT_OG_IMAGE,
@@ -102,8 +78,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Inuka Afrika Properties Limited | Real Estate in Coastal Kenya",
-    description: "Leading real estate company in Kenya specializing in affordable properties in Kilifi County. 10 years of excellence.",
+    title: "Inuka Properties | Land & Plots in Mombasa, Kilifi & Kwale",
+    description: HOME_META_DESCRIPTION,
     images: [DEFAULT_OG_IMAGE],
   },
   robots: {
@@ -134,6 +110,8 @@ export default function RootLayout({
       className={`${inter.variable} ${playfair.variable} ${montserrat.variable} ${dancingScript.variable}`}
     >
       <head>
+        <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
         <link rel="icon" type="image/jpeg" href={DEFAULT_OG_IMAGE} />
         <link rel="apple-touch-icon" href={DEFAULT_OG_IMAGE} />
         <link

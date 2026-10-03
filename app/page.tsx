@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import JsonLd from "@/components/JsonLd";
 import HomePage from "@/components/home/HomePage";
 import { plotFinderSchema } from "@/lib/seo";
+import { HOME_META_DESCRIPTION } from "@/lib/coastalSeo";
 
-const description =
-  "Find a Kilifi plot with Inuka Afrika Properties. Open listings from KES 395,000 in Mariakani, Tezo, Bofa, Malindi, Msabaha and Mtondia.";
+const description = HOME_META_DESCRIPTION;
 
 export const metadata: Metadata = {
   description,
