@@ -35,10 +35,21 @@ function normalizeApiKey(raw?: string): string | undefined {
   return trimmed;
 }
 
+const REGISTERED_OKAYSMS_SENDER = "INUKA-P-LTD";
+
 function normalizeSenderId(raw?: string): string | undefined {
   if (!raw) return undefined;
   const trimmed = stripWrappingQuotes(raw);
   return trimmed || undefined;
+}
+
+/** OkaySMS authorized INUKA-P-LTD. Underscores (INUKA_P_LTD) are rejected. */
+function canonicalSenderId(raw?: string): string | undefined {
+  const trimmed = normalizeSenderId(raw);
+  if (!trimmed) return undefined;
+  const compact = trimmed.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (compact === "INUKA" || compact === "INUKAPLTD") return REGISTERED_OKAYSMS_SENDER;
+  return trimmed;
 }
 
 function normalizeOkaySmsBase(url?: string): string {
@@ -77,12 +88,12 @@ function getSmsConfig() {
         process.env.BULKSMS_API_KEY
     ),
     senderId:
-      normalizeSenderId(
+      canonicalSenderId(
         process.env.SMS_SENDER_ID ||
           process.env.OKAYSMS_SENDER_ID ||
           process.env.AFRICAS_TALKING_SENDER_ID ||
           process.env.BULKSMS_SENDER_ID
-      ) || "INUKA-P-LTD",
+      ) || REGISTERED_OKAYSMS_SENDER,
     apiUrl: apiBase,
     celcomPartnerId: process.env.CELCOM_PARTNER_ID,
     celcomShortcode: process.env.CELCOM_SHORTCODE || process.env.SMS_SENDER_ID,
@@ -411,8 +422,7 @@ export async function sendSms(
   }
 
   const { provider, senderId: defaultSender } = getSmsConfig();
-  const requested = normalizeSenderId(senderId);
-  const from = !requested || requested.toUpperCase() === "INUKA" ? defaultSender : requested;
+  const from = canonicalSenderId(senderId) || defaultSender;
 
   try {
     switch (provider) {
