@@ -42,11 +42,24 @@ function normalizeSenderId(raw?: string): string | undefined {
 }
 
 function normalizeOkaySmsBase(url?: string): string {
-  const raw = (url || OKAYSMS_HTTP_BASE).replace(/\/$/, "");
-  if (raw.includes("/api/v3")) {
-    return raw.replace("/api/v3", "/api/http");
+  const fallback = OKAYSMS_HTTP_BASE;
+  let raw = stripWrappingQuotes(url || fallback).replace(/\/$/, "");
+  if (!raw) return fallback;
+
+  // "/api/http" is the OkaySMS API name. It is not the https protocol.
+  // A value such as /api/https makes OkaySMS return "route could not be found".
+  raw = raw.replace(/\/api\/https\b/gi, "/api/http");
+  raw = raw.replace(/\/api\/v3\b/gi, "/api/http");
+
+  try {
+    const parsed = new URL(raw);
+    parsed.pathname = "/api/http";
+    parsed.search = "";
+    parsed.hash = "";
+    return parsed.toString().replace(/\/$/, "");
+  } catch {
+    return fallback;
   }
-  return raw;
 }
 
 function getSmsConfig() {
