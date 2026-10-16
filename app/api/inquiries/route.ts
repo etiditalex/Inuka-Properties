@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { runLeadAutomation } from "@/lib/email/automation";
 import { runLeadSmsAutomation } from "@/lib/sms/automation";
+import { formatPhoneKenyaE164, isValidKenyaMobile } from "@/lib/phone/kenya";
 
 function getServiceClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -13,7 +14,10 @@ function getServiceClient() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, phone, subject, message, source, property_id, property_name } = body;
+    const { name, email, subject, message, source, property_id, property_name } = body;
+    const phoneInput = typeof body.phone === "string" ? body.phone.trim() : "";
+    const normalizedPhone = formatPhoneKenyaE164(phoneInput);
+    const phone = phoneInput && isValidKenyaMobile(normalizedPhone) ? normalizedPhone : phoneInput || null;
 
     if (!name || !message) {
       return NextResponse.json({ error: "Name and message are required" }, { status: 400 });

@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Property } from "@/lib/supabase/types";
-import { formatPhoneKenyaE164 } from "@/lib/phone/kenya";
+import { formatPhoneKenyaE164, isValidKenyaMobile } from "@/lib/phone/kenya";
 import { sendSms } from "@/lib/sms/provider";
 import {
   DEFAULT_SMS_AUTOMATION,
@@ -107,6 +107,8 @@ export async function runLeadSmsAutomation(
   options?: LeadAutomationOptions
 ): Promise<{ propertySmsSent: boolean; adminSmsSent: boolean }> {
   try {
+  const normalizedPhone = input.phone ? formatPhoneKenyaE164(input.phone) : "";
+  const phone = isValidKenyaMobile(normalizedPhone) ? normalizedPhone : input.phone;
   const settings = await getSmsAutomationSettings(supabase);
   const emailSettings = await getEmailAutomationSettings(supabase);
 
@@ -126,18 +128,18 @@ export async function runLeadSmsAutomation(
   let propertySmsSent = false;
   let adminSmsSent = false;
 
-  if (settings.auto_send_property_details_sms && property && input.phone) {
+  if (settings.auto_send_property_details_sms && property && phone) {
     const message = buildPropertyDetailsSms({
       template: settings.property_template,
       leadName: input.name,
       property,
     });
-    const result = await sendSms(input.phone, message, settings.sender_id);
+    const result = await sendSms(phone, message, settings.sender_id);
     propertySmsSent = result.ok;
     await logSms(supabase, {
       leadType: input.leadType,
       leadId: input.leadId,
-      recipientPhone: formatPhoneKenyaE164(input.phone),
+      recipientPhone: formatPhoneKenyaE164(phone),
       recipientName: input.name,
       propertyId: property.id,
       propertyTitle: property.title,
@@ -154,7 +156,7 @@ export async function runLeadSmsAutomation(
       template: settings.admin_template,
       type: input.leadType,
       name: input.name,
-      phone: input.phone,
+      phone,
       propertyTitle: property?.title ?? input.propertyName,
     });
     const result = await sendSms(settings.admin_sms_number, message, settings.sender_id);

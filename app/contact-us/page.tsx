@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Phone, Mail, MapPin, Send, Clock, Home, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { normalizeKenyaPhoneInput } from "@/lib/phone/kenya";
 
 export default function ContactUsPage() {
   const [formData, setFormData] = useState({
@@ -276,6 +277,12 @@ export default function ContactUsPage() {
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
+                      onBlur={(e) =>
+                        setFormData((current) => ({
+                          ...current,
+                          phone: normalizeKenyaPhoneInput(e.target.value),
+                        }))
+                      }
                       required
                       className="w-full px-4 py-3 border border-dark-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 font-montserrat"
                     />

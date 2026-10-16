@@ -3,6 +3,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { runLeadAutomation } from "@/lib/email/automation";
 import { runLeadSmsAutomation } from "@/lib/sms/automation";
 import { buildLeadEnrichment, findExistingPropertyLead, isAutoCaptureMessage } from "@/lib/leads/dedupe";
+import { formatPhoneKenyaE164, isValidKenyaMobile } from "@/lib/phone/kenya";
 import type { LeadAutomationInput } from "@/lib/email/automation";
 
 function getServiceClient(): SupabaseClient | null {
@@ -47,7 +48,9 @@ export async function POST(request: Request) {
   try {
     const name = typeof body.name === "string" ? body.name.trim() : "";
     const email = typeof body.email === "string" ? body.email.trim() : "";
-    const phone = typeof body.phone === "string" ? body.phone.trim() : "";
+    const phoneInput = typeof body.phone === "string" ? body.phone.trim() : "";
+    const normalizedPhone = formatPhoneKenyaE164(phoneInput);
+    const phone = isValidKenyaMobile(normalizedPhone) ? normalizedPhone : phoneInput;
     const property_id = typeof body.property_id === "number" ? body.property_id : Number(body.property_id) || null;
     const property_name = typeof body.property_name === "string" ? body.property_name : null;
     const landing_page_id =

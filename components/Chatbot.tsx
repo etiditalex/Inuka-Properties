@@ -12,6 +12,7 @@ import { hasInquiryContact, hasPriceIntent, parseChatContact } from "@/lib/chatb
 import { normalizeChatText } from "@/lib/chatbot/text";
 import type { ChatLink, ChatbotInquiryDraft, ChatbotKnowledge } from "@/lib/chatbot/types";
 import { loadSavedContact } from "@/lib/leads/contactAutofill";
+import { normalizeKenyaPhoneInput } from "@/lib/phone/kenya";
 import { BOOK_VISIT_HASH, useBookSiteVisit } from "@/components/BookSiteVisitContext";
 
 type ChatMessage = {
@@ -495,6 +496,9 @@ const Chatbot = () => {
                   type="tel"
                   value={inquiryForm.phone}
                   onChange={(e) => setInquiryForm((prev) => ({ ...prev, phone: e.target.value }))}
+                  onBlur={(e) =>
+                    setInquiryForm((prev) => ({ ...prev, phone: normalizeKenyaPhoneInput(e.target.value) }))
+                  }
                   placeholder="Phone (0711…)"
                   className="w-full px-3 py-2 border border-dark-200 rounded-lg text-sm font-montserrat"
                 />

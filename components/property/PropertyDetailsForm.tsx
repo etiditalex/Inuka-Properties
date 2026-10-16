@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Mail, Phone, User, Send, CheckCircle } from "lucide-react";
 import { FACEBOOK_CAMPAIGN_PROPERTY_ID } from "@/lib/facebook/pixel";
 import { trackFacebookEvent } from "@/lib/facebook/trackClient";
+import { normalizeKenyaPhoneInput } from "@/lib/phone/kenya";
 import {
   hasContactFormFields,
   isFacebookAdTraffic,
@@ -277,6 +278,7 @@ function PropertyDetailsFormInner({
               inputMode="tel"
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              onBlur={(e) => setForm({ ...form, phone: normalizeKenyaPhoneInput(e.target.value) })}
               className="w-full pl-10 pr-4 py-3 border border-dark-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
               placeholder="0712 345 678"
             />

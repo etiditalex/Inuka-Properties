@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, X, Send, CheckCircle, User, Phone } from "lucide-react";
+import { normalizeKenyaPhoneInput } from "@/lib/phone/kenya";
 
 export default function EmailFloatWidget() {
   const pathname = usePathname();
@@ -232,6 +233,7 @@ export default function EmailFloatWidget() {
                           required
                           value={form.phone}
                           onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                          onBlur={(e) => setForm({ ...form, phone: normalizeKenyaPhoneInput(e.target.value) })}
                           className="w-full rounded-xl border border-dark-200 py-2.5 pl-10 pr-4 text-sm outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
                           placeholder="0712 345 678"
                         />

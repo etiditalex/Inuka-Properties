@@ -8,6 +8,7 @@ import {
   prefillFromStoredContact,
 } from "@/lib/leads/captureLead";
 import { siteVisitWhatsAppMessage, whatsAppUrl } from "@/lib/whatsapp";
+import { normalizeKenyaPhoneInput } from "@/lib/phone/kenya";
 
 const LOCATIONS = [
   "Tulivu Haven",
@@ -224,6 +225,12 @@ function BookSiteVisitModal({
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
+                  onBlur={(e) =>
+                    setFormData((current) => ({
+                      ...current,
+                      phone: normalizeKenyaPhoneInput(e.target.value),
+                    }))
+                  }
                   required
                   autoComplete="tel"
                   placeholder="07xxxxxx"
