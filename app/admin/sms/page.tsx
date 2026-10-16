@@ -78,6 +78,7 @@ export default function AdminSmsPage() {
   const [bulkAudience, setBulkAudience] = useState("all");
   const [bulkPropertyId, setBulkPropertyId] = useState("");
   const [testPhone, setTestPhone] = useState("0711082084");
+  const [providerConfigured, setProviderConfigured] = useState(true);
 
   const previewVars = useMemo(() => {
     const prop = bulkPropertyId
@@ -111,6 +112,7 @@ export default function AdminSmsPage() {
     if (data.insights) setInsights(data.insights);
     if (data.recipientCounts) setRecipientCounts(data.recipientCounts);
     if (data.properties) setProperties(data.properties);
+    setProviderConfigured(data.providerConfigured !== false);
     setLoading(false);
   }, []);
 
@@ -467,17 +469,17 @@ export default function AdminSmsPage() {
               )}
             </div>
 
-            <div className="rounded-2xl border border-amber-100 bg-amber-50/50 p-4 text-xs text-amber-900">
-              <p className="font-semibold">API setup (Vercel) — Okay SMS International</p>
-              <p className="mt-1 text-amber-800">
-                Set <code className="rounded bg-white px-1">OKAYSMS_API_KEY</code> (Bearer token from{" "}
+            <div className={`rounded-2xl border p-4 text-xs ${providerConfigured ? "border-amber-100 bg-amber-50/50 text-amber-900" : "border-red-200 bg-red-50 text-red-800"}`}>
+              <p className="font-semibold">
+                {providerConfigured ? "Okay SMS is configured" : "Okay SMS API key is missing — sends will fail"}
+              </p>
+              <p className="mt-1">
+                Set <code className="rounded bg-white px-1">OKAYSMS_API_KEY</code> in <code className="rounded bg-white px-1">.env.local</code> for local tests and in Vercel for the live site.
+                Use the API token from{" "}
                 <a href="https://my.okaysms.com" className="underline" target="_blank" rel="noopener noreferrer">
                   my.okaysms.com
-                </a>
-                ), <code className="rounded bg-white px-1">SMS_SENDER_ID</code> (your registered sender ID), and optionally{" "}
-                <code className="rounded bg-white px-1">OKAYSMS_API_URL</code> (default: https://my.okaysms.com/api/http).
-                Send endpoint: <code className="rounded bg-white px-1">POST /sms/send</code>. Status:{" "}
-                <code className="rounded bg-white px-1">GET /sms/&#123;uid&#125;</code>.
+                </a>{" "}
+                (Developers). The Sender ID below must match the registered sender ID exactly.
               </p>
             </div>
           </div>

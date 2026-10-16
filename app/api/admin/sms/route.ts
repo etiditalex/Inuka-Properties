@@ -7,7 +7,7 @@ import {
   getSmsInsights,
 } from "@/lib/sms/automation";
 import { renderSmsTemplate, smsStats } from "@/lib/sms/templates";
-import { sendBulkSms, sendSms, getOkaySmsMessage, listOkaySmsMessages } from "@/lib/sms/provider";
+import { sendBulkSms, sendSms, getOkaySmsMessage, listOkaySmsMessages, isSmsProviderConfigured } from "@/lib/sms/provider";
 import { formatPhoneKenyaE164 } from "@/lib/phone/kenya";
 
 export const dynamic = "force-dynamic";
@@ -38,6 +38,7 @@ export async function GET() {
       insights: { total: 0, sent: 0, failed: 0, sentToday: 0, failedToday: 0, successRate: 0, byType: {} },
       recipientCounts: { leads: 0, inquiries: 0, all: 0 },
       properties: [],
+      providerConfigured: isSmsProviderConfigured(),
     });
   }
 
@@ -85,6 +86,7 @@ export async function GET() {
       all: phones.size,
     },
     properties: properties || [],
+    providerConfigured: isSmsProviderConfigured(),
   });
 }
 
@@ -94,11 +96,15 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const service = createServiceClient();
-  if (!service) return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
-
   const body = await request.json();
 
   if (body.action === "send_bulk") {
+    if (!service) {
+      return NextResponse.json(
+        { error: "Database is not configured. Add SUPABASE_SERVICE_ROLE_KEY before sending bulk SMS." },
+        { status: 503 }
+      );
+    }
     const { message, audience, phones: customPhones, property_id } = body;
     if (!message?.trim()) {
       return NextResponse.json({ error: "Message is required" }, { status: 400 });
@@ -221,29 +227,45 @@ export async function POST(request: Request) {
     if (!phone || !message) {
       return NextResponse.json({ error: "Phone and message required" }, { status: 400 });
     }
-    const { data: settingsRow } = await service
-      .from("site_settings")
-      .select("value")
-      .eq("key", "sms_automation")
-      .single();
-    const settings: SmsAutomationSettings = settingsRow?.value
-      ? { ...DEFAULT_SMS_AUTOMATION, ...(settingsRow.value as SmsAutomationSettings) }
-      : DEFAULT_SMS_AUTOMATION;
+    let senderId: string | undefined;
+    if (service) {
+      const { data: settingsRow } = await service
+        .from("site_settings")
+        .select("value")
+        .eq("key", "sms_automation")
+        .single();
+      const settings: SmsAutomationSettings = settingsRow?.value
+        ? { ...DEFAULT_SMS_AUTOMATION, ...(settingsRow.value as SmsAutomationSettings) }
+        : DEFAULT_SMS_AUTOMATION;
+      senderId = settings.sender_id;
+      const result = await sendSms(phone, message, senderId);
+      await service.from("sms_automation_log").insert({
+        recipient_phone: formatPhoneKenyaE164(phone),
+        sms_type: "manual",
+        status: result.ok ? "sent" : "failed",
+        message_body: message,
+        provider_message_id: result.providerMessageId ?? null,
+        error_message: result.error ?? null,
+      });
+      if (!result.ok) {
+        return NextResponse.json({ success: false, error: result.error || "SMS send failed" }, { status: 502 });
+      }
+      return NextResponse.json({ success: true, provider_message_id: result.providerMessageId });
+    }
 
-    const result = await sendSms(phone, message, settings.sender_id);
-    await service.from("sms_automation_log").insert({
-      recipient_phone: formatPhoneKenyaE164(phone),
-      sms_type: "manual",
-      status: result.ok ? "sent" : "failed",
-      message_body: message,
-      provider_message_id: result.providerMessageId ?? null,
-      error_message: result.error ?? null,
-    });
+    const result = await sendSms(phone, message, senderId);
 
     if (!result.ok) {
       return NextResponse.json({ success: false, error: result.error || "SMS send failed" }, { status: 502 });
     }
     return NextResponse.json({ success: true, provider_message_id: result.providerMessageId });
+  }
+
+  if (!service) {
+    return NextResponse.json(
+      { error: "Database is not configured. Add SUPABASE_SERVICE_ROLE_KEY before saving SMS settings." },
+      { status: 503 }
+    );
   }
 
   const settings: SmsAutomationSettings = {

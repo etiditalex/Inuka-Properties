@@ -57,6 +57,10 @@ function getSmsConfig() {
   };
 }
 
+export function isSmsProviderConfigured(): boolean {
+  return Boolean(getSmsConfig().apiKey);
+}
+
 function getOkaySmsHeaders(apiKey: string): Record<string, string> {
   return {
     Authorization: `Bearer ${apiKey}`,
@@ -173,10 +177,6 @@ async function sendViaOkaySms(
 ): Promise<SmsSendResult> {
   const { apiKey } = getSmsConfig();
   if (!apiKey) {
-    if (process.env.NODE_ENV === "development") {
-      console.log("[okaysms]", to, message);
-      return { ok: true, providerMessageId: "dev" };
-    }
     return { ok: false, error: "Okay SMS API key not configured (OKAYSMS_API_KEY or SMS_API_KEY)" };
   }
 
@@ -184,6 +184,7 @@ async function sendViaOkaySms(
     method: "POST",
     headers: getOkaySmsHeaders(apiKey),
     body: JSON.stringify({
+      api_token: apiKey,
       recipient: to,
       sender_id: senderId,
       type: "plain",
