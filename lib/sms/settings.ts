@@ -30,7 +30,7 @@ export const DEFAULT_SMS_AUTOMATION: SmsAutomationSettings = {
   auto_send_property_details_sms: false,
   notify_admin_sms: false,
   admin_sms_number: WHATSAPP_NUMBER,
-  sender_id: "INUKA",
+  sender_id: "INUKA-P-LTD",
   property_template: DEFAULT_PROPERTY_SMS_TEMPLATE,
   admin_template: DEFAULT_ADMIN_SMS_TEMPLATE,
   default_property_id: null,

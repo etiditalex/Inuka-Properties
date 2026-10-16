@@ -14,13 +14,31 @@ export type OkaySmsApiResult<T = unknown> = {
 
 const OKAYSMS_HTTP_BASE = "https://my.okaysms.com/api/http";
 
+function stripWrappingQuotes(raw: string): string {
+  const trimmed = raw.trim();
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1).trim();
+  }
+  return trimmed;
+}
+
 function normalizeApiKey(raw?: string): string | undefined {
   if (!raw) return undefined;
-  const trimmed = raw.trim();
+  const trimmed = stripWrappingQuotes(raw);
+  if (!trimmed) return undefined;
   if (trimmed.toLowerCase().startsWith("bearer ")) {
     return trimmed.slice(7).trim();
   }
   return trimmed;
+}
+
+function normalizeSenderId(raw?: string): string | undefined {
+  if (!raw) return undefined;
+  const trimmed = stripWrappingQuotes(raw);
+  return trimmed || undefined;
 }
 
 function normalizeOkaySmsBase(url?: string): string {
@@ -46,11 +64,12 @@ function getSmsConfig() {
         process.env.BULKSMS_API_KEY
     ),
     senderId:
-      process.env.SMS_SENDER_ID ||
-      process.env.OKAYSMS_SENDER_ID ||
-      process.env.AFRICAS_TALKING_SENDER_ID ||
-      process.env.BULKSMS_SENDER_ID ||
-      "INUKA",
+      normalizeSenderId(
+        process.env.SMS_SENDER_ID ||
+          process.env.OKAYSMS_SENDER_ID ||
+          process.env.AFRICAS_TALKING_SENDER_ID ||
+          process.env.BULKSMS_SENDER_ID
+      ) || "INUKA-P-LTD",
     apiUrl: apiBase,
     celcomPartnerId: process.env.CELCOM_PARTNER_ID,
     celcomShortcode: process.env.CELCOM_SHORTCODE || process.env.SMS_SENDER_ID,
@@ -379,7 +398,8 @@ export async function sendSms(
   }
 
   const { provider, senderId: defaultSender } = getSmsConfig();
-  const from = senderId || defaultSender;
+  const requested = normalizeSenderId(senderId);
+  const from = !requested || requested.toUpperCase() === "INUKA" ? defaultSender : requested;
 
   try {
     switch (provider) {
