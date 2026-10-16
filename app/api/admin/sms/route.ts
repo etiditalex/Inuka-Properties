@@ -6,7 +6,7 @@ import {
   type SmsAutomationSettings,
   getSmsInsights,
 } from "@/lib/sms/automation";
-import { renderSmsTemplate, smsStats } from "@/lib/sms/templates";
+import { deliverableSmsText, renderSmsTemplate, smsStats } from "@/lib/sms/templates";
 import { sendBulkSms, sendSms, getOkaySmsMessage, listOkaySmsMessages, isSmsProviderConfigured } from "@/lib/sms/provider";
 import { formatPhoneKenyaE164 } from "@/lib/phone/kenya";
 
@@ -238,12 +238,13 @@ export async function POST(request: Request) {
         ? { ...DEFAULT_SMS_AUTOMATION, ...(settingsRow.value as SmsAutomationSettings) }
         : DEFAULT_SMS_AUTOMATION;
       senderId = settings.sender_id;
-      const result = await sendSms(phone, message, senderId);
+      const text = deliverableSmsText(message);
+      const result = await sendSms(phone, text, senderId);
       await service.from("sms_automation_log").insert({
         recipient_phone: formatPhoneKenyaE164(phone),
         sms_type: "manual",
         status: result.ok ? "sent" : "failed",
-        message_body: message,
+        message_body: text,
         provider_message_id: result.providerMessageId ?? null,
         error_message: result.error ?? null,
       });
@@ -253,7 +254,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, provider_message_id: result.providerMessageId });
     }
 
-    const result = await sendSms(phone, message, senderId);
+    const text = deliverableSmsText(message);
+    const result = await sendSms(phone, text, senderId);
 
     if (!result.ok) {
       return NextResponse.json({ success: false, error: result.error || "SMS send failed" }, { status: 502 });

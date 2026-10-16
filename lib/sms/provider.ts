@@ -1,4 +1,5 @@
 import { formatPhoneKenyaE164, isValidKenyaMobile } from "@/lib/phone/kenya";
+import { deliverableSmsText } from "@/lib/sms/templates";
 
 export type SmsSendResult = {
   ok: boolean;
@@ -417,6 +418,7 @@ export async function sendSms(
   senderId?: string
 ): Promise<SmsSendResult> {
   const to = formatPhoneKenyaE164(phone);
+  const text = deliverableSmsText(message);
   if (!isValidKenyaMobile(to)) {
     return { ok: false, error: "Invalid Kenya mobile number" };
   }
@@ -427,15 +429,15 @@ export async function sendSms(
   try {
     switch (provider) {
       case "celcom":
-        return await sendViaCelcom(to, message, from);
+        return await sendViaCelcom(to, text, from);
       case "generic":
       case "bulk":
-        return await sendViaGenericApi(to, message, from);
+        return await sendViaGenericApi(to, text, from);
       case "africas_talking":
-        return await sendViaAfricasTalking(to, message, from);
+        return await sendViaAfricasTalking(to, text, from);
       case "okaysms":
       default:
-        return await sendViaOkaySms(to, message, from);
+        return await sendViaOkaySms(to, text, from);
     }
   } catch (error) {
     console.error("[sms] send failed", error);
