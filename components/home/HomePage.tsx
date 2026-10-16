@@ -227,36 +227,9 @@ function CoastalPlotFinder() {
   );
 }
 
-function isMilikiTezo(property: { title: string }): boolean {
-  return property.title.toLowerCase().includes("miliki tezo");
-}
-
-const MILIKI_TEZO_CARD: Property = {
-  id: 3,
-  title: "MILIKI TEZO NA INUKA",
-  location: "Tezo, Kilifi County",
-  type: "residential",
-  price: "KES 450,000",
-  size: "1/8 Acre",
-  image:
-    "https://slqalqvtsqrloaxjrtza.supabase.co/storage/v1/object/public/admin-uploads/properties/1787292087079-kg9108raxss.jpeg",
-  status: "available",
-  featured: true,
-};
-
-function withMilikiTezoFirst(properties: Property[], limit = 4): Property[] {
-  const available = properties.filter((property) => property.status !== "sold");
-  const miliki = available.find(isMilikiTezo) ?? MILIKI_TEZO_CARD;
-  const others = getHomepageProperties(
-    available.filter((property) => property.id !== miliki.id && !isMilikiTezo(property)) as Property[],
-    Math.max(limit - 1, 0)
-  );
-  return [miliki, ...others].slice(0, limit);
-}
-
 function PropertyCardsSection() {
   const [homeFeaturedProperties, setHomeFeaturedProperties] = useState<Property[]>(() =>
-    withMilikiTezoFirst(STATIC_PROPERTY_CATALOG as Property[])
+    getHomepageProperties(STATIC_PROPERTY_CATALOG as Property[])
   );
 
   useEffect(() => {
@@ -265,7 +238,7 @@ function PropertyCardsSection() {
       .then((data) => {
         if (data.engagement) hydratePropertyEngagement(data.engagement);
         if (!data.properties?.length) return;
-        setHomeFeaturedProperties(withMilikiTezoFirst(data.properties));
+        setHomeFeaturedProperties(getHomepageProperties(data.properties));
       })
       .catch(() => {});
   }, []);

@@ -16,6 +16,7 @@ import BookSiteVisitButton from "@/components/BookSiteVisitButton";
 import PropertyLocationMap from "@/components/PropertyLocationMap";
 import PropertyEngagementBar from "@/components/property/PropertyEngagementBar";
 import PropertyShareButtons from "@/components/property/PropertyShareButtons";
+import PropertyPaymentCalculator from "@/components/property/PropertyPaymentCalculator";
 import { hydratePropertyEngagement } from "@/lib/properties/engagementClient";
 
 export default function PropertyDetailView({
@@ -387,6 +388,13 @@ export default function PropertyDetailView({
                 />
               </div>
             </div>
+
+            <PropertyPaymentCalculator
+              price={property.price}
+              pricing={property.pricing}
+              paymentPlan={property.paymentPlan}
+              details={[property.description, ...(property.features ?? [])].filter(Boolean).join("\n")}
+            />
 
             {property.pricing && (
               <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
