@@ -6,6 +6,7 @@ import {
   type SmsAutomationSettings,
   getSmsInsights,
 } from "@/lib/sms/automation";
+import { resolveSmsAutomationSettings } from "@/lib/sms/settings";
 import { deliverableSmsText, renderSmsTemplate, smsStats } from "@/lib/sms/templates";
 import { sendBulkSms, sendSms, getOkaySmsMessage, listOkaySmsMessages, isSmsProviderConfigured } from "@/lib/sms/provider";
 import { formatPhoneKenyaE164 } from "@/lib/phone/kenya";
@@ -66,9 +67,9 @@ export async function GET() {
       .order("created_at", { ascending: false }),
   ]);
 
-  const settings: SmsAutomationSettings = settingsRow?.value
-    ? { ...DEFAULT_SMS_AUTOMATION, ...(settingsRow.value as SmsAutomationSettings) }
-    : DEFAULT_SMS_AUTOMATION;
+  const settings = resolveSmsAutomationSettings(
+    (settingsRow?.value as SmsAutomationSettings) ?? null
+  );
 
   const uniqueLeads = uniqueByKenyaPhone(leads || []);
   const uniqueInquiries = uniqueByKenyaPhone(inquiries || []);
@@ -115,9 +116,9 @@ export async function POST(request: Request) {
       .select("value")
       .eq("key", "sms_automation")
       .single();
-    const settings: SmsAutomationSettings = settingsRow?.value
-      ? { ...DEFAULT_SMS_AUTOMATION, ...(settingsRow.value as SmsAutomationSettings) }
-      : DEFAULT_SMS_AUTOMATION;
+    const settings = resolveSmsAutomationSettings(
+      (settingsRow?.value as SmsAutomationSettings) ?? null
+    );
 
     let propertyVars: Record<string, string> = {};
     if (property_id) {
@@ -234,9 +235,9 @@ export async function POST(request: Request) {
         .select("value")
         .eq("key", "sms_automation")
         .single();
-      const settings: SmsAutomationSettings = settingsRow?.value
-        ? { ...DEFAULT_SMS_AUTOMATION, ...(settingsRow.value as SmsAutomationSettings) }
-        : DEFAULT_SMS_AUTOMATION;
+      const settings = resolveSmsAutomationSettings(
+        (settingsRow?.value as SmsAutomationSettings) ?? null
+      );
       senderId = settings.sender_id;
       const text = deliverableSmsText(message);
       const result = await sendSms(phone, text, senderId);
@@ -273,6 +274,8 @@ export async function POST(request: Request) {
   const settings: SmsAutomationSettings = {
     ...DEFAULT_SMS_AUTOMATION,
     ...body,
+    property_sms_enabled: true,
+    auto_send_property_details_sms: body.auto_send_property_details_sms !== false,
     default_property_id: body.default_property_id ? Number(body.default_property_id) : null,
     facebook_landing_property_id: body.facebook_landing_property_id
       ? Number(body.facebook_landing_property_id)

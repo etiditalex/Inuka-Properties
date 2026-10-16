@@ -140,13 +140,13 @@ function PropertyDetailsFormInner({
       <div className={`text-center py-6 ${className}`}>
         <CheckCircle size={48} className="text-emerald-600 mx-auto mb-3" />
         <h3 className="text-xl font-bold text-dark-900 font-montserrat mb-2">
-          Check your email!
+          Check your phone and email
         </h3>
         <p className="text-dark-600 text-sm">
           {thankYouMessage || (
             <>
-              Property details for <strong>{propertyTitle}</strong> have been sent to{" "}
-              <strong>{form.email}</strong>. Our team will also reach out on WhatsApp shortly.
+              Property details for <strong>{propertyTitle}</strong> have been sent by SMS to{" "}
+              <strong>{form.phone}</strong> and by email to <strong>{form.email}</strong>.
             </>
           )}
         </p>
@@ -174,7 +174,7 @@ function PropertyDetailsFormInner({
           <p className="text-dark-600 text-sm mb-5">
             {subheading || (
               <>
-                Enter your details and we&apos;ll email you full project information for{" "}
+                Enter your details and we&apos;ll text and email you the project information for{" "}
                 <strong>{propertyTitle}</strong>.
               </>
             )}

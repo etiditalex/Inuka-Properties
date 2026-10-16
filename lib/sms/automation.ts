@@ -4,6 +4,7 @@ import { formatPhoneKenyaE164 } from "@/lib/phone/kenya";
 import { sendSms } from "@/lib/sms/provider";
 import {
   DEFAULT_SMS_AUTOMATION,
+  resolveSmsAutomationSettings,
   type SmsAutomationSettings,
 } from "@/lib/sms/settings";
 import { buildAdminAlertSms, buildPropertyDetailsSms } from "@/lib/sms/templates";
@@ -22,8 +23,7 @@ export async function getSmsAutomationSettings(
     .eq("key", "sms_automation")
     .single();
 
-  if (!data?.value) return DEFAULT_SMS_AUTOMATION;
-  return { ...DEFAULT_SMS_AUTOMATION, ...(data.value as SmsAutomationSettings) };
+  return resolveSmsAutomationSettings((data?.value as SmsAutomationSettings) ?? null);
 }
 
 async function resolvePropertyForSms(

@@ -9,6 +9,8 @@ export type SmsAutomationSettings = {
   admin_template: string;
   default_property_id: number | null;
   facebook_landing_property_id: number | null;
+  /** Set when an admin saves SMS settings, so a later off switch is kept. */
+  property_sms_enabled?: boolean;
 };
 
 export const SMS_TEMPLATE_VARIABLES = [
@@ -27,7 +29,7 @@ export const DEFAULT_ADMIN_SMS_TEMPLATE =
   "New {{type}}: {{name}} | {{phone}} | Property: {{property}}. Check admin dashboard.";
 
 export const DEFAULT_SMS_AUTOMATION: SmsAutomationSettings = {
-  auto_send_property_details_sms: false,
+  auto_send_property_details_sms: true,
   notify_admin_sms: false,
   admin_sms_number: WHATSAPP_NUMBER,
   sender_id: "INUKA-P-LTD",
@@ -36,3 +38,16 @@ export const DEFAULT_SMS_AUTOMATION: SmsAutomationSettings = {
   default_property_id: null,
   facebook_landing_property_id: null,
 };
+
+export function resolveSmsAutomationSettings(
+  stored?: Partial<SmsAutomationSettings> | null
+): SmsAutomationSettings {
+  const merged: SmsAutomationSettings = {
+    ...DEFAULT_SMS_AUTOMATION,
+    ...(stored ?? {}),
+  };
+  if (stored?.property_sms_enabled !== true) {
+    merged.auto_send_property_details_sms = true;
+  }
+  return merged;
+}
