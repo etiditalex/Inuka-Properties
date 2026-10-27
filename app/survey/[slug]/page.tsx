@@ -78,7 +78,7 @@ export default async function PublicSurveyPage({
           : "open";
 
   return (
-    <div className="bg-gradient-to-b from-slate-50 via-white to-primary-50/40 px-4 py-10 md:py-14">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-primary-50/40 px-4 py-12 md:py-16">
       <div className="mx-auto max-w-3xl">
         <PublicSurveyForm survey={loaded.survey} questions={loaded.questions} mode={mode} />
       </div>

@@ -18,7 +18,8 @@ export default function ConditionalLayout({
   const isSupportForm = pathname === SUPPORT_FORM_PATH;
   const isAdmin = pathname ? isAdminPath(pathname) : false;
   const isLandingPage = isLandingPagePath(pathname);
-  const hideSiteChrome = isProjectShowcase || isAdmin || isSupportForm || isLandingPage;
+  const isSurveyForm = pathname === "/survey" || Boolean(pathname?.startsWith("/survey/"));
+  const hideSiteChrome = isProjectShowcase || isAdmin || isSupportForm || isLandingPage || isSurveyForm;
 
   return (
     <>

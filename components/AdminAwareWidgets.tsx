@@ -12,6 +12,7 @@ export default function AdminAwareWidgets() {
   const pathname = usePathname();
   if (pathname && isAdminPath(pathname)) return null;
   if (pathname === SUPPORT_FORM_PATH) return null;
+  if (pathname === "/survey" || pathname?.startsWith("/survey/")) return null;
   if (isLandingPagePath(pathname)) {
     return <CookieBanner />;
   }

@@ -106,7 +106,7 @@ export default function PublicSurveyForm({ survey, questions, mode }: PublicSurv
     >
       <div className="border-b border-slate-100 bg-gradient-to-r from-primary-50 to-white px-6 py-6 md:px-8">
         <p className="text-xs font-bold uppercase tracking-[0.14em] text-primary-700">Inuka Survey</p>
-        <h1 className="mt-2 font-montserrat text-2xl font-bold text-slate-900 md:text-3xl">{survey.title}</h1>
+        <h1 className="mt-2 font-montserrat text-2xl font-bold leading-normal text-slate-900 md:text-3xl">{survey.title}</h1>
         {survey.description ? (
           <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-600">{survey.description}</p>
         ) : null}
