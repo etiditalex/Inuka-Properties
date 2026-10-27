@@ -197,6 +197,15 @@ export function isSurveyExpired(survey: { expires_at?: string | null }, now = Da
   return Number.isFinite(time) && time <= now;
 }
 
+export function surveySubmissionsClosed(
+  survey: { status?: string | null; expires_at?: string | null },
+  now = Date.now()
+) {
+  if (survey.status === "closed") return true;
+  if (survey.status === "draft") return false;
+  return isSurveyExpired(survey, now);
+}
+
 export function formatSurveyExpiry(iso: string) {
   return new Date(iso).toLocaleString("en-GB", {
     day: "2-digit",

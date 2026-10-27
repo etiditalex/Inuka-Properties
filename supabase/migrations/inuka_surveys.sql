@@ -117,8 +117,11 @@ CREATE TABLE IF NOT EXISTS survey_report_recipients (
   email TEXT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  final_sent_at TIMESTAMPTZ,
   UNIQUE (survey_id, email)
 );
+
+ALTER TABLE survey_report_recipients ADD COLUMN IF NOT EXISTS final_sent_at TIMESTAMPTZ;
 
 CREATE INDEX IF NOT EXISTS idx_survey_report_recipients_survey ON survey_report_recipients (survey_id);
 

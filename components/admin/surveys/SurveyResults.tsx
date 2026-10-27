@@ -19,6 +19,7 @@ import {
   formatSurveyExpiry,
   isSurveyExpired,
   normalizeQuestion,
+  surveySubmissionsClosed,
   normalizeResponse,
   responsesIncludeIdentity,
   textResponses,
@@ -51,6 +52,18 @@ export default function SurveyResults({ surveyId }: { surveyId: string }) {
       setQuestions(((questionResult.data || []) as SurveyQuestion[]).map(normalizeQuestion));
       setResponses(((responseResult.data || []) as SurveyResponse[]).map(normalizeResponse));
       setLoading(false);
+      const loaded = surveyResult.data as Survey;
+      if (!surveySubmissionsClosed(loaded)) return;
+      fetch(`/api/admin/surveys/${surveyId}/email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ finalize: true }),
+      })
+        .then(async (response) => {
+          const data = await response.json().catch(() => ({}));
+          if (response.ok && data.sent > 0) setNotice(data.message || "Excel report sent.");
+        })
+        .catch(() => undefined);
     });
   }, [surveyId]);
 
@@ -85,6 +98,7 @@ export default function SurveyResults({ surveyId }: { surveyId: string }) {
   }
 
   const includeIdentity = survey.collect_identity || responsesIncludeIdentity(responses);
+  const closed = surveySubmissionsClosed(survey);
 
   return (
     <div className="space-y-6">
@@ -122,12 +136,16 @@ export default function SurveyResults({ surveyId }: { surveyId: string }) {
                 type="email"
                 value={email}
                 placeholder="name@company.com"
-                hint="They receive the Excel file with no sign-in. Each new response emails them an updated file."
+                hint={
+                  closed
+                    ? "The survey is closed. This sends the Excel file now. No sign-in is required."
+                    : "The Excel file is sent once, when the survey closes or the expiry time passes. No sign-in is required."
+                }
                 onChange={(event) => setEmail(event.target.value)}
               />
             </div>
             <AdminButton onClick={sendReport} loading={sending} disabled={!email.trim()}>
-              <Send size={16} /> Send
+              <Send size={16} /> {closed ? "Send" : "Save"}
             </AdminButton>
           </div>
         </div>

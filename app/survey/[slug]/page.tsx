@@ -4,6 +4,7 @@ import PublicSurveyForm from "@/components/survey/PublicSurveyForm";
 import { isSupabaseServerConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import type { Survey, SurveyQuestion } from "@/lib/supabase/types";
+import { deliverFinalSurveyReport } from "@/lib/surveys/deliver-report";
 import { isSurveyExpired, normalizeQuestion } from "@/lib/surveys/model";
 
 export const dynamic = "force-dynamic";
@@ -76,6 +77,10 @@ export default async function PublicSurveyPage({
         : isSurveyExpired(loaded.survey)
           ? "expired"
           : "open";
+
+  if (mode === "closed" || mode === "expired") {
+    await deliverFinalSurveyReport(loaded.survey.id);
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-primary-50/40 px-4 py-12 md:py-16">

@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createServiceClient } from "@/lib/supabase/service";
 import type { Survey, SurveyQuestion, SurveyResponse } from "@/lib/supabase/types";
-import { normalizeQuestion, normalizeResponse, responsesIncludeIdentity } from "@/lib/surveys/model";
+import { normalizeQuestion, normalizeResponse, responsesIncludeIdentity, surveySubmissionsClosed } from "@/lib/surveys/model";
 import { surveyWorkbookAttachment } from "@/lib/surveys/export";
 import { buildSurveyReportHtml, surveyReportSubject } from "@/lib/surveys/report-email";
 
@@ -12,8 +12,7 @@ type SendResult =
 export async function sendSurveyReportEmail(
   supabase: SupabaseClient,
   surveyId: string,
-  email: string,
-  updated = false
+  email: string
 ): Promise<SendResult> {
   const { data: surveyRow, error: surveyError } = await supabase.from("surveys").select("*").eq("id", surveyId).maybeSingle();
   if (surveyError) return { ok: false, error: surveyError.message, status: 500 };
@@ -32,14 +31,14 @@ export async function sendSurveyReportEmail(
   const responses = ((responseRows || []) as SurveyResponse[]).map(normalizeResponse);
   const includeIdentity = survey.collect_identity || responsesIncludeIdentity(responses);
   const attachment = surveyWorkbookAttachment({ survey, questions, responses, includeIdentity });
-  const html = buildSurveyReportHtml(survey, responses.length, updated);
+  const html = buildSurveyReportHtml(survey, responses.length);
   const subject = surveyReportSubject(survey, responses.length);
   const from = process.env.EMAIL_FROM || "IAPL Admin <notifications@inukaproperties.co.ke>";
   const apiKey = process.env.RESEND_API_KEY;
 
   if (!apiKey) {
     if (process.env.NODE_ENV === "development") {
-      console.log("[survey-report]", updated ? "update" : "send", subject, "→", email, attachment.filename);
+      console.log("[survey-report]", subject, "→", email, attachment.filename);
       return { ok: true };
     }
     return { ok: false, error: "Email sending is not configured.", status: 503 };
@@ -78,24 +77,56 @@ export async function rememberSurveyReportRecipient(supabase: SupabaseClient, su
   return error;
 }
 
-export async function refreshSurveyReportEmails(surveyId: string) {
-  const supabase = createServiceClient();
-  if (!supabase) {
-    console.error("[survey-report] service client is not configured; the emailed report was not updated");
-    return;
+async function markSurveyReportSent(supabase: SupabaseClient, surveyId: string, email: string) {
+  const now = new Date().toISOString();
+  const { error } = await supabase
+    .from("survey_report_recipients")
+    .update({ final_sent_at: now, updated_at: now })
+    .eq("survey_id", surveyId)
+    .eq("email", email);
+  if (error) console.error("[survey-report] could not record the final send", error.message);
+}
+
+export async function deliverFinalSurveyReport(surveyId: string, supabase?: SupabaseClient) {
+  const client = supabase ?? createServiceClient();
+  if (!client) {
+    console.error("[survey-report] service client is not configured; the final report was not emailed");
+    return { ok: false as const, error: "Email updates are not configured.", sent: 0 };
   }
 
-  const { data, error } = await supabase.from("survey_report_recipients").select("email").eq("survey_id", surveyId);
+  const { data: surveyRow, error: surveyError } = await client.from("surveys").select("*").eq("id", surveyId).maybeSingle();
+  if (surveyError) return { ok: false as const, error: surveyError.message, sent: 0 };
+  if (!surveyRow) return { ok: false as const, error: "Survey not found.", sent: 0 };
+  if (!surveySubmissionsClosed(surveyRow as Survey)) return { ok: true as const, sent: 0 };
+
+  const { data, error } = await client
+    .from("survey_report_recipients")
+    .select("email, final_sent_at")
+    .eq("survey_id", surveyId);
   if (error) {
     console.error("[survey-report] could not load report recipients", error.message);
-    return;
+    return { ok: false as const, error: error.message, sent: 0 };
   }
 
   const emails = Array.from(
-    new Set((data || []).map((row) => String(row.email || "").trim().toLowerCase()).filter(Boolean))
+    new Set(
+      (data || [])
+        .filter((row) => !row.final_sent_at)
+        .map((row) => String(row.email || "").trim().toLowerCase())
+        .filter(Boolean)
+    )
   );
+
+  let sent = 0;
   for (const email of emails) {
-    const result = await sendSurveyReportEmail(supabase, surveyId, email, true);
-    if (!result.ok) console.error("[survey-report] update failed", email, result.error);
+    const result = await sendSurveyReportEmail(client, surveyId, email);
+    if (!result.ok) {
+      console.error("[survey-report] final send failed", email, result.error);
+      continue;
+    }
+    await markSurveyReportSent(client, surveyId, email);
+    sent += 1;
   }
+
+  return { ok: true as const, sent };
 }

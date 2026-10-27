@@ -3,8 +3,8 @@ import { isSupabaseServerConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import { sendSms } from "@/lib/sms/provider";
 import type { Survey, SurveyQuestion } from "@/lib/supabase/types";
-import { refreshSurveyReportEmails } from "@/lib/surveys/deliver-report";
-import { normalizeQuestion, validateSubmission } from "@/lib/surveys/model";
+import { deliverFinalSurveyReport } from "@/lib/surveys/deliver-report";
+import { normalizeQuestion, surveySubmissionsClosed, validateSubmission } from "@/lib/surveys/model";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +37,9 @@ export async function POST(request: Request, { params }: { params: { slug: strin
   }
 
   const questions = ((questionRows || []) as SurveyQuestion[]).map(normalizeQuestion);
+  if (surveySubmissionsClosed(survey as Survey)) {
+    await deliverFinalSurveyReport(survey.id);
+  }
   const validation = validateSubmission({
     survey: survey as Survey,
     questions,
@@ -67,8 +70,6 @@ export async function POST(request: Request, { params }: { params: { slug: strin
   const thankYou = String(survey.thank_you_message || "Thank you. Your response has been recorded.").trim();
   const sms = await sendSms(validation.phone, `${survey.title}: ${thankYou}`.slice(0, 320));
   if (!sms.ok) console.error("[survey-sms]", sms.error);
-
-  await refreshSurveyReportEmails(survey.id);
 
   return NextResponse.json({ ok: true, smsSent: sms.ok });
 }

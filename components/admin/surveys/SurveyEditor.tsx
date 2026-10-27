@@ -249,7 +249,25 @@ export default function SurveyEditor({ surveyId }: { surveyId?: string }) {
     }
 
     setSavedSlug(finalSlug);
-    setMessage("Survey saved.");
+    if (status === "open" && expiryTime > Date.now()) {
+      await supabase
+        .from("survey_report_recipients")
+        .update({ final_sent_at: null, updated_at: new Date().toISOString() })
+        .eq("survey_id", id);
+    }
+    let savedMessage = "Survey saved.";
+    if (status === "closed" || expiryTime <= Date.now()) {
+      const report = await fetch(`/api/admin/surveys/${id}/email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ finalize: true }),
+      });
+      const reportData = await report.json().catch(() => ({}));
+      if (report.ok && reportData.sent > 0 && reportData.message) {
+        savedMessage = `Survey saved. ${reportData.message}`;
+      }
+    }
+    setMessage(savedMessage);
     if (!surveyId) router.replace(adminPath(`surveys/${id}`));
   };
 

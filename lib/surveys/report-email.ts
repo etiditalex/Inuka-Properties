@@ -8,11 +8,9 @@ function escapeHtml(value: string) {
     .replace(/"/g, "&quot;");
 }
 
-export function buildSurveyReportHtml(survey: Survey, responseCount: number, updated = false) {
+export function buildSurveyReportHtml(survey: Survey, responseCount: number) {
   const responses = `${responseCount} response${responseCount === 1 ? "" : "s"}`;
-  const message = updated
-    ? `A new response was recorded. This Excel file replaces the earlier one and includes all ${responses}. Open the attachment for the latest results. No login is required.`
-    : `The report is attached as an Excel file (${responses}). Open the attachment to see the summary and every response. Each new response sends an updated Excel file to this address. No login is required.`;
+  const message = `This survey is closed. The Excel report is attached (${responses}). Open the attachment for the summary and every response. No login is required.`;
   return `<!DOCTYPE html>
   <html>
     <body style="margin:0;background:#f8fafc;font-family:Arial,Helvetica,sans-serif;">
