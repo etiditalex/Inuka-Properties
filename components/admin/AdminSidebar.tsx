@@ -26,6 +26,7 @@ import {
   Megaphone,
   Package,
   LayoutTemplate,
+  ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/admin/utils";
 import { adminPath } from "@/lib/admin/path";
@@ -48,6 +49,7 @@ const navItems = [
   { segment: "blogs", label: "Blogs", icon: FileText },
   { segment: "news", label: "News Update", icon: Newspaper },
   { segment: "market-research", label: "Market Research", icon: BarChart3 },
+  { segment: "surveys", label: "Inuka Survey", icon: ClipboardList },
   { segment: "testimonials", label: "Client Testimonials", icon: Quote },
   { segment: "downloads", label: "Downloads", icon: Download },
   { segment: "videos", label: "Video Gallery", icon: Play },

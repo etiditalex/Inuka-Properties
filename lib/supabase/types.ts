@@ -371,3 +371,47 @@ export interface CompanySubscription {
   created_at: string;
   updated_at: string;
 }
+
+export type SurveyStatus = "draft" | "open" | "closed";
+export type SurveyQuestionType =
+  | "short_text"
+  | "long_text"
+  | "single_choice"
+  | "multiple_choice"
+  | "rating"
+  | "yes_no";
+
+export interface Survey {
+  id: string;
+  title: string;
+  description: string | null;
+  slug: string;
+  collect_identity: boolean;
+  status: SurveyStatus;
+  thank_you_message: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SurveyQuestion {
+  id: string;
+  survey_id: string;
+  prompt: string;
+  help_text: string | null;
+  question_type: SurveyQuestionType;
+  options: string[];
+  required: boolean;
+  sort_order: number;
+  created_at: string;
+}
+
+export type SurveyAnswerValue = string | string[];
+
+export interface SurveyResponse {
+  id: string;
+  survey_id: string;
+  respondent_name: string | null;
+  respondent_email: string | null;
+  answers: Record<string, SurveyAnswerValue>;
+  submitted_at: string;
+}
