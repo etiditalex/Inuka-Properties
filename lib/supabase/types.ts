@@ -413,6 +413,7 @@ export interface SurveyResponse {
   survey_id: string;
   respondent_name: string | null;
   respondent_email: string | null;
+  respondent_phone: string | null;
   answers: Record<string, SurveyAnswerValue>;
   submitted_at: string;
 }

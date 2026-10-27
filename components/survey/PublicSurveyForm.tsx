@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import type { Survey, SurveyAnswerValue, SurveyQuestion } from "@/lib/supabase/types";
+import { normalizeKenyaPhoneInput } from "@/lib/phone/kenya";
 import { formatSurveyExpiry, isChoiceQuestion, validateSubmission } from "@/lib/surveys/model";
 import { cn } from "@/lib/admin/utils";
 
@@ -18,11 +19,22 @@ type PublicSurveyFormProps = {
 export default function PublicSurveyForm({ survey, questions, mode }: PublicSurveyFormProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [honey, setHoney] = useState("");
   const [answers, setAnswers] = useState<Record<string, SurveyAnswerValue>>({});
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [smsSent, setSmsSent] = useState<boolean | null>(null);
+  const storageKey = `inuka-survey-done:${survey.id}`;
+
+  useEffect(() => {
+    try {
+      if (window.localStorage.getItem(storageKey) === "1") setDone(true);
+    } catch {
+      // Private browsing can block storage. The server still rejects a repeat number.
+    }
+  }, [storageKey]);
 
   const setAnswer = (questionId: string, value: SurveyAnswerValue) => {
     setAnswers((current) => ({ ...current, [questionId]: value }));
@@ -47,6 +59,7 @@ export default function PublicSurveyForm({ survey, questions, mode }: PublicSurv
       questions,
       name,
       email,
+      phone,
       answers,
     });
     if (!validation.ok) {
@@ -62,16 +75,33 @@ export default function PublicSurveyForm({ survey, questions, mode }: PublicSurv
       body: JSON.stringify({
         name,
         email,
+        phone,
         answers,
         company_website: honey,
       }),
     });
     const data = await response.json().catch(() => ({}));
     setLoading(false);
+    if (response.status === 409) {
+      try {
+        window.localStorage.setItem(storageKey, "1");
+      } catch {
+        // Ignore storage failures.
+      }
+      setDone(true);
+      setSmsSent(null);
+      return;
+    }
     if (!response.ok) {
       setError(data.error || "Could not submit your response. Please try again.");
       return;
     }
+    try {
+      window.localStorage.setItem(storageKey, "1");
+    } catch {
+      // Ignore storage failures.
+    }
+    setSmsSent(Boolean(data.smsSent));
     setDone(true);
   };
 
@@ -83,18 +113,12 @@ export default function PublicSurveyForm({ survey, questions, mode }: PublicSurv
         </div>
         <h1 className="font-montserrat text-2xl font-bold text-slate-900">Response recorded</h1>
         <p className="mt-3 text-slate-600">{survey.thank_you_message}</p>
-        <button
-          type="button"
-          onClick={() => {
-            setDone(false);
-            setAnswers({});
-            setName("");
-            setEmail("");
-          }}
-          className="mt-6 text-sm font-semibold text-primary-700 hover:underline"
-        >
-          Submit another response
-        </button>
+        {smsSent === true ? (
+          <p className="mt-3 text-sm text-slate-500">A thank-you text has been sent to your number.</p>
+        ) : null}
+        {smsSent === false ? (
+          <p className="mt-3 text-sm text-slate-500">Your response was saved. The text message could not be sent.</p>
+        ) : null}
       </div>
     );
   }
@@ -129,7 +153,9 @@ export default function PublicSurveyForm({ survey, questions, mode }: PublicSurv
           <p className="mt-4 text-sm text-slate-500">Closes {formatSurveyExpiry(survey.expires_at)}.</p>
         ) : null}
         {mode === "open" && !survey.collect_identity ? (
-          <p className="mt-4 text-sm text-slate-500">This survey is anonymous. Your name and email are not collected.</p>
+          <p className="mt-4 text-sm text-slate-500">
+            Your name and email are not collected. Your mobile number is used only to send the thank-you text, and only once.
+          </p>
         ) : null}
       </div>
 
@@ -147,28 +173,47 @@ export default function PublicSurveyForm({ survey, questions, mode }: PublicSurv
             </label>
           </div>
 
-          {survey.collect_identity ? (
-            <div className="grid gap-4 md:grid-cols-2">
-              <label className="block">
-                <span className="mb-1.5 block text-sm font-semibold text-slate-800">
-                  Name <span className="text-red-500">*</span>
-                </span>
-                <input className={inputClass} value={name} onChange={(event) => setName(event.target.value)} placeholder="Your name" />
-              </label>
-              <label className="block">
-                <span className="mb-1.5 block text-sm font-semibold text-slate-800">
-                  Email <span className="text-red-500">*</span>
-                </span>
-                <input
-                  type="email"
-                  className={inputClass}
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  placeholder="you@email.com"
-                />
-              </label>
-            </div>
-          ) : null}
+          <div className="grid gap-4 md:grid-cols-2">
+            {survey.collect_identity ? (
+              <>
+                <label className="block">
+                  <span className="mb-1.5 block text-sm font-semibold text-slate-800">
+                    Name <span className="text-red-500">*</span>
+                  </span>
+                  <input className={inputClass} value={name} onChange={(event) => setName(event.target.value)} placeholder="Your name" />
+                </label>
+                <label className="block">
+                  <span className="mb-1.5 block text-sm font-semibold text-slate-800">
+                    Email <span className="text-red-500">*</span>
+                  </span>
+                  <input
+                    type="email"
+                    className={inputClass}
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    placeholder="you@email.com"
+                  />
+                </label>
+              </>
+            ) : null}
+            <label className="block md:col-span-2">
+              <span className="mb-1.5 block text-sm font-semibold text-slate-800">
+                Mobile number <span className="text-red-500">*</span>
+              </span>
+              <input
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                className={inputClass}
+                value={phone}
+                onChange={(event) => setPhone(normalizeKenyaPhoneInput(event.target.value))}
+                placeholder="0711 082084"
+              />
+              <span className="mt-1 block text-xs text-slate-500">
+                We text the thank-you message to this number. Each number can respond once.
+              </span>
+            </label>
+          </div>
 
           {questions.map((question, index) => {
             const selected = answers[question.id];

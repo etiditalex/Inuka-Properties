@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS survey_responses (
   survey_id UUID NOT NULL REFERENCES surveys(id) ON DELETE CASCADE,
   respondent_name TEXT,
   respondent_email TEXT,
+  respondent_phone TEXT,
   answers JSONB NOT NULL DEFAULT '{}'::jsonb,
   submitted_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -49,6 +50,12 @@ CREATE INDEX IF NOT EXISTS idx_surveys_slug ON surveys (slug);
 CREATE INDEX IF NOT EXISTS idx_surveys_status ON surveys (status);
 CREATE INDEX IF NOT EXISTS idx_survey_questions_survey ON survey_questions (survey_id, sort_order);
 CREATE INDEX IF NOT EXISTS idx_survey_responses_survey ON survey_responses (survey_id, submitted_at DESC);
+
+ALTER TABLE survey_responses ADD COLUMN IF NOT EXISTS respondent_phone TEXT;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_survey_responses_one_phone
+  ON survey_responses (survey_id, respondent_phone)
+  WHERE respondent_phone IS NOT NULL;
 
 ALTER TABLE surveys ENABLE ROW LEVEL SECURITY;
 ALTER TABLE survey_questions ENABLE ROW LEVEL SECURITY;

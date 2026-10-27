@@ -5,6 +5,7 @@ import type {
   SurveyQuestionType,
   SurveyResponse,
 } from "@/lib/supabase/types";
+import { formatPhoneKenyaE164, isValidKenyaMobile } from "@/lib/phone/kenya";
 
 export const QUESTION_TYPE_OPTIONS: { value: SurveyQuestionType; label: string }[] = [
   { value: "short_text", label: "Short answer" },
@@ -219,10 +220,16 @@ export function validateSubmission(input: {
   questions: SurveyQuestion[];
   name?: string;
   email?: string;
+  phone?: string;
   answers?: Record<string, unknown>;
 }):
-  | { ok: true; name: string | null; email: string | null; answers: Record<string, SurveyAnswerValue> }
+  | { ok: true; name: string | null; email: string | null; phone: string; answers: Record<string, SurveyAnswerValue> }
   | { ok: false; error: string } {
+  const phone = formatPhoneKenyaE164(input.phone || "");
+  if (!isValidKenyaMobile(phone)) {
+    return { ok: false, error: "Enter a valid Kenyan mobile number so we can text you the thank-you message." };
+  }
+
   if (input.survey.status !== "open" || isSurveyExpired(input.survey)) {
     return {
       ok: false,
@@ -255,7 +262,7 @@ export function validateSubmission(input: {
     answers[question.id] = parsed.value;
   }
 
-  return { ok: true, name, email, answers };
+  return { ok: true, name, email, phone, answers };
 }
 
 export function responsesIncludeIdentity(responses: SurveyResponse[]) {

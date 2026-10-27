@@ -206,6 +206,7 @@ export default function SurveyResults({ surveyId }: { surveyId: string }) {
               <thead className="bg-dark-50 text-xs uppercase tracking-wide text-dark-400">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Submitted</th>
+                  <th className="px-4 py-3 font-semibold">Mobile</th>
                   {includeIdentity ? <th className="px-4 py-3 font-semibold">Name</th> : null}
                   {includeIdentity ? <th className="px-4 py-3 font-semibold">Email</th> : null}
                   {questions.map((question) => (
@@ -225,6 +226,7 @@ export default function SurveyResults({ surveyId }: { surveyId: string }) {
                         minute: "2-digit",
                       })}
                     </td>
+                    <td className="whitespace-nowrap px-4 py-3">{response.respondent_phone || "—"}</td>
                     {includeIdentity ? <td className="px-4 py-3">{response.respondent_name || "—"}</td> : null}
                     {includeIdentity ? <td className="px-4 py-3">{response.respondent_email || "—"}</td> : null}
                     {questions.map((question) => (

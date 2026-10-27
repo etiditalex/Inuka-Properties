@@ -88,6 +88,7 @@ export function downloadSurveyWorkbook(input: {
     const row: Record<string, string> = {
       Submitted: new Date(response.submitted_at).toLocaleString("en-GB"),
     };
+    row.Mobile = response.respondent_phone || "";
     if (includeIdentity) {
       row.Name = response.respondent_name || "";
       row.Email = response.respondent_email || "";
@@ -108,7 +109,7 @@ export function downloadSurveyWorkbook(input: {
   const responseSheet = XLSX.utils.json_to_sheet(
     responseRows.length
       ? responseRows
-      : [{ Submitted: "", ...(includeIdentity ? { Name: "", Email: "" } : {}), Note: "No responses yet" }]
+      : [{ Submitted: "", Mobile: "", ...(includeIdentity ? { Name: "", Email: "" } : {}), Note: "No responses yet" }]
   );
   autoSizeColumns(responseSheet);
   XLSX.utils.book_append_sheet(workbook, responseSheet, "Responses");
