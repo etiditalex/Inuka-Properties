@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS surveys (
   slug TEXT NOT NULL UNIQUE,
   collect_identity BOOLEAN NOT NULL DEFAULT TRUE,
   status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'open', 'closed')),
+  expires_at TIMESTAMPTZ,
   thank_you_message TEXT NOT NULL DEFAULT 'Thank you. Your response has been recorded.',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -81,6 +82,8 @@ CREATE POLICY "Admin full access survey responses" ON survey_responses
   FOR ALL USING (auth.role() = 'authenticated')
   WITH CHECK (auth.role() = 'authenticated');
 
+ALTER TABLE surveys ADD COLUMN IF NOT EXISTS expires_at TIMESTAMPTZ;
+
 DROP POLICY IF EXISTS "Public submit open survey responses" ON survey_responses;
 CREATE POLICY "Public submit open survey responses" ON survey_responses
   FOR INSERT
@@ -89,6 +92,7 @@ CREATE POLICY "Public submit open survey responses" ON survey_responses
       SELECT 1 FROM surveys s
       WHERE s.id = survey_id
         AND s.status = 'open'
+        AND (s.expires_at IS NULL OR s.expires_at > NOW())
         AND (
           s.collect_identity = TRUE
           OR (respondent_name IS NULL AND respondent_email IS NULL)

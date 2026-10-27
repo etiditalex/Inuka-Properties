@@ -4,7 +4,9 @@ import { SITE_ORIGIN } from "@/lib/site";
 import {
   averageRating,
   buildChart,
+  formatSurveyExpiry,
   isChoiceQuestion,
+  isSurveyExpired,
   percent,
   textResponses,
 } from "@/lib/surveys/model";
@@ -25,6 +27,9 @@ export function buildSurveyReportHtml(input: {
   const { survey, questions, responses } = input;
   const resultsUrl = `${SITE_ORIGIN}${adminPath(`surveys/${survey.id}/results`)}`;
   const identity = survey.collect_identity ? "Names and emails collected" : "Anonymous";
+  const expiry = survey.expires_at
+    ? `${isSurveyExpired(survey) ? "Expired" : "Expires"} ${formatSurveyExpiry(survey.expires_at)}`
+    : "No expiry date";
 
   const sections = questions
     .map((question, index) => {
@@ -83,7 +88,7 @@ export function buildSurveyReportHtml(input: {
         <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:16px;padding:28px;">
           <p style="margin:0 0 8px;color:#0284c7;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">Inuka Survey</p>
           <h1 style="margin:0;font-size:24px;color:#0f172a;">${escapeHtml(survey.title)}</h1>
-          <p style="margin:8px 0 0;color:#64748b;font-size:14px;">${responses.length} response${responses.length === 1 ? "" : "s"} · ${identity}</p>
+          <p style="margin:8px 0 0;color:#64748b;font-size:14px;">${responses.length} response${responses.length === 1 ? "" : "s"} · ${identity} · ${escapeHtml(expiry)}</p>
           ${survey.description ? `<p style="margin:16px 0 0;color:#334155;font-size:14px;line-height:1.5;">${escapeHtml(survey.description)}</p>` : ""}
           ${sections || `<p style="margin-top:24px;color:#64748b;">This survey has no questions yet.</p>`}
           <p style="margin:28px 0 0;">

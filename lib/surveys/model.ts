@@ -190,8 +190,32 @@ function parseAnswer(question: SurveyQuestion, raw: unknown): ParsedAnswer {
   return { ok: true, value: text };
 }
 
+export function isSurveyExpired(survey: { expires_at?: string | null }, now = Date.now()) {
+  if (!survey.expires_at) return false;
+  const time = new Date(survey.expires_at).getTime();
+  return Number.isFinite(time) && time <= now;
+}
+
+export function formatSurveyExpiry(iso: string) {
+  return new Date(iso).toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+export function toDatetimeLocalValue(iso: string | null) {
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 export function validateSubmission(input: {
-  survey: Pick<Survey, "status" | "collect_identity">;
+  survey: Pick<Survey, "status" | "collect_identity" | "expires_at">;
   questions: SurveyQuestion[];
   name?: string;
   email?: string;
@@ -199,8 +223,13 @@ export function validateSubmission(input: {
 }):
   | { ok: true; name: string | null; email: string | null; answers: Record<string, SurveyAnswerValue> }
   | { ok: false; error: string } {
-  if (input.survey.status !== "open") {
-    return { ok: false, error: "This survey is not accepting responses." };
+  if (input.survey.status !== "open" || isSurveyExpired(input.survey)) {
+    return {
+      ok: false,
+      error: isSurveyExpired(input.survey)
+        ? "This survey has expired and is no longer accepting responses."
+        : "This survey is not accepting responses.",
+    };
   }
 
   let name: string | null = null;

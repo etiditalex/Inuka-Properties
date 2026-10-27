@@ -4,7 +4,7 @@ import PublicSurveyForm from "@/components/survey/PublicSurveyForm";
 import { isSupabaseServerConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import type { Survey, SurveyQuestion } from "@/lib/supabase/types";
-import { normalizeQuestion } from "@/lib/surveys/model";
+import { isSurveyExpired, normalizeQuestion } from "@/lib/surveys/model";
 
 export const dynamic = "force-dynamic";
 
@@ -68,7 +68,14 @@ export default async function PublicSurveyPage({
   const preview = searchParams.preview === "1" && Boolean(user);
   if (loaded.survey.status === "draft" && !preview) notFound();
 
-  const mode = loaded.survey.status === "open" ? "open" : loaded.survey.status === "closed" ? "closed" : "preview";
+  const mode =
+    loaded.survey.status === "draft"
+      ? "preview"
+      : loaded.survey.status === "closed"
+        ? "closed"
+        : isSurveyExpired(loaded.survey)
+          ? "expired"
+          : "open";
 
   return (
     <div className="bg-gradient-to-b from-slate-50 via-white to-primary-50/40 px-4 py-10 md:py-14">

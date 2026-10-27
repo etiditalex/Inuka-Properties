@@ -388,6 +388,7 @@ export interface Survey {
   slug: string;
   collect_identity: boolean;
   status: SurveyStatus;
+  expires_at: string | null;
   thank_you_message: string;
   created_at: string;
   updated_at: string;

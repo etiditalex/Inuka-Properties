@@ -10,6 +10,7 @@ import { adminPath } from "@/lib/admin/path";
 import { cn, formatAdminDate } from "@/lib/admin/utils";
 import { createClient } from "@/lib/supabase/client";
 import type { Survey, SurveyStatus } from "@/lib/supabase/types";
+import { formatSurveyExpiry, isSurveyExpired } from "@/lib/surveys/model";
 
 type SurveyRow = Survey & { response_count: number };
 
@@ -118,8 +119,8 @@ export default function AdminSurveysPage() {
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="font-montserrat text-lg font-bold text-dark-900">{survey.title}</h2>
-                    <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize", statusStyles[survey.status])}>
-                      {survey.status}
+                    <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize", isSurveyExpired(survey) ? "bg-red-50 text-red-700" : statusStyles[survey.status])}>
+                      {isSurveyExpired(survey) ? "Expired" : survey.status}
                     </span>
                     <span className="rounded-full bg-primary-50 px-2.5 py-0.5 text-xs font-semibold text-primary-800">
                       {survey.collect_identity ? "Names and emails" : "Anonymous"}
@@ -127,7 +128,7 @@ export default function AdminSurveysPage() {
                   </div>
                   {survey.description ? <p className="mt-2 line-clamp-2 text-sm text-dark-500">{survey.description}</p> : null}
                   <p className="mt-2 text-xs text-dark-400">
-                    {survey.response_count} response{survey.response_count === 1 ? "" : "s"} · Updated {formatAdminDate(survey.updated_at)}
+                    {survey.response_count} response{survey.response_count === 1 ? "" : "s"} · {survey.expires_at ? `${isSurveyExpired(survey) ? "Expired" : "Expires"} ${formatSurveyExpiry(survey.expires_at)}` : "No expiry date"} · Updated {formatAdminDate(survey.updated_at)}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">

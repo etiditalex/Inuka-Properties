@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import type { Survey, SurveyAnswerValue, SurveyQuestion } from "@/lib/supabase/types";
-import { isChoiceQuestion, validateSubmission } from "@/lib/surveys/model";
+import { formatSurveyExpiry, isChoiceQuestion, validateSubmission } from "@/lib/surveys/model";
 import { cn } from "@/lib/admin/utils";
 
 const inputClass =
@@ -12,7 +12,7 @@ const inputClass =
 type PublicSurveyFormProps = {
   survey: Survey;
   questions: SurveyQuestion[];
-  mode: "open" | "closed" | "preview";
+  mode: "open" | "closed" | "preview" | "expired";
 };
 
 export default function PublicSurveyForm({ survey, questions, mode }: PublicSurveyFormProps) {
@@ -120,12 +120,20 @@ export default function PublicSurveyForm({ survey, questions, mode }: PublicSurv
             This survey is closed and is no longer accepting responses.
           </p>
         ) : null}
+        {mode === "expired" ? (
+          <p className="mt-4 rounded-xl bg-slate-100 px-3 py-2 text-sm text-slate-700">
+            This survey expired{survey.expires_at ? ` on ${formatSurveyExpiry(survey.expires_at)}` : ""} and is no longer accepting responses.
+          </p>
+        ) : null}
+        {mode === "open" && survey.expires_at ? (
+          <p className="mt-4 text-sm text-slate-500">Closes {formatSurveyExpiry(survey.expires_at)}.</p>
+        ) : null}
         {mode === "open" && !survey.collect_identity ? (
           <p className="mt-4 text-sm text-slate-500">This survey is anonymous. Your name and email are not collected.</p>
         ) : null}
       </div>
 
-      {mode !== "closed" ? (
+      {mode === "open" || mode === "preview" ? (
         <div className="space-y-8 p-6 md:p-8">
           <div className="absolute -left-[9999px]" aria-hidden="true">
             <label>

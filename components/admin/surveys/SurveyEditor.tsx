@@ -11,7 +11,7 @@ import { adminPath } from "@/lib/admin/path";
 import { slugify } from "@/lib/admin/utils";
 import { createClient } from "@/lib/supabase/client";
 import type { Survey, SurveyQuestionType, SurveyStatus } from "@/lib/supabase/types";
-import { QUESTION_TYPE_OPTIONS, SURVEY_STATUS_OPTIONS, normalizeOptions, normalizeQuestion } from "@/lib/surveys/model";
+import { QUESTION_TYPE_OPTIONS, SURVEY_STATUS_OPTIONS, normalizeOptions, normalizeQuestion, toDatetimeLocalValue } from "@/lib/surveys/model";
 
 type DraftQuestion = {
   id: string;
@@ -61,6 +61,7 @@ export default function SurveyEditor({ surveyId }: { surveyId?: string }) {
   const [slugTouched, setSlugTouched] = useState(false);
   const [collectIdentity, setCollectIdentity] = useState(true);
   const [status, setStatus] = useState<SurveyStatus>("draft");
+  const [expiresAt, setExpiresAt] = useState("");
   const [thankYou, setThankYou] = useState("Thank you. Your response has been recorded.");
   const [questions, setQuestions] = useState<DraftQuestion[]>([blankQuestion()]);
   const [savedSlug, setSavedSlug] = useState("");
@@ -99,6 +100,7 @@ export default function SurveyEditor({ surveyId }: { surveyId?: string }) {
         setSlugTouched(true);
         setCollectIdentity(survey.collect_identity);
         setStatus(survey.status);
+        setExpiresAt(toDatetimeLocalValue(survey.expires_at));
         setThankYou(survey.thank_you_message);
         const loaded = ((questionRows || []) as Parameters<typeof normalizeQuestion>[0][]).map(normalizeQuestion);
         setQuestions(
@@ -139,8 +141,16 @@ export default function SurveyEditor({ surveyId }: { surveyId?: string }) {
 
   const handleSave = async () => {
     const validation = validateDraft(title, questions);
-    if (validation) {
-      setError(validation);
+    const expiryTime = expiresAt ? new Date(expiresAt).getTime() : NaN;
+    const expiryError = !expiresAt
+      ? "Set an expiry date and time for this survey."
+      : Number.isNaN(expiryTime)
+        ? "Enter a valid expiry date."
+        : status === "open" && expiryTime <= Date.now()
+          ? "The expiry date must be in the future before the survey can open."
+          : "";
+    if (validation || expiryError) {
+      setError(validation || expiryError);
       setMessage("");
       return;
     }
@@ -155,6 +165,7 @@ export default function SurveyEditor({ surveyId }: { surveyId?: string }) {
       slug: nextSlug,
       collect_identity: collectIdentity,
       status,
+      expires_at: new Date(expiresAt).toISOString(),
       thank_you_message: thankYou.trim() || "Thank you. Your response has been recorded.",
     };
 
@@ -300,6 +311,13 @@ export default function SurveyEditor({ surveyId }: { surveyId?: string }) {
             onChange={(event) => setStatus(event.target.value as SurveyStatus)}
           />
         </div>
+        <AdminInput
+          label="Expiry date"
+          type="datetime-local"
+          value={expiresAt}
+          onChange={(event) => setExpiresAt(event.target.value)}
+          hint="Responses stop at this date and time. Required before the survey can be saved."
+        />
         <AdminTextarea
           label="Thank-you message"
           value={thankYou}

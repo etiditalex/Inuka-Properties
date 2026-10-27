@@ -16,6 +16,8 @@ import {
   buildChart,
   formatAnswer,
   isChoiceQuestion,
+  formatSurveyExpiry,
+  isSurveyExpired,
   normalizeQuestion,
   normalizeResponse,
   responsesIncludeIdentity,
@@ -100,7 +102,8 @@ export default function SurveyResults({ surveyId }: { surveyId: string }) {
           <div>
             <h2 className="font-montserrat text-xl font-bold text-dark-900">{survey.title}</h2>
             <p className="mt-1 text-sm text-dark-500">
-              {responses.length} response{responses.length === 1 ? "" : "s"} · {survey.collect_identity ? "Names and emails" : "Anonymous"} · {survey.status}
+              {responses.length} response{responses.length === 1 ? "" : "s"} · {survey.collect_identity ? "Names and emails" : "Anonymous"} · {isSurveyExpired(survey) ? "Expired" : survey.status}
+              {survey.expires_at ? ` · ${isSurveyExpired(survey) ? "Expired" : "Expires"} ${formatSurveyExpiry(survey.expires_at)}` : ""}
             </p>
           </div>
           <SurveyShareBar slug={survey.slug} title={survey.title} status={survey.status} />
