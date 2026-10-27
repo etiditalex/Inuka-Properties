@@ -118,10 +118,11 @@ export default function SurveyResults({ surveyId }: { surveyId: string }) {
           <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-end">
             <div className="min-w-0 flex-1">
               <AdminInput
-                label="Email this report"
+                label="Email the Excel report"
                 type="email"
                 value={email}
                 placeholder="name@company.com"
+                hint="They receive the Excel file with no sign-in. Each new response emails them an updated file."
                 onChange={(event) => setEmail(event.target.value)}
               />
             </div>

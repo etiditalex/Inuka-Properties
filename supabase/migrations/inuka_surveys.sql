@@ -111,10 +111,29 @@ DROP TRIGGER IF EXISTS trg_surveys_updated ON surveys;
 CREATE TRIGGER trg_surveys_updated BEFORE UPDATE ON surveys
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
+CREATE TABLE IF NOT EXISTS survey_report_recipients (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  survey_id UUID NOT NULL REFERENCES surveys(id) ON DELETE CASCADE,
+  email TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (survey_id, email)
+);
+
+CREATE INDEX IF NOT EXISTS idx_survey_report_recipients_survey ON survey_report_recipients (survey_id);
+
+ALTER TABLE survey_report_recipients ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Admin full access survey report recipients" ON survey_report_recipients;
+CREATE POLICY "Admin full access survey report recipients" ON survey_report_recipients
+  FOR ALL USING (auth.role() = 'authenticated')
+  WITH CHECK (auth.role() = 'authenticated');
+
 GRANT SELECT ON surveys TO anon;
 GRANT SELECT, INSERT, UPDATE, DELETE ON surveys TO authenticated;
 GRANT SELECT ON survey_questions TO anon;
 GRANT SELECT, INSERT, UPDATE, DELETE ON survey_questions TO authenticated;
 GRANT INSERT ON survey_responses TO anon;
 GRANT SELECT, INSERT, UPDATE, DELETE ON survey_responses TO authenticated;
-GRANT ALL ON surveys, survey_questions, survey_responses TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON survey_report_recipients TO authenticated;
+GRANT ALL ON surveys, survey_questions, survey_responses, survey_report_recipients TO service_role;

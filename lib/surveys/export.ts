@@ -40,7 +40,7 @@ function questionHeaders(questions: SurveyQuestion[]) {
   });
 }
 
-export function downloadSurveyWorkbook(input: {
+function createSurveyWorkbook(input: {
   survey: Survey;
   questions: SurveyQuestion[];
   responses: SurveyResponse[];
@@ -113,5 +113,29 @@ export function downloadSurveyWorkbook(input: {
   );
   autoSizeColumns(responseSheet);
   XLSX.utils.book_append_sheet(workbook, responseSheet, "Responses");
-  XLSX.writeFile(workbook, `Inuka-Survey-${safeFileName(survey.title)}-${todayStamp()}.xlsx`);
+  return {
+    workbook,
+    filename: `Inuka-Survey-${safeFileName(survey.title)}-${todayStamp()}.xlsx`,
+  };
+}
+
+export function downloadSurveyWorkbook(input: {
+  survey: Survey;
+  questions: SurveyQuestion[];
+  responses: SurveyResponse[];
+  includeIdentity: boolean;
+}) {
+  const { workbook, filename } = createSurveyWorkbook(input);
+  XLSX.writeFile(workbook, filename);
+}
+
+export function surveyWorkbookAttachment(input: {
+  survey: Survey;
+  questions: SurveyQuestion[];
+  responses: SurveyResponse[];
+  includeIdentity: boolean;
+}) {
+  const { workbook, filename } = createSurveyWorkbook(input);
+  const content = XLSX.write(workbook, { bookType: "xlsx", type: "base64" }) as string;
+  return { filename, content };
 }
