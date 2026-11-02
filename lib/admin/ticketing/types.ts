@@ -15,6 +15,7 @@ export type TicketView =
   | "my_tickets"
   | "group_tickets"
   | "flagged"
+  | "spam"
   | "recent"
   | "search"
   | "approvals";
@@ -34,6 +35,7 @@ export type Ticket = {
   number: number;
   isUnread: boolean;
   isFlagged: boolean;
+  isSpam: boolean;
   updatedAt: string;
   requestType: string;
   requestCategory: string;
@@ -57,5 +59,6 @@ export type TicketCounts = {
   myTickets: number;
   groupTickets: number;
   flagged: number;
+  spam: number;
   messages: number;
 };

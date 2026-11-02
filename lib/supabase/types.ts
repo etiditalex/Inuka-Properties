@@ -271,6 +271,7 @@ export interface TicketRow {
   assignee_id: string | null;
   is_flagged: boolean;
   is_unread: boolean;
+  is_spam?: boolean;
   latest_note: string | null;
   source: TicketSource;
   source_reference: string | null;

@@ -119,6 +119,9 @@ export default function TicketTable({
                 </td>
                 <td className="px-2 py-2">
                   <p className="line-clamp-2 text-slate-700">{ticket.requestDetail}</p>
+                  {ticket.isSpam ? (
+                    <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-red-600">Spam</p>
+                  ) : null}
                 </td>
                 <td className="px-2 py-2">
                   {ticket.latestNote ? (

@@ -7,6 +7,7 @@ export function mapTicketRow(row: TicketRow): Ticket {
     number: row.number,
     isUnread: row.is_unread,
     isFlagged: row.is_flagged,
+    isSpam: Boolean(row.is_spam),
     updatedAt: row.updated_at,
     requestType: row.request_type,
     requestCategory: row.request_category,

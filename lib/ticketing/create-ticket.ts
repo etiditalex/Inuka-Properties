@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { TicketPriority, TicketRow, TicketSource } from "@/lib/supabase/types";
+import { senderIsSpam } from "@/lib/ticketing/spam";
 
 export type CreateTicketInput = {
   requesterName: string;
@@ -17,6 +18,7 @@ export type CreateTicketInput = {
   initialNote?: string | null;
   authorId?: string | null;
   authorName?: string | null;
+  isSpam?: boolean;
 };
 
 function parseNameFromEmail(from: string): { name: string; email: string } {
@@ -58,8 +60,10 @@ export async function createTicket(
       source: input.source || "manual",
       source_reference: input.sourceReference || null,
       inbound_email_id: input.inboundEmailId || null,
-      alert_level: "not_completed",
-      is_unread: true,
+      alert_level: input.isSpam ? "on_track" : "not_completed",
+      is_unread: !input.isSpam,
+      status: input.isSpam ? "closed" : "new",
+      ...(input.isSpam ? { is_spam: true } : {}),
     })
     .select("*, assignee:profiles!assignee_id(full_name)")
     .single();
@@ -100,7 +104,7 @@ export type InboundEmailPayload = {
 export async function createTicketFromInboundEmail(
   supabase: SupabaseClient,
   payload: InboundEmailPayload
-): Promise<{ ticket: TicketRow | null; duplicate: boolean; error: string | null }> {
+): Promise<{ ticket: TicketRow | null; duplicate: boolean; spam: boolean; error: string | null }> {
   const { data: existing } = await supabase
     .from("ticket_inbound_emails")
     .select("id, ticket_id")
@@ -108,10 +112,11 @@ export async function createTicketFromInboundEmail(
     .maybeSingle();
 
   if (existing) {
-    return { ticket: null, duplicate: true, error: null };
+    return { ticket: null, duplicate: true, spam: false, error: null };
   }
 
   const { name, email } = parseNameFromEmail(payload.from);
+  const spam = await senderIsSpam(supabase, email);
   const { requestType, requestCategory } = guessCategoryFromSubject(payload.subject || "");
   const description = (payload.text || stripHtml(payload.html || "") || payload.subject || "No content").trim();
 
@@ -131,7 +136,7 @@ export async function createTicketFromInboundEmail(
     .single();
 
   if (logError) {
-    return { ticket: null, duplicate: false, error: logError.message };
+    return { ticket: null, duplicate: false, spam: false, error: logError.message };
   }
 
   const { ticket, error } = await createTicket(supabase, {
@@ -144,8 +149,11 @@ export async function createTicketFromInboundEmail(
     source: "email",
     sourceReference: payload.messageId,
     inboundEmailId: inboundLog?.id || null,
-    initialNote: `Ticket created from inbound email to ${payload.to}`,
+    initialNote: spam
+      ? `Filed as spam from ${email}. No alert was sent.`
+      : `Ticket created from inbound email to ${payload.to}`,
     authorName: "Email System",
+    isSpam: spam,
   });
 
   if (ticket && inboundLog) {
@@ -155,7 +163,7 @@ export async function createTicketFromInboundEmail(
       .eq("id", inboundLog.id);
   }
 
-  return { ticket, duplicate: false, error };
+  return { ticket, duplicate: false, spam, error };
 }
 
 function stripHtml(html: string): string {

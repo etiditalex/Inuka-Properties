@@ -42,10 +42,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid inbound email payload" }, { status: 400 });
     }
 
-    const { ticket, duplicate, error } = await createTicketFromInboundEmail(supabase, payload);
+    const { ticket, duplicate, spam, error } = await createTicketFromInboundEmail(supabase, payload);
 
     if (duplicate) {
       return NextResponse.json({ success: true, duplicate: true });
+    }
+
+    if (spam && !error) {
+      return NextResponse.json({
+        success: true,
+        spam: true,
+        ticket_id: ticket?.id || null,
+        ticket_number: ticket?.number || null,
+      });
     }
 
     if (error || !ticket) {

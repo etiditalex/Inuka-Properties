@@ -22,6 +22,7 @@ type TicketDetailPanelProps = {
   onClose: () => void;
   onAssign: (id: string) => void;
   onResolve: (id: string) => void;
+  onToggleSpam: (id: string) => void;
   onAddNote: (id: string, note: string) => Promise<void>;
 };
 
@@ -30,6 +31,7 @@ export default function TicketDetailPanel({
   onClose,
   onAssign,
   onResolve,
+  onToggleSpam,
   onAddNote,
 }: TicketDetailPanelProps) {
   const [showNoteForm, setShowNoteForm] = useState(false);
@@ -85,6 +87,9 @@ export default function TicketDetailPanel({
 
             <div className="flex-1 overflow-y-auto p-5">
               <div className="mb-5 flex flex-wrap gap-2">
+                {ticket.isSpam ? (
+                  <span className="rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Spam</span>
+                ) : null}
                 <span className={statusBadgeClass(ticket.status)}>{statusLabel[ticket.status]}</span>
                 <span className={priorityBadgeClass(ticket.priority)}>{priorityLabel[ticket.priority]}</span>
                 <span className={alertBadgeClass(ticket.alertLevel)}>{alertLabel[ticket.alertLevel]}</span>
@@ -164,7 +169,15 @@ export default function TicketDetailPanel({
               )}
             </div>
 
-            <div className="flex gap-2 border-t border-slate-200 p-4">
+            <div className="flex flex-wrap gap-2 border-t border-slate-200 p-4">
+              <AdminButton
+                size="sm"
+                variant={ticket.isSpam ? "outline" : "danger"}
+                className="flex-1"
+                onClick={() => onToggleSpam(ticket.id)}
+              >
+                {ticket.isSpam ? "Not spam" : "Mark as spam"}
+              </AdminButton>
               <AdminButton size="sm" className="flex-1" onClick={() => onAssign(ticket.id)}>
                 Assign
               </AdminButton>

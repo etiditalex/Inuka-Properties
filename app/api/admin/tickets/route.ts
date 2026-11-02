@@ -29,8 +29,14 @@ export async function GET(request: Request) {
     dbQuery = dbQuery.eq("assignee_id", user.id);
   } else if (view === "flagged") {
     dbQuery = dbQuery.eq("is_flagged", true);
+  } else if (view === "spam") {
+    dbQuery = dbQuery.eq("is_spam", true);
   } else if (view === "approvals") {
     dbQuery = dbQuery.in("status", ["pending", "approved"]);
+  }
+
+  if (view !== "spam") {
+    dbQuery = dbQuery.eq("is_spam", false);
   }
 
   if (status && status !== "all") {
@@ -45,7 +51,23 @@ export async function GET(request: Request) {
     );
   }
 
-  const { data, error } = await dbQuery;
+  let { data, error } = await dbQuery;
+  if (error && view !== "spam" && /is_spam/.test(error.message)) {
+    let fallback = supabase.from("tickets").select(TICKET_SELECT).order("updated_at", { ascending: false });
+    if (view === "my_tickets") fallback = fallback.eq("assignee_id", user.id);
+    else if (view === "flagged") fallback = fallback.eq("is_flagged", true);
+    else if (view === "approvals") fallback = fallback.in("status", ["pending", "approved"]);
+    if (status && status !== "all") fallback = fallback.eq("status", status);
+    if (priority && priority !== "all") fallback = fallback.eq("priority", priority);
+    if (query) {
+      fallback = fallback.or(
+        `subject.ilike.%${query}%,description.ilike.%${query}%,requester_name.ilike.%${query}%,request_type.ilike.%${query}%`
+      );
+    }
+    const retry = await fallback;
+    data = retry.data;
+    error = retry.error;
+  }
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   const service = createServiceClient();
@@ -55,12 +77,26 @@ export async function GET(request: Request) {
 }
 
 async function getCounts(supabase: SupabaseClient, userId: string) {
-  const [
-    { count: groupTickets },
-    { count: myTickets },
-    { count: flagged },
-    { count: unread },
-  ] = await Promise.all([
+  const spamCounts = await Promise.all([
+    supabase.from("tickets").select("*", { count: "exact", head: true }).eq("is_spam", false),
+    supabase.from("tickets").select("*", { count: "exact", head: true }).eq("assignee_id", userId).eq("is_spam", false),
+    supabase.from("tickets").select("*", { count: "exact", head: true }).eq("is_flagged", true).eq("is_spam", false),
+    supabase.from("tickets").select("*", { count: "exact", head: true }).eq("is_unread", true).eq("is_spam", false),
+    supabase.from("tickets").select("*", { count: "exact", head: true }).eq("is_spam", true),
+  ]);
+
+  if (!spamCounts.some((result) => result.error && /is_spam/.test(result.error.message))) {
+    const [groupTickets, myTickets, flagged, unread, spam] = spamCounts;
+    return {
+      groupTickets: groupTickets.count || 0,
+      myTickets: myTickets.count || 0,
+      flagged: flagged.count || 0,
+      messages: unread.count || 0,
+      spam: spam.count || 0,
+    };
+  }
+
+  const [groupTickets, myTickets, flagged, unread] = await Promise.all([
     supabase.from("tickets").select("*", { count: "exact", head: true }),
     supabase.from("tickets").select("*", { count: "exact", head: true }).eq("assignee_id", userId),
     supabase.from("tickets").select("*", { count: "exact", head: true }).eq("is_flagged", true),
@@ -68,10 +104,11 @@ async function getCounts(supabase: SupabaseClient, userId: string) {
   ]);
 
   return {
-    groupTickets: groupTickets || 0,
-    myTickets: myTickets || 0,
-    flagged: flagged || 0,
-    messages: unread || 0,
+    groupTickets: groupTickets.count || 0,
+    myTickets: myTickets.count || 0,
+    flagged: flagged.count || 0,
+    messages: unread.count || 0,
+    spam: 0,
   };
 }
 

@@ -27,6 +27,7 @@ const DEFAULT_COUNTS: TicketCounts = {
   myTickets: 0,
   groupTickets: 0,
   flagged: 0,
+  spam: 0,
   messages: 0,
 };
 
@@ -148,11 +149,11 @@ export default function TicketingDashboard() {
 
   const loadTicketsDirect = async () => {
     const supabase = createClient();
-    const { data } = await supabase
-      .from("tickets")
-      .select(TICKET_SELECT)
-      .order("updated_at", { ascending: false });
-    if (data) setTickets(mapTicketRows(data as TicketRow[]));
+    let direct = supabase.from("tickets").select(TICKET_SELECT).order("updated_at", { ascending: false });
+    direct = activeView === "spam" ? direct.eq("is_spam", true) : direct.eq("is_spam", false);
+    const { data, error } = await direct;
+    const rows = error ? (await supabase.from("tickets").select(TICKET_SELECT).order("updated_at", { ascending: false })).data : data;
+    if (rows) setTickets(mapTicketRows(rows as TicketRow[]));
   };
 
   useEffect(() => {
@@ -188,6 +189,11 @@ export default function TicketingDashboard() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updates),
     });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      window.alert(data.error || "Could not update the ticket.");
+      return;
+    }
     if (res.ok) {
       const data = await res.json();
       const mapped = mapTicketRow(data.ticket as TicketRow);
@@ -225,6 +231,17 @@ export default function TicketingDashboard() {
   const toggleFlag = (id: string) => {
     const ticket = tickets.find((t) => t.id === id);
     if (ticket) patchTicket(id, { is_flagged: !ticket.isFlagged });
+  };
+
+  const toggleSpam = (id: string) => {
+    const ticket = tickets.find((t) => t.id === id) || (activeTicket?.id === id ? activeTicket : null);
+    if (!ticket) return;
+    const marking = !ticket.isSpam;
+    const confirmed = marking
+      ? window.confirm(`Mark ${ticket.requesterEmail || "this sender"} as spam? Later email from this address will be filed under Spam and will not alert the team.`)
+      : window.confirm(`Remove ${ticket.requesterEmail || "this sender"} from spam? Later email from this address will come back into the ticket list.`);
+    if (!confirmed) return;
+    patchTicket(id, { is_spam: marking });
   };
 
   const handleSelectTicket = (ticket: TicketType) => {
@@ -311,6 +328,7 @@ export default function TicketingDashboard() {
         onClose={() => setActiveTicket(null)}
         onAssign={(id) => patchTicket(id, { status: "assigned" })}
         onResolve={(id) => patchTicket(id, { status: "resolved", alert_level: "on_track" })}
+        onToggleSpam={toggleSpam}
         onAddNote={async (id, note) => {
           await fetch(`/api/admin/tickets/${id}/notes`, {
             method: "POST",
