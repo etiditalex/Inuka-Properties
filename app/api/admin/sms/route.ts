@@ -9,7 +9,9 @@ import {
 import { resolveSmsAutomationSettings } from "@/lib/sms/settings";
 import { deliverableSmsText, renderSmsTemplate, smsStats } from "@/lib/sms/templates";
 import { sendBulkSms, sendSms, getOkaySmsMessage, listOkaySmsMessages, isSmsProviderConfigured } from "@/lib/sms/provider";
+import { isAdminAllowlistConfigured, isAdminEmailAllowed } from "@/lib/admin/allowlist";
 import { formatPhoneKenyaE164 } from "@/lib/phone/kenya";
+import { limitIp } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +31,15 @@ function uniqueByKenyaPhone<T extends { phone: string | null; name: string }>(ro
 export async function GET() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!isAdminAllowlistConfigured()) {
+    return NextResponse.json(
+      { error: "Admin allowlist is not configured. Set ADMIN_ALLOWED_EMAILS." },
+      { status: 503 }
+    );
+  }
+  if (!user || !isAdminEmailAllowed(user.email)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const service = createServiceClient();
   if (!service) {
@@ -94,12 +104,22 @@ export async function GET() {
 export async function POST(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!isAdminAllowlistConfigured()) {
+    return NextResponse.json(
+      { error: "Admin allowlist is not configured. Set ADMIN_ALLOWED_EMAILS." },
+      { status: 503 }
+    );
+  }
+  if (!user || !isAdminEmailAllowed(user.email)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const service = createServiceClient();
   const body = await request.json();
 
   if (body.action === "send_bulk") {
+    const bulkLimit = limitIp(request, "admin-sms-bulk", 3, 60 * 60 * 1000);
+    if (bulkLimit) return bulkLimit;
     if (!service) {
       return NextResponse.json(
         { error: "Database is not configured. Add SUPABASE_SERVICE_ROLE_KEY before sending bulk SMS." },
@@ -224,6 +244,8 @@ export async function POST(request: Request) {
   }
 
   if (body.action === "send_test") {
+    const testLimit = limitIp(request, "admin-sms-test", 8, 60 * 60 * 1000);
+    if (testLimit) return testLimit;
     const { phone, message } = body;
     if (!phone || !message) {
       return NextResponse.json({ error: "Phone and message required" }, { status: 400 });

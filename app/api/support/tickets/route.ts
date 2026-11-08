@@ -5,11 +5,15 @@ import { resolveDepartment } from "@/lib/ticketing/public-form";
 import { sendTicketConfirmationEmail } from "@/lib/email/ticket-confirmation";
 import { sendAdminNotification } from "@/lib/notifications";
 import { getEmailAutomationSettings, sendAdminWhatsAppAlert } from "@/lib/email/automation";
+import { limitIp, limitRecipient } from "@/lib/rate-limit";
 import type { TicketPriority } from "@/lib/supabase/types";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
+  const ipLimit = limitIp(request, "support-tickets");
+  if (ipLimit) return ipLimit;
+
   try {
     const body = await request.json();
     const {
@@ -39,6 +43,13 @@ export async function POST(request: Request) {
     if (!supabase) {
       return NextResponse.json({ error: "Service temporarily unavailable." }, { status: 503 });
     }
+
+    const recipientLimit = await limitRecipient("support-tickets", email, {
+      supabase,
+      table: "tickets",
+      column: "requester_email",
+    });
+    if (recipientLimit) return recipientLimit;
 
     const dept = resolveDepartment(department);
     const description = [

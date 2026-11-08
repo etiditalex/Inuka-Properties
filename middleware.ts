@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { isAdminAllowlistConfigured, isAdminEmailAllowed } from "@/lib/admin/allowlist";
 import { updateSession } from "@/lib/supabase/middleware";
 import { isSupabaseServerConfigured } from "@/lib/supabase/env";
 import {
@@ -44,6 +45,29 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
+  const isLoginApi =
+    pathname === "/api/admin/login" || pathname === "/api/admin/login/verify";
+  const isProtectedApi =
+    (pathname.startsWith("/api/admin/") && !isLoginApi) ||
+    pathname === "/api/notifications/publish";
+
+  if (isProtectedApi) {
+    if (!isSupabaseServerConfigured()) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const { response, user } = await updateSession(request);
+    if (!isAdminAllowlistConfigured()) {
+      return NextResponse.json(
+        { error: "Admin allowlist is not configured. Set ADMIN_ALLOWED_EMAILS." },
+        { status: 503 }
+      );
+    }
+    if (!user || !isAdminEmailAllowed(user.email)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    return response;
+  }
+
   // Hide the default /admin URL when a custom path is configured
   if (usesSecretAdminPath() && isLegacyAdminPath(pathname)) {
     return withNoIndex(NextResponse.rewrite(new URL("/not-found", request.url)));
@@ -53,7 +77,7 @@ export async function middleware(request: NextRequest) {
     let response: NextResponse;
 
     if (isSupabaseServerConfigured()) {
-      response = await updateSession(request);
+      response = (await updateSession(request)).response;
     } else {
       response = NextResponse.next({ request });
     }

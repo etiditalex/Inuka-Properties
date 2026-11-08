@@ -1,6 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
 import { NextResponse } from "next/server";
+import { isAdminAllowlistConfigured, isAdminEmailAllowed } from "@/lib/admin/allowlist";
+import { consumeLimit, limitIp, tooManyRequests } from "@/lib/rate-limit";
 import { createServiceClient } from "@/lib/supabase/service";
 import { authConfigError } from "@/lib/admin/auth-config";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabase/env";
@@ -33,6 +35,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
     }
 
+    const ipLimit = limitIp(request, "admin-login", 10, 15 * 60 * 1000);
+    if (ipLimit) return ipLimit;
+    const emailLimit = consumeLimit(`admin-login:email:${email}`, 10, 15 * 60 * 1000);
+    if (!emailLimit.ok) return tooManyRequests(emailLimit.retryAfterSec);
+
     const authClient = getAuthClient();
     const serviceClient = createServiceClient();
 
@@ -44,6 +51,20 @@ export async function POST(request: Request) {
 
     if (error || !data.session || !data.user?.email) {
       return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+    }
+
+    if (!isAdminAllowlistConfigured()) {
+      return NextResponse.json(
+        { error: "Admin allowlist is not configured. Set ADMIN_ALLOWED_EMAILS." },
+        { status: 503 }
+      );
+    }
+
+    if (!isAdminEmailAllowed(data.user.email)) {
+      return NextResponse.json(
+        { error: "This account is not on the admin allowlist." },
+        { status: 403 }
+      );
     }
 
     const verificationId = crypto.randomUUID();

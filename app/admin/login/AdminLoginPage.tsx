@@ -26,13 +26,19 @@ function UserAvatarIcon() {
 export default function AdminLoginPage() {
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || adminPath();
+  const gateError =
+    searchParams.get("error") === "not-allowed"
+      ? "This account is not on the admin allowlist."
+      : searchParams.get("error") === "allowlist"
+        ? "Admin allowlist is not configured. Set ADMIN_ALLOWED_EMAILS."
+        : "";
 
   const [step, setStep] = useState<Step>("credentials");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [verificationId, setVerificationId] = useState("");
   const [code, setCode] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState(gateError);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 

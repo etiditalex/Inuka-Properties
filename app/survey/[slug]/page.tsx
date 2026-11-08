@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import PublicSurveyForm from "@/components/survey/PublicSurveyForm";
+import { isAdminEmailAllowed } from "@/lib/admin/allowlist";
 import { isSupabaseServerConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import type { Survey, SurveyQuestion } from "@/lib/supabase/types";
@@ -66,7 +67,7 @@ export default async function PublicSurveyPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const preview = searchParams.preview === "1" && Boolean(user);
+  const preview = searchParams.preview === "1" && isAdminEmailAllowed(user?.email);
   if (loaded.survey.status === "draft" && !preview) notFound();
 
   const mode =

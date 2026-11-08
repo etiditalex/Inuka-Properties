@@ -4,6 +4,7 @@ import { runLeadAutomation } from "@/lib/email/automation";
 import { runLeadSmsAutomation } from "@/lib/sms/automation";
 import { buildLeadEnrichment, findExistingPropertyLead, isAutoCaptureMessage } from "@/lib/leads/dedupe";
 import { formatPhoneKenyaE164, isValidKenyaMobile } from "@/lib/phone/kenya";
+import { limitIp, limitRecipient } from "@/lib/rate-limit";
 import type { LeadAutomationInput } from "@/lib/email/automation";
 
 function getServiceClient(): SupabaseClient | null {
@@ -37,6 +38,9 @@ async function runAutomationsSafely(
 }
 
 export async function POST(request: Request) {
+  const ipLimit = limitIp(request, "leads");
+  if (ipLimit) return ipLimit;
+
   let body: Record<string, unknown>;
   try {
     body = await request.json();
@@ -68,6 +72,13 @@ export async function POST(request: Request) {
     if (!supabase) {
       return NextResponse.json({ success: true, offline: true });
     }
+
+    const recipientLimit = await limitRecipient("leads", phone, {
+      supabase,
+      table: "property_leads",
+      column: "phone",
+    });
+    if (recipientLimit) return recipientLimit;
 
     const existing = await findExistingPropertyLead(supabase, email, phone);
     if (existing) {

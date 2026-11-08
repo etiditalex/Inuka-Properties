@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { runLeadAutomation } from "@/lib/email/automation";
 import { runLeadSmsAutomation } from "@/lib/sms/automation";
 import { formatPhoneKenyaE164, isValidKenyaMobile } from "@/lib/phone/kenya";
+import { limitIp, limitRecipient } from "@/lib/rate-limit";
 
 function getServiceClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -12,6 +13,9 @@ function getServiceClient() {
 }
 
 export async function POST(request: Request) {
+  const ipLimit = limitIp(request, "inquiries");
+  if (ipLimit) return ipLimit;
+
   try {
     const body = await request.json();
     const { name, email, subject, message, source, property_id, property_name } = body;
@@ -31,6 +35,13 @@ export async function POST(request: Request) {
     if (!supabase) {
       return NextResponse.json({ success: true, offline: true });
     }
+
+    const recipientLimit = await limitRecipient("inquiries", phone, {
+      supabase,
+      table: "inquiries",
+      column: "phone",
+    });
+    if (recipientLimit) return recipientLimit;
 
     const { data: inserted, error } = await supabase
       .from("inquiries")

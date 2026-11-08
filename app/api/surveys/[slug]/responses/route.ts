@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isSupabaseServerConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
+import { limitIp, limitRecipient } from "@/lib/rate-limit";
 import { sendSms } from "@/lib/sms/provider";
 import type { Survey, SurveyQuestion } from "@/lib/supabase/types";
 import { deliverFinalSurveyReport } from "@/lib/surveys/deliver-report";
@@ -9,6 +10,9 @@ import { normalizeQuestion, surveySubmissionsClosed, validateSubmission } from "
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request, { params }: { params: { slug: string } }) {
+  const ipLimit = limitIp(request, "survey-responses");
+  if (ipLimit) return ipLimit;
+
   const body = await request.json().catch(() => null);
   if (!body || typeof body !== "object") {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
@@ -49,6 +53,13 @@ export async function POST(request: Request, { params }: { params: { slug: strin
     answers: body.answers && typeof body.answers === "object" ? body.answers : {},
   });
   if (!validation.ok) return NextResponse.json({ error: validation.error }, { status: 400 });
+
+  const recipientLimit = await limitRecipient("survey-responses", validation.phone, {
+    supabase,
+    table: "survey_responses",
+    column: "respondent_phone",
+  });
+  if (recipientLimit) return recipientLimit;
 
   const { error: insertError } = await supabase.from("survey_responses").insert({
     survey_id: survey.id,

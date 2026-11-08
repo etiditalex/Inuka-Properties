@@ -1,7 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { isAdminAllowlistConfigured, isAdminEmailAllowed } from "@/lib/admin/allowlist";
 import { adminPath } from "@/lib/admin/path";
+import { limitIp } from "@/lib/rate-limit";
 import { createServiceClient } from "@/lib/supabase/service";
 import { authConfigError } from "@/lib/admin/auth-config";
 import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabase/env";
@@ -29,6 +31,23 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Verification ID, email, and code are required" },
         { status: 400 }
+      );
+    }
+
+    const attemptLimit = limitIp(request, "admin-login-verify", 12, 15 * 60 * 1000);
+    if (attemptLimit) return attemptLimit;
+
+    if (!isAdminAllowlistConfigured()) {
+      return NextResponse.json(
+        { error: "Admin allowlist is not configured. Set ADMIN_ALLOWED_EMAILS." },
+        { status: 503 }
+      );
+    }
+
+    if (!isAdminEmailAllowed(email)) {
+      return NextResponse.json(
+        { error: "This account is not on the admin allowlist." },
+        { status: 403 }
       );
     }
 
@@ -127,6 +146,16 @@ export async function PUT(request: Request) {
 
     if (!verificationId || !email) {
       return NextResponse.json({ error: "Verification ID and email are required" }, { status: 400 });
+    }
+
+    const resendLimit = limitIp(request, "admin-login-resend", 5, 15 * 60 * 1000);
+    if (resendLimit) return resendLimit;
+
+    if (!isAdminEmailAllowed(email)) {
+      return NextResponse.json(
+        { error: "This account is not on the admin allowlist." },
+        { status: 403 }
+      );
     }
 
     const serviceClient = createServiceClient();
