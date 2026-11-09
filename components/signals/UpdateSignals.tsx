@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bell } from "lucide-react";
 import { getVisitorId } from "@/lib/properties/engagementClient";
 import type { ContentSignal } from "@/lib/notifications/signals";
 
@@ -56,9 +55,7 @@ export default function UpdateSignals() {
   const router = useRouter();
   const [choice, setChoice] = useState<Choice | null>(null);
   const [ready, setReady] = useState(false);
-  const [open, setOpen] = useState(false);
   const [signals, setSignals] = useState<ContentSignal[]>([]);
-  const [unread, setUnread] = useState(0);
 
   useEffect(() => {
     setChoice(readChoice());
@@ -79,7 +76,6 @@ export default function UpdateSignals() {
 
       const seen = localStorage.getItem(SEEN_KEY) || new Date().toISOString();
       const fresh = next.filter((signal) => new Date(signal.updatedAt).getTime() > new Date(seen).getTime());
-      setUnread(fresh.length);
       if (!fresh.length || typeof Notification === "undefined" || Notification.permission !== "granted") return;
 
       const newest = fresh[0];
@@ -89,7 +85,6 @@ export default function UpdateSignals() {
         router.push(newest.path);
       };
       localStorage.setItem(SEEN_KEY, newest.updatedAt);
-      setUnread(0);
     };
 
     check().catch(() => undefined);
@@ -106,7 +101,6 @@ export default function UpdateSignals() {
     localStorage.setItem(CHOICE_KEY, "allowed");
     if (!localStorage.getItem(SEEN_KEY)) localStorage.setItem(SEEN_KEY, new Date().toISOString());
     setChoice("allowed");
-    setOpen(false);
     if ("Notification" in window) await Notification.requestPermission();
     await registerPush(getVisitorId()).catch(() => undefined);
   };
@@ -114,8 +108,6 @@ export default function UpdateSignals() {
   const disallow = async () => {
     localStorage.setItem(CHOICE_KEY, "disallowed");
     setChoice("disallowed");
-    setOpen(false);
-    setUnread(0);
     await fetch("/api/notifications/subscribe", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -150,55 +142,34 @@ export default function UpdateSignals() {
             </button>
           </div>
         </div>
-      ) : (
-        <div className="flex flex-col items-start gap-2">
-          {open ? (
-            <div className="w-full rounded-2xl border border-neutral-200 bg-white p-4 shadow-xl">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold text-neutral-900">Update signals</p>
+      ) : choice === "disallowed" || signals.length === 0 ? null : (
+        <div className="w-full rounded-2xl border border-neutral-200 bg-white p-4 shadow-xl">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-semibold text-neutral-900">Update signals</p>
+            <button
+              type="button"
+              onClick={disallow}
+              className="text-xs font-semibold text-primary-700 hover:text-primary-800"
+            >
+              Disallow
+            </button>
+          </div>
+          <ul className="mt-3 max-h-64 space-y-2 overflow-auto">
+            {signals.slice(0, 6).map((signal) => (
+              <li key={signal.id}>
                 <button
                   type="button"
-                  onClick={choice === "allowed" ? disallow : allow}
-                  className="text-xs font-semibold text-primary-700 hover:text-primary-800"
+                  onClick={() => router.push(signal.path)}
+                  className="w-full rounded-xl px-2 py-2 text-left hover:bg-neutral-50"
                 >
-                  {choice === "allowed" ? "Disallow" : "Allow"}
+                  <span className="block text-xs font-semibold uppercase tracking-wide text-primary-700">
+                    {signal.kind === "market-research" ? "Market research" : signal.kind === "property" ? "Property" : "Blog"}
+                  </span>
+                  <span className="mt-1 block text-sm font-medium text-neutral-900">{signal.title}</span>
                 </button>
-              </div>
-              {choice === "disallowed" ? (
-                <p className="mt-3 text-sm text-neutral-600">Updates are off. Allow them if you want to hear about new plots and articles.</p>
-              ) : signals.length === 0 ? (
-                <p className="mt-3 text-sm text-neutral-600">You will be notified when a published listing or article changes.</p>
-              ) : (
-                <ul className="mt-3 max-h-64 space-y-2 overflow-auto">
-                  {signals.slice(0, 6).map((signal) => (
-                    <li key={signal.id}>
-                      <button
-                        type="button"
-                        onClick={() => router.push(signal.path)}
-                        className="w-full rounded-xl px-2 py-2 text-left hover:bg-neutral-50"
-                      >
-                        <span className="block text-xs font-semibold uppercase tracking-wide text-primary-700">
-                          {signal.kind === "market-research" ? "Market research" : signal.kind === "property" ? "Property" : "Blog"}
-                        </span>
-                        <span className="mt-1 block text-sm font-medium text-neutral-900">{signal.title}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          ) : null}
-          <button
-            type="button"
-            onClick={() => setOpen((value) => !value)}
-            className="inline-flex items-center gap-2 rounded-full bg-primary-700 px-4 py-2 text-sm font-semibold text-white shadow-lg hover:bg-primary-800"
-          >
-            <Bell size={16} />
-            Signals
-            {unread > 0 ? (
-              <span className="rounded-full bg-white px-2 py-0.5 text-xs font-bold text-primary-700">{unread}</span>
-            ) : null}
-          </button>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </div>
