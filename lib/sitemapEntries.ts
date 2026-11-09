@@ -84,6 +84,7 @@ export async function getSitemapEntries(): Promise<MetadataRoute.Sitemap> {
     staticPage("/about-us/csr", 0.6, "monthly"),
     staticPage("/about-us/our-partners", 0.6, "monthly"),
     staticPage("/contact-us", 0.85, "monthly"),
+    staticPage("/play", 0.5, "daily"),
     staticPage("/services", 0.85, "monthly"),
     staticPage("/services/residential-properties", 0.8, "monthly"),
     staticPage("/services/commercial-properties", 0.8, "monthly"),

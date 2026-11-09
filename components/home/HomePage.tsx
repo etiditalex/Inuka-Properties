@@ -13,6 +13,7 @@ import PropertyListingCard from "@/components/PropertyListingCard";
 import { hydratePropertyEngagement } from "@/lib/properties/engagementClient";
 import { cloudinarySized } from "@/lib/images";
 import { COASTAL_LOCATIONS } from "@/lib/coastalSeo";
+import CoastalPlayStrip from "@/components/play/CoastalPlayStrip";
 
 const GoogleReviewsSection = dynamic(() => import("@/components/GoogleReviewsSection"));
 
@@ -726,6 +727,8 @@ export default function HomePage() {
 
       {/* Property Cards Section */}
       <PropertyCardsSection />
+
+      <CoastalPlayStrip />
 
       {/* Why Inuka Properties Section */}
       <WhyInukaSection />
