@@ -5,6 +5,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { formatKes, PLOT_STYLE, statusLabel } from "@/lib/maps/colors";
 import type { PlotMapHandle } from "@/components/maps/PlotMapCanvas";
+import { projectSheet } from "@/lib/maps/publish";
 import type { MapPlot, PlotMapDocument, PlotStatus } from "@/lib/maps/types";
 import { whatsAppUrl } from "@/lib/whatsapp";
 
@@ -53,21 +54,34 @@ export default function PlotExplorer({ initial, variant = "page" }: PlotExplorer
   }, [document.plots]);
 
   const selected = document.plots.find((plot) => plot.plotNumber === selectedId) ?? null;
+  const fitted = useMemo(() => {
+    if (!georeferenced) return null;
+    try {
+      return projectSheet(document);
+    } catch {
+      return null;
+    }
+  }, [document, georeferenced]);
   const planPlots = georeferenced
-    ? document.plots
+    ? (fitted?.plots ?? document.plots)
     : document.plots.flatMap((plot) => {
         const ring = plot.planRing ?? (document.crs === "local-metres" ? plot.ring : null);
         return ring ? [{ ...plot, ring }] : [];
       });
   const planRoads = georeferenced
-    ? document.roads
+    ? (fitted?.roads ?? document.roads)
     : document.roads.flatMap((road) => {
         const ring = road.planRing ?? (document.crs === "local-metres" ? road.ring : null);
         return ring ? [{ ...road, ring }] : [];
       });
   const planBoundary = georeferenced
-    ? document.boundary
+    ? (fitted?.boundary ?? document.boundary)
     : (document.planBoundary ?? (document.crs === "local-metres" ? document.boundary : null));
+  const cornerMarkers = georeferenced
+    ? document.controlPoints.flatMap((point) =>
+        point.ground ? [{ id: point.id, position: point.ground, label: point.label }] : []
+      )
+    : [];
   const waitingForSurvey = !georeferenced && planPlots.length === 0;
 
   const findPlot = () => {
@@ -88,8 +102,65 @@ export default function PlotExplorer({ initial, variant = "page" }: PlotExplorer
     setHidden((current) => (current.includes(status) ? current.filter((item) => item !== status) : [...current, status]));
   };
 
-  return (
-    <div className={variant === "page" ? "relative h-full" : "relative h-[70vh] min-h-[520px] overflow-hidden rounded-xl border border-dark-200"}>
+  const details = (
+    <div className="bg-white p-4">
+      <p className="text-xs font-semibold uppercase tracking-wide text-primary-700">Explore available plots</p>
+      <h2 className="mt-1 font-montserrat text-xl font-bold text-dark-900">{document.projectName}</h2>
+      <p className="text-sm text-dark-600">
+        {document.plots.length} plots · {document.location}
+      </p>
+      <div className="mt-3 flex flex-wrap gap-2 text-xs">
+        {STATUSES.map((status) => (
+          <button
+            key={status}
+            type="button"
+            onClick={() => toggleStatus(status)}
+            className={`rounded-full border px-2.5 py-1 ${hidden.includes(status) ? "border-dark-200 text-dark-400 line-through" : "border-dark-300 text-dark-800"}`}
+          >
+            <span className="mr-1 inline-block h-2 w-2 rounded-full" style={{ background: PLOT_STYLE[status].fill }} />
+            {counts[status]} {statusLabel(status)}
+          </button>
+        ))}
+      </div>
+      <form
+        className="mt-3 flex gap-2"
+        onSubmit={(event) => {
+          event.preventDefault();
+          findPlot();
+        }}
+      >
+        <input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Plot number"
+          className="w-full rounded-lg border border-dark-200 px-3 py-2 text-sm"
+          aria-label="Find a plot number"
+        />
+        <button type="submit" className="rounded-lg bg-primary-700 px-3 py-2 text-sm font-semibold text-white">
+          Find
+        </button>
+      </form>
+      {message ? <p className="mt-2 text-sm text-red-700">{message}</p> : null}
+      {!georeferenced ? (
+        <p className="mt-3 text-sm leading-relaxed text-dark-700">
+          This is the survey drawing{document.surveyRef ? ` for ${document.surveyRef}` : ""}. The corners are not on the satellite image yet.
+        </p>
+      ) : (
+        <p className="mt-3 text-sm text-dark-700">The plots are drawn on the satellite image from the confirmed survey corners.</p>
+      )}
+      {variant === "embedded" ? (
+        <Link href={`/maps/${document.slug}`} className="mt-3 inline-block text-sm font-semibold text-primary-700">
+          Open the full map
+        </Link>
+      ) : null}
+      {selected ? (
+        <PlotCard plot={selected} projectName={document.projectName} onClose={() => setSelectedId(null)} />
+      ) : null}
+    </div>
+  );
+
+  const map = (
+    <div className={variant === "page" ? "relative min-h-0 flex-1" : "relative h-[70vh] min-h-[520px]"}>
       {waitingForSurvey ? (
         <div className="flex h-full items-center justify-center bg-dark-50 p-8 text-center text-sm text-dark-700">
           This project is waiting for a confirmed survey alignment before plots are shown on the map.
@@ -105,75 +176,29 @@ export default function PlotExplorer({ initial, variant = "page" }: PlotExplorer
           selected={selectedId}
           hiddenStatuses={hidden}
           onSelect={setSelectedId}
+          markers={cornerMarkers}
           cooperativeGestures={variant === "embedded"}
         />
       )}
-
-      <div className="pointer-events-none absolute left-3 top-3 z-10 max-w-[calc(100%-4.5rem)] md:max-w-sm">
-        <div className="pointer-events-auto max-h-[46vh] overflow-auto rounded-xl bg-white/95 p-4 shadow-lg md:max-h-[calc(100vh-8rem)]">
-          <p className="text-xs font-semibold uppercase tracking-wide text-primary-700">Explore available plots</p>
-          <h2 className="mt-1 font-montserrat text-xl font-bold text-dark-900">{document.projectName}</h2>
-          <p className="text-sm text-dark-600">
-            {document.plots.length} plots · {document.location}
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2 text-xs">
-            {STATUSES.map((status) => (
-              <button
-                key={status}
-                type="button"
-                onClick={() => toggleStatus(status)}
-                className={`rounded-full border px-2.5 py-1 ${hidden.includes(status) ? "border-dark-200 text-dark-400 line-through" : "border-dark-300 text-dark-800"}`}
-              >
-                <span className="mr-1 inline-block h-2 w-2 rounded-full" style={{ background: PLOT_STYLE[status].fill }} />
-                {counts[status]} {statusLabel(status)}
-              </button>
-            ))}
-          </div>
-          <form
-            className="mt-3 flex gap-2"
-            onSubmit={(event) => {
-              event.preventDefault();
-              findPlot();
-            }}
-          >
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Plot number"
-              className="w-full rounded-lg border border-dark-200 px-3 py-2 text-sm"
-              aria-label="Find a plot number"
-            />
-            <button type="submit" className="rounded-lg bg-primary-700 px-3 py-2 text-sm font-semibold text-white">
-              Find
-            </button>
-          </form>
-          {message ? <p className="mt-2 text-sm text-red-700">{message}</p> : null}
-          {!georeferenced ? (
-            <p className="mt-3 text-sm leading-relaxed text-dark-700">
-              This is the survey drawing{document.surveyRef ? ` for ${document.surveyRef}` : ""}. The corners are not on the satellite image yet.
-            </p>
-          ) : (
-            <p className="mt-3 text-sm text-dark-700">The plots are drawn on the satellite image from the confirmed survey corners.</p>
-          )}
-          {variant === "embedded" ? (
-            <Link href={`/maps/${document.slug}`} className="mt-3 inline-block text-sm font-semibold text-primary-700">
-              Open the full map
-            </Link>
-          ) : null}
-        </div>
-      </div>
-
       <div className="absolute bottom-8 left-3 z-10 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-dark-700 shadow">
         {georeferenced ? "Satellite" : "Plan view"}
       </div>
+    </div>
+  );
 
-      {selected ? (
-        <PlotCard
-          plot={selected}
-          projectName={document.projectName}
-          onClose={() => setSelectedId(null)}
-        />
-      ) : null}
+  if (variant === "page") {
+    return (
+      <div className="flex h-full min-h-0 flex-col lg:flex-row">
+        <div className="max-h-[42vh] shrink-0 overflow-auto border-b border-dark-200 lg:max-h-none lg:w-96 lg:border-b-0 lg:border-r">{details}</div>
+        {map}
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-dark-200">
+      <div className="border-b border-dark-200">{details}</div>
+      {map}
     </div>
   );
 }
@@ -191,7 +216,7 @@ function PlotCard({
     `Hi, I am interested in plot ${plot.plotNumber} at ${projectName}. Is it still available?`
   );
   return (
-    <aside className="absolute inset-x-0 bottom-0 z-20 max-h-[42%] overflow-auto rounded-t-2xl bg-white p-4 shadow-2xl md:inset-x-auto md:bottom-auto md:left-auto md:right-3 md:top-3 md:max-h-[calc(100%-1.5rem)] md:w-80 md:rounded-xl">
+    <aside className="mt-4 border-t border-dark-200 pt-4">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-primary-700">{projectName}</p>

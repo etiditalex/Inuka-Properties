@@ -46,6 +46,7 @@ export type ControlPoint = {
 };
 
 export type Similarity = {
+  kind: "similarity";
   originLng: number;
   originLat: number;
   scale: number;
@@ -53,6 +54,34 @@ export type Similarity = {
   translateEast: number;
   translateNorth: number;
 };
+
+/** Affine map from sheet metres to east/north metres at the origin. */
+export type AffineFit = {
+  kind: "affine";
+  originLng: number;
+  originLat: number;
+  /** east = a*x + b*y + c, north = d*x + e*y + f */
+  a: number;
+  b: number;
+  c: number;
+  d: number;
+  e: number;
+  f: number;
+};
+
+/**
+ * Projective map from sheet metres to east/north metres.
+ * Four placed corners each land on the point that was clicked.
+ */
+export type HomographyFit = {
+  kind: "homography";
+  originLng: number;
+  originLat: number;
+  /** h0..h7, with the last matrix entry fixed at 1. */
+  h: number[];
+};
+
+export type GroundFit = Similarity | AffineFit | HomographyFit;
 
 export type CameraHint = {
   lng: number;
@@ -82,7 +111,7 @@ export type PlotMapDocument = {
   /** The same outline in sheet metres. */
   planBoundary: Position[] | null;
   controlPoints: ControlPoint[];
-  transform: Similarity | null;
+  transform: GroundFit | null;
   updatedAt: string | null;
 };
 

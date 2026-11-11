@@ -162,7 +162,8 @@ begin
     plot_number text primary key,
     status text
   ) on commit drop;
-  delete from _plot_status_before;
+  -- Supabase rejects a DELETE that has no WHERE clause.
+  delete from _plot_status_before where true;
   insert into _plot_status_before (plot_number, status)
   select plot_number, status from plot_parcels where plot_map_id = mid;
 

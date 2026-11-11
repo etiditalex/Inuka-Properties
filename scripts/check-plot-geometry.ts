@@ -1,5 +1,5 @@
 import { findOverlaps, ringArea, ringSelfIntersects } from "../lib/maps/geometry";
-import { applySimilarity, residualMetres, similarityFromControl } from "../lib/maps/georef";
+import { applyGround, fitControlPoints, residualMetres, similarityFromControl } from "../lib/maps/georef";
 import { rubyHighwayDocument } from "../lib/maps/rubyHighwayLayout";
 
 const doc = rubyHighwayDocument();
@@ -40,16 +40,28 @@ if (roads.length !== 5) mismatches.push(`expected 5 access roads, got ${roads.le
 if (!bofa || bofa.widthM !== 15) mismatches.push("the 15 m Bofa Beach road is missing");
 if (Math.abs(ringArea(bofa?.ring ?? []) - 15 * (5 * (32.1 + 9.5) + 32.1)) > 1) mismatches.push("Bofa road area");
 
-const [a, b, c] = doc.controlPoints;
+const [a, b, c, d] = doc.controlPoints;
 const groundA: [number, number] = [39.87, -3.57];
 const groundB: [number, number] = [39.871, -3.569];
 const transform = similarityFromControl(a.plan, groundA, b.plan, groundB);
-const back = applySimilarity(transform, [a.plan, b.plan]);
+const back = applyGround(transform, [a.plan, b.plan]);
 if (residualMetres(transform, a.plan, groundA) > 0.05) mismatches.push("first corner did not land");
 if (residualMetres(transform, b.plan, groundB) > 0.05) mismatches.push("second corner did not land");
 if (Math.hypot(back[0][0] - groundA[0], back[0][1] - groundA[1]) > 0.00001) mismatches.push("round trip");
 const extra = residualMetres(transform, c.plan, groundB);
 if (!Number.isFinite(extra)) mismatches.push("residual");
+
+const grounds: [number, number][] = [
+  [39.874, -3.568],
+  [39.8732, -3.5664],
+  [39.8764, -3.5661],
+  [39.8771, -3.5678],
+];
+const fitted = fitControlPoints(doc.controlPoints.map((point, index) => ({ plan: point.plan, ground: grounds[index] })));
+doc.controlPoints.forEach((point, index) => {
+  if (residualMetres(fitted, point.plan, grounds[index]) > 0.05) mismatches.push(`${point.id} missed its placed point`);
+});
+if (!d) mismatches.push("fourth corner missing");
 
 if (mismatches.length) {
   console.error(mismatches.join("\n"));

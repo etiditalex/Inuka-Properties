@@ -1,6 +1,6 @@
-import { applySimilarity, residualMetres } from "@/lib/maps/georef";
+import { applyGround, fitControlPoints, residualMetres } from "@/lib/maps/georef";
 import { findOverlaps } from "@/lib/maps/geometry";
-import type { PlotMapDocument } from "@/lib/maps/types";
+import type { PlotMapDocument, Position } from "@/lib/maps/types";
 
 export function validatePlotMap(document: PlotMapDocument): string[] {
   const errors: string[] = [];
@@ -23,44 +23,51 @@ export function validatePlotMap(document: PlotMapDocument): string[] {
   return errors;
 }
 
-/** Move sheet polygons onto the ground points the administrator confirmed. */
-export function bakeAlignment(document: PlotMapDocument): PlotMapDocument {
+function sheetRing(plan: Position[] | null, ring: Position[], crs: PlotMapDocument["crs"]): Position[] | null {
+  return plan ?? (crs === "local-metres" ? ring : null);
+}
+
+/** Stretch the sheet so every placed corner lands on the satellite point. */
+export function projectSheet(document: PlotMapDocument): PlotMapDocument | null {
   const placed = document.controlPoints.filter((point) => point.ground);
-  if (placed.length < 2 || !document.transform) {
-    throw new Error("Place at least two sheet corners on the satellite image first.");
-  }
-  const [first, second, ...rest] = placed;
-  const shift = residualMetres(document.transform, second.plan, second.ground!);
-  if (shift > 1) {
-    throw new Error("The two control points do not match the saved alignment. Preview the alignment again.");
-  }
-  const mismatch = rest
-    .map((point) => ({
-      label: point.label,
-      metres: residualMetres(document.transform!, point.plan, point.ground!),
-    }))
-    .filter((item) => item.metres > 20);
-  if (mismatch.length > 0) {
-    const detail = mismatch.map((item) => `${item.label} is ${item.metres.toFixed(1)} m off`).join(". ");
-    throw new Error(`The extra corners do not agree: ${detail}. Move them, or remove the ones you are not using.`);
-  }
-  const transform = document.transform!;
+  if (placed.length < 2) return null;
+  const fit = fitControlPoints(placed.map((point) => ({ plan: point.plan, ground: point.ground! })));
   const sheetBoundary = document.planBoundary ?? (document.crs === "local-metres" ? document.boundary : null);
   return {
     ...document,
     crs: "EPSG:4326",
-    alignmentStatus: "verified",
+    transform: fit,
     plots: document.plots.map((plot) => {
-      const source = plot.planRing ?? (document.crs === "local-metres" ? plot.ring : null);
+      const source = sheetRing(plot.planRing, plot.ring, document.crs);
       if (!source) return plot;
-      return { ...plot, planRing: source, ring: applySimilarity(transform, source) };
+      return { ...plot, planRing: source, ring: applyGround(fit, source) };
     }),
     planBoundary: sheetBoundary,
-    boundary: sheetBoundary ? applySimilarity(transform, sheetBoundary) : document.boundary,
+    boundary: sheetBoundary ? applyGround(fit, sheetBoundary) : document.boundary,
     roads: document.roads.map((road) => {
-      const source = road.planRing ?? (document.crs === "local-metres" ? road.ring : null);
+      const source = sheetRing(road.planRing, road.ring, document.crs);
       if (!source) return road;
-      return { ...road, planRing: source, ring: applySimilarity(transform, source) };
+      return { ...road, planRing: source, ring: applyGround(fit, source) };
     }),
   };
+}
+
+/** Move sheet polygons onto the ground points the administrator confirmed. */
+export function bakeAlignment(document: PlotMapDocument): PlotMapDocument {
+  const placed = document.controlPoints.filter((point) => point.ground);
+  const projected = projectSheet(document);
+  if (!projected || placed.length < 2) {
+    throw new Error("Place at least two sheet corners on the satellite image first.");
+  }
+  const mismatch = placed
+    .map((point) => ({
+      label: point.label,
+      metres: residualMetres(projected.transform!, point.plan, point.ground!),
+    }))
+    .filter((item) => item.metres > 1);
+  if (mismatch.length > 0) {
+    const detail = mismatch.map((item) => `${item.label} is ${item.metres.toFixed(1)} m off`).join(". ");
+    throw new Error(`These corners do not meet the points you placed: ${detail}.`);
+  }
+  return { ...projected, alignmentStatus: "verified" };
 }

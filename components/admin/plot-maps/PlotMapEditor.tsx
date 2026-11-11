@@ -7,12 +7,13 @@ import { adminPath } from "@/lib/admin/path";
 import type { PlotMapHandle } from "@/components/maps/PlotMapCanvas";
 import { formatKes, PLOT_STYLE, statusLabel } from "@/lib/maps/colors";
 import { findOverlaps, ringArea } from "@/lib/maps/geometry";
-import { applySimilarity, residualMetres, similarityFromControl, toEnu } from "@/lib/maps/georef";
+import { residualMetres, toEnu } from "@/lib/maps/georef";
 import { parseGeoJson, parseKml } from "@/lib/maps/parseImport";
-import type { MapPlot, PlotMapDocument, PlotStatus, Position, Similarity } from "@/lib/maps/types";
+import { projectSheet } from "@/lib/maps/publish";
+import type { GroundFit, MapPlot, PlotMapDocument, PlotStatus, Position } from "@/lib/maps/types";
 
 type AlignmentPreview =
-  | { transform: Similarity; residuals: { label: string; metres: number }[] }
+  | { transform: GroundFit; residuals: { label: string; metres: number }[]; projected: PlotMapDocument }
   | { error: string };
 
 const PlotMapCanvas = dynamic(() => import("@/components/maps/PlotMapCanvas"), { ssr: false });
@@ -47,16 +48,17 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
   const preview = useMemo((): AlignmentPreview | null => {
     if (placed.length < 2) return null;
     try {
-      const transform = similarityFromControl(placed[0].plan, placed[0].ground!, placed[1].plan, placed[1].ground!);
-      const residuals = placed.slice(2).map((point) => ({
+      const projected = projectSheet({ ...doc, controlPoints: doc.controlPoints });
+      if (!projected?.transform) return { error: "Place at least two sheet corners on the satellite image first." };
+      const residuals = placed.map((point) => ({
         label: point.label,
-        metres: residualMetres(transform, point.plan, point.ground!),
+        metres: residualMetres(projected.transform!, point.plan, point.ground!),
       }));
-      return { transform, residuals };
+      return { transform: projected.transform, residuals, projected };
     } catch (caught) {
-      return { error: caught instanceof Error ? caught.message : "Those two corners cannot fix the alignment." };
+      return { error: caught instanceof Error ? caught.message : "Those corners cannot fix the alignment." };
     }
-  }, [placed]);
+  }, [placed, doc]);
 
   const planPlots = doc.plots.flatMap((plot) => {
     const ring = plot.planRing ?? (doc.crs === "local-metres" ? plot.ring : null);
@@ -69,23 +71,8 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
   const planBoundary = doc.planBoundary ?? (doc.crs === "local-metres" ? doc.boundary : null);
 
   const previewTransform = preview && "transform" in preview ? preview.transform : null;
-  const satellitePlots = previewTransform
-    ? doc.plots.flatMap((plot) => {
-        const source = plot.planRing ?? (doc.crs === "local-metres" ? plot.ring : null);
-        if (!source) return doc.crs === "EPSG:4326" ? [plot] : [];
-        return [{ ...plot, ring: applySimilarity(previewTransform, source) }];
-      })
-    : doc.crs === "EPSG:4326"
-      ? doc.plots
-      : [];
-  const satelliteRoads = previewTransform
-    ? doc.roads.flatMap((road) => {
-        const source = road.planRing ?? (doc.crs === "local-metres" ? road.ring : null);
-        return source ? [{ ...road, ring: applySimilarity(previewTransform, source) }] : [];
-      })
-    : doc.crs === "EPSG:4326"
-      ? doc.roads
-      : [];
+  const satellitePlots = preview && "projected" in preview ? preview.projected.plots : doc.crs === "EPSG:4326" ? doc.plots : [];
+  const satelliteRoads = preview && "projected" in preview ? preview.projected.roads : doc.crs === "EPSG:4326" ? doc.roads : [];
 
   const commit = (next: PlotMapDocument) => {
     setPast((items) => [...items, doc].slice(-40));
