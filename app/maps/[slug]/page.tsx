@@ -4,6 +4,8 @@ import PlotExplorer from "@/components/maps/PlotExplorer";
 import { loadPublishedPlotMap } from "@/lib/maps/repository";
 import { buildPageMetadata } from "@/lib/seo";
 
+export const dynamic = "force-dynamic";
+
 type PageProps = { params: { slug: string } };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

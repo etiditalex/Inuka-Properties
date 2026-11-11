@@ -144,7 +144,6 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
     if (!placingId) return;
     commit({
       ...doc,
-      alignmentStatus: "draft",
       transform: null,
       controlPoints: doc.controlPoints.map((point) => (point.id === placingId ? { ...point, ground: position } : point)),
     });

@@ -25,11 +25,11 @@ export default function PlotExplorer({ initial, variant = "page" }: PlotExplorer
   const [message, setMessage] = useState("");
   const [hidden, setHidden] = useState<PlotStatus[]>([]);
   const mapRef = useRef<PlotMapHandle>(null);
-  const georeferenced = document.alignmentStatus === "verified" && document.crs === "EPSG:4326";
+  const placedCorners = document.controlPoints.filter((point) => point.ground).length;
 
   useEffect(() => {
     const refresh = () => {
-      fetch(`/api/maps/${document.slug}`)
+      fetch(`/api/maps/${document.slug}`, { cache: "no-store" })
         .then((response) => (response.ok ? response.json() : null))
         .then((body: { document?: PlotMapDocument } | null) => {
           if (body?.document) setDocument(body.document);
@@ -55,13 +55,14 @@ export default function PlotExplorer({ initial, variant = "page" }: PlotExplorer
 
   const selected = document.plots.find((plot) => plot.plotNumber === selectedId) ?? null;
   const fitted = useMemo(() => {
-    if (!georeferenced) return null;
+    if (placedCorners < 2) return null;
     try {
       return projectSheet(document);
     } catch {
       return null;
     }
-  }, [document, georeferenced]);
+  }, [document, placedCorners]);
+  const georeferenced = Boolean(fitted) || (document.alignmentStatus === "verified" && document.crs === "EPSG:4326");
   const planPlots = georeferenced
     ? (fitted?.plots ?? document.plots)
     : document.plots.flatMap((plot) => {

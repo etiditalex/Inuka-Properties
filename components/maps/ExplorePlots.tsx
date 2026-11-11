@@ -14,7 +14,7 @@ export default function ExplorePlots({ propertyId }: { propertyId: number }) {
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`/api/maps/property/${propertyId}`)
+    fetch(`/api/maps/property/${propertyId}`, { cache: "no-store" })
       .then((response) => (response.ok ? response.json() : null))
       .then((body: { document?: PlotMapDocument } | null) => {
         if (!cancelled) setDocument(body?.document ?? null);

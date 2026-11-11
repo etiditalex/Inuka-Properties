@@ -117,7 +117,9 @@ export async function savePlotMap(
   confirmAlignment: boolean
 ): Promise<{ document: PlotMapDocument } | { error: string; migrationRequired?: boolean; status: number }> {
   let document = incoming;
-  if (confirmAlignment) {
+  const placedCorners = document.controlPoints.filter((point) => point.ground).length;
+  const updatePublicAlignment = confirmAlignment || (document.published && placedCorners >= 2);
+  if (updatePublicAlignment) {
     try {
       document = bakeAlignment(document);
     } catch (error) {
