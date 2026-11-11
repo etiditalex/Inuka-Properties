@@ -17,6 +17,7 @@ import PropertyLocationMap from "@/components/PropertyLocationMap";
 import PropertyEngagementBar from "@/components/property/PropertyEngagementBar";
 import PropertyShareButtons from "@/components/property/PropertyShareButtons";
 import PropertyPaymentCalculator from "@/components/property/PropertyPaymentCalculator";
+import ExplorePlots from "@/components/maps/ExplorePlots";
 import { hydratePropertyEngagement } from "@/lib/properties/engagementClient";
 
 export default function PropertyDetailView({
@@ -364,6 +365,7 @@ export default function PropertyDetailView({
 
         <div className="mt-12 grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
+            <ExplorePlots propertyId={property.id} />
             {(property.mapLink || property.location) && (
               <div className="mb-8">
                 <h2 className="text-2xl font-bold text-dark-900 mb-4 font-montserrat">Property location</h2>

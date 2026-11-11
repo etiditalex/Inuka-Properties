@@ -20,6 +20,12 @@ function withNoIndex(response: NextResponse): NextResponse {
 export async function middleware(request: NextRequest) {
   if (request.nextUrl.pathname === "/sw.js") return NextResponse.next();
 
+  if (request.nextUrl.pathname.endsWith(".")) {
+    const url = request.nextUrl.clone();
+    url.pathname = request.nextUrl.pathname.replace(/\.+$/, "");
+    return NextResponse.redirect(url);
+  }
+
   const host = request.headers.get("host") ?? "";
   const proto = request.headers.get("x-forwarded-proto") ?? "https";
 

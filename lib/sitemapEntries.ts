@@ -75,6 +75,7 @@ export async function getSitemapEntries(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: SitemapEntry[] = [
     staticPage("", 1, "weekly", newestPropertyDate),
     staticPage("/for-sale", 0.95, "daily", newestPropertyDate),
+    staticPage("/maps/ruby-highway", 0.8, "monthly"),
     staticPage("/for-sale/ongoing-projects", 0.9, "daily", newestPropertyDate),
     staticPage("/project-showcase", 0.85, "weekly"),
     staticPage("/about-us", 0.8, "monthly"),

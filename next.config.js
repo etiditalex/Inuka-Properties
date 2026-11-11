@@ -35,6 +35,7 @@ if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
 }
 
 const nextConfig = {
+  transpilePackages: ["maplibre-gl"],
   experimental: {
     optimizePackageImports: ["lucide-react"],
     staleTimes: {
