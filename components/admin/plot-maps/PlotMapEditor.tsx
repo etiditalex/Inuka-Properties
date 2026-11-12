@@ -7,7 +7,7 @@ import { adminPath } from "@/lib/admin/path";
 import type { PlotMapHandle } from "@/components/maps/PlotMapCanvas";
 import { formatKes, PLOT_STYLE, statusLabel } from "@/lib/maps/colors";
 import { findOverlaps, ringArea } from "@/lib/maps/geometry";
-import { residualMetres, toEnu } from "@/lib/maps/georef";
+import { applyGround, residualMetres, toEnu } from "@/lib/maps/georef";
 import { parseGeoJson, parseKml } from "@/lib/maps/parseImport";
 import { projectSheet } from "@/lib/maps/publish";
 import type { GroundFit, MapPlot, PlotMapDocument, PlotStatus, Position } from "@/lib/maps/types";
@@ -49,6 +49,7 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
   );
   const planRef = useRef<PlotMapHandle>(null);
   const satelliteRef = useRef<PlotMapHandle>(null);
+  const beforeDrag = useRef<PlotMapDocument | null>(null);
 
   const selected = doc.plots.find((plot) => plot.plotNumber === selectedId) ?? null;
   const placed = doc.controlPoints.filter((point) => point.ground);
@@ -159,6 +160,30 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
     setPlacingId(null);
   };
 
+  const moveCorner = (id: string, position: Position) => {
+    setDoc((current) => {
+      if (!beforeDrag.current) beforeDrag.current = current;
+      return {
+        ...current,
+        transform: null,
+        controlPoints: current.controlPoints.map((point) => (point.id === id ? { ...point, ground: position } : point)),
+      };
+    });
+  };
+
+  const finishCorner = (id: string, position: Position) => {
+    setDoc((current) => ({
+      ...current,
+      transform: null,
+      controlPoints: current.controlPoints.map((point) => (point.id === id ? { ...point, ground: position } : point)),
+    }));
+    const origin = beforeDrag.current;
+    if (!origin) return;
+    beforeDrag.current = null;
+    setPast((items) => [...items, origin].slice(-40));
+    setFuture([]);
+  };
+
   const importFile = async (file: File) => {
     setError("");
     try {
@@ -228,9 +253,10 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
   };
 
   const cornersAreLive = doc.alignmentStatus === "verified" && placed.length >= 2 && cornerKey(doc) === publishedCorners;
-  const markers = doc.controlPoints.flatMap((point) =>
-    point.ground ? [{ id: point.id, position: point.ground, label: point.label }] : []
-  );
+  const markers = doc.controlPoints.flatMap((point) => {
+    const position = point.ground ?? (previewTransform ? applyGround(previewTransform, [point.plan])[0] : null);
+    return position ? [{ id: point.id, position, label: point.label }] : [];
+  });
 
   return (
     <div className="space-y-4">
@@ -374,6 +400,8 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
               onDrawComplete={(ring) => addPlot(ring, true)}
               clickMode={placingId ? "place" : "select"}
               onMapClick={placeCorner}
+              onMarkerDrag={moveCorner}
+              onMarkerDragEnd={finishCorner}
               markers={markers}
               initialCenter={doc.cameraHint ? [doc.cameraHint.lng, doc.cameraHint.lat] : null}
             />
@@ -385,7 +413,9 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
       <div className="grid gap-4 lg:grid-cols-2">
         <section className="rounded-xl border border-dark-200 p-4">
           <h3 className="font-semibold text-dark-900">Ground corners</h3>
-          <p className="mt-1 text-sm text-dark-600">Choose a corner, then click the same place on the satellite image.</p>
+          <p className="mt-1 text-sm text-dark-600">
+            Drag the blue corners on the satellite image out to the edge of the land. The plots fill the area between those corners. Plot 54 and plot 46 are the right-hand edge.
+          </p>
           <ul className="mt-3 space-y-2">
             {doc.controlPoints.map((point) => (
               <li key={point.id} className="flex items-center justify-between gap-3 text-sm">

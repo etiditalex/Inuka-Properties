@@ -41,6 +41,8 @@ type PlotMapCanvasProps = {
   onDrawComplete?: (ring: Position[]) => void;
   clickMode?: "select" | "place";
   onMapClick?: (position: Position) => void;
+  onMarkerDrag?: (id: string, position: Position) => void;
+  onMarkerDragEnd?: (id: string, position: Position) => void;
   markers?: PlotMapMarker[];
   initialCenter?: Position | null;
   cooperativeGestures?: boolean;
@@ -184,7 +186,7 @@ const PlotMapCanvas = forwardRef<PlotMapHandle, PlotMapCanvasProps>(function Plo
       type: "FeatureCollection",
       features: (current.markers ?? []).map((marker) => ({
         type: "Feature",
-        properties: { label: marker.label },
+        properties: { id: marker.id, label: marker.label },
         geometry: { type: "Point", coordinates: project(marker.position, current.crs) },
       })),
     });
@@ -262,6 +264,8 @@ const PlotMapCanvas = forwardRef<PlotMapHandle, PlotMapCanvasProps>(function Plo
 
     let hovered: string | number | null = null;
     let dragging: number | null = null;
+    let draggingMarker: string | null = null;
+    let ignoreNextClick = false;
     let dragRing: Position[] | null = null;
 
     map.on("load", () => {
@@ -372,7 +376,17 @@ const PlotMapCanvas = forwardRef<PlotMapHandle, PlotMapCanvasProps>(function Plo
       sync(map);
       fitMap(map);
 
+    map.on("mouseenter", "marker-points", () => {
+      if (propsRef.current.onMarkerDrag) map.getCanvas().style.cursor = "grab";
+    });
+    map.on("mouseleave", "marker-points", () => {
+      if (draggingMarker == null) map.getCanvas().style.cursor = "";
+    });
     map.on("click", (event) => {
+      if (ignoreNextClick) {
+        ignoreNextClick = false;
+        return;
+      }
       const latest = propsRef.current;
       const position = unproject(event.lngLat.lng, event.lngLat.lat, latest.crs);
       if (latest.draw) {
@@ -425,13 +439,39 @@ const PlotMapCanvas = forwardRef<PlotMapHandle, PlotMapCanvasProps>(function Plo
       map.dragPan.disable();
       map.getCanvas().style.cursor = "grabbing";
     });
-    map.on("mousemove", (event) => {
-      if (dragging == null || !dragRing) return;
+    map.on("mousedown", "marker-points", (event) => {
       const latest = propsRef.current;
+      if (!latest.onMarkerDrag) return;
+      event.preventDefault();
+      const id = event.features?.[0]?.properties?.id;
+      if (!id) return;
+      draggingMarker = String(id);
+      ignoreNextClick = true;
+      map.dragPan.disable();
+      map.getCanvas().style.cursor = "grabbing";
+      latest.onMarkerDrag(draggingMarker, unproject(event.lngLat.lng, event.lngLat.lat, latest.crs));
+    });
+    map.on("mousemove", (event) => {
+      const latest = propsRef.current;
+      if (draggingMarker) {
+        latest.onMarkerDrag?.(draggingMarker, unproject(event.lngLat.lng, event.lngLat.lat, latest.crs));
+        return;
+      }
+      if (dragging == null || !dragRing) return;
       dragRing[dragging] = unproject(event.lngLat.lng, event.lngLat.lat, latest.crs);
       syncDuringDrag(map, dragRing, latest.selected, latest.crs, latest);
     });
-    map.on("mouseup", () => {
+    map.on("mouseup", (event) => {
+      if (draggingMarker) {
+        const latest = propsRef.current;
+        const id = draggingMarker;
+        const position = unproject(event.lngLat.lng, event.lngLat.lat, latest.crs);
+        draggingMarker = null;
+        map.dragPan.enable();
+        map.getCanvas().style.cursor = "";
+        latest.onMarkerDragEnd?.(id, position);
+        return;
+      }
       if (dragging == null || !dragRing) return;
       const latest = propsRef.current;
       const index = dragging;
