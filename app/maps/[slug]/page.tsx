@@ -5,6 +5,7 @@ import { loadPublishedPlotMap } from "@/lib/maps/repository";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 type PageProps = { params: { slug: string } };
 

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { loadPublishedPlotMapByProperty } from "@/lib/maps/repository";
 
 export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 export async function GET(_request: Request, { params }: { params: { id: string } }) {
   const propertyId = Number(params.id);

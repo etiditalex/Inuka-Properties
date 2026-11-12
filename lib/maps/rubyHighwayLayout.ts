@@ -1,5 +1,5 @@
 import { ensureCounterClockwise } from "@/lib/maps/geometry";
-import { projectSheet } from "@/lib/maps/publish";
+import { placedCornersMatch, projectSheet } from "@/lib/maps/publish";
 import type { ControlPoint, MapPlot, MapRoad, PlotMapDocument, Position } from "@/lib/maps/types";
 
 /**
@@ -199,9 +199,32 @@ function savedGround(grounds: Map<string, Position>, id: string): Position | nul
   return null;
 }
 
+/** Keep the saved satellite polygons when those corners already meet the clicks. */
+function withSavedDrawing(stored: PlotMapDocument): PlotMapDocument {
+  const sheet = rubyHighwayDocument();
+  const savedByNumber = new Map(stored.plots.map((plot) => [plot.plotNumber, plot]));
+  return {
+    ...stored,
+    plots: sheet.plots.map((plot) => {
+      const saved = savedByNumber.get(plot.plotNumber);
+      if (!saved) return plot;
+      return {
+        ...plot,
+        status: saved.status,
+        priceKes: saved.priceKes,
+        depositKes: saved.depositKes,
+        paymentPeriod: saved.paymentPeriod,
+        ring: saved.ring?.length ? saved.ring : plot.ring,
+        planRing: saved.planRing ?? plot.planRing,
+      };
+    }),
+  };
+}
+
 /** Keep saved prices, statuses, and clicked corners while replacing the sheet geometry. */
 export function refreshRubyHighwaySheet(stored: PlotMapDocument): PlotMapDocument {
   if (stored.slug !== "ruby-highway") return stored;
+  if (placedCornersMatch(stored)) return withSavedDrawing(stored);
   const sheet = rubyHighwayDocument();
   const previous = new Map(stored.plots.map((plot) => [plot.plotNumber, plot]));
   const grounds = new Map(stored.controlPoints.filter((point) => point.ground).map((point) => [point.id, point.ground!]));

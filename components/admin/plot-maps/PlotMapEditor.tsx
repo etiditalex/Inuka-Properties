@@ -50,6 +50,13 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
   const planRef = useRef<PlotMapHandle>(null);
   const satelliteRef = useRef<PlotMapHandle>(null);
   const beforeDrag = useRef<PlotMapDocument | null>(null);
+  const latestDoc = useRef(doc);
+  latestDoc.current = doc;
+
+  const remember = (next: PlotMapDocument) => {
+    latestDoc.current = next;
+    return next;
+  };
 
   const selected = doc.plots.find((plot) => plot.plotNumber === selectedId) ?? null;
   const placed = doc.controlPoints.filter((point) => point.ground);
@@ -85,6 +92,7 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
   const satelliteRoads = preview && "projected" in preview ? preview.projected.roads : doc.crs === "EPSG:4326" ? doc.roads : [];
 
   const commit = (next: PlotMapDocument) => {
+    latestDoc.current = next;
     setPast((items) => [...items, doc].slice(-40));
     setFuture([]);
     setDoc(next);
@@ -157,31 +165,35 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
 
   const placeCorner = (position: Position) => {
     if (!placingId) return;
-    commit({
-      ...doc,
-      transform: null,
-      controlPoints: doc.controlPoints.map((point) => (point.id === placingId ? { ...point, ground: position } : point)),
-    });
+    commit(
+      remember({
+        ...doc,
+        transform: null,
+        controlPoints: doc.controlPoints.map((point) => (point.id === placingId ? { ...point, ground: position } : point)),
+      })
+    );
     setPlacingId(null);
   };
 
   const moveCorner = (id: string, position: Position) => {
     setDoc((current) => {
       if (!beforeDrag.current) beforeDrag.current = current;
-      return {
+      return remember({
         ...current,
         transform: null,
         controlPoints: current.controlPoints.map((point) => (point.id === id ? { ...point, ground: position } : point)),
-      };
+      });
     });
   };
 
   const finishCorner = (id: string, position: Position) => {
-    setDoc((current) => ({
-      ...current,
-      transform: null,
-      controlPoints: current.controlPoints.map((point) => (point.id === id ? { ...point, ground: position } : point)),
-    }));
+    setDoc((current) =>
+      remember({
+        ...current,
+        transform: null,
+        controlPoints: current.controlPoints.map((point) => (point.id === id ? { ...point, ground: position } : point)),
+      })
+    );
     const origin = beforeDrag.current;
     if (!origin) return;
     beforeDrag.current = null;
@@ -225,40 +237,52 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
     setSaving(true);
     setError("");
     setNotice("");
-    let payload = { ...doc, plots: uniquePlots(doc.plots) };
+    const current = latestDoc.current;
+    let payload: PlotMapDocument = { ...current, plots: uniquePlots(current.plots) };
     if (preview && "projected" in preview) {
       payload = {
         ...preview.projected,
         plots: uniquePlots(preview.projected.plots),
-        published: doc.published,
-        alignmentStatus: doc.alignmentStatus,
-        notes: doc.notes,
+        controlPoints: current.controlPoints,
+        published: current.published,
+        alignmentStatus: current.alignmentStatus,
+        notes: current.notes,
       };
     }
     if (publishAlignment) payload = { ...payload, alignmentStatus: "verified" };
-    const response = await fetch(`/api/admin/plot-maps/${doc.slug}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...payload, confirmAlignment: publishAlignment }),
-    });
-    const body = (await response.json()) as { document?: PlotMapDocument; error?: string; migrationRequired?: boolean };
-    setSaving(false);
-    if (!response.ok || !body.document) {
-      setError(body.error ?? "The map was not saved.");
-      return;
+    try {
+      const response = await fetch(`/api/admin/plot-maps/${current.slug}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...payload, confirmAlignment: publishAlignment }),
+      });
+      const body = (await response.json()) as { document?: PlotMapDocument; error?: string; migrationRequired?: boolean };
+      setSaving(false);
+      if (!response.ok || !body.document) {
+        setError(body.error ?? "The map was not saved.");
+        return;
+      }
+      const saved = remember(body.document);
+      setDoc(saved);
+      if (saved.alignmentStatus === "verified") setPublishedCorners(cornerKey(saved));
+      setPast([]);
+      setFuture([]);
+      const missing = saved.controlPoints.filter((point) => !point.ground).map((point) => point.label);
+      setNotice(
+        saved.alignmentStatus !== "verified"
+          ? "Saved. The public map still uses the survey drawing until you confirm the ground corners."
+          : missing.length
+            ? `Saved the placed corners. These are still not on the public map: ${missing.join("; ")}.`
+            : "Saved. The public map is using these corners. Refresh the public page."
+      );
+    } catch {
+      setSaving(false);
+      setError("The save did not reach the server. Try again.");
     }
-    setDoc(body.document);
-    if (body.document.alignmentStatus === "verified") setPublishedCorners(cornerKey(body.document));
-    setPast([]);
-    setFuture([]);
-    setNotice(
-      body.document.alignmentStatus === "verified"
-        ? "Saved. The public map can draw these plots on the satellite image."
-        : "Saved. The public map still uses the survey drawing until you confirm the ground corners."
-    );
   };
 
   const cornersAreLive = doc.alignmentStatus === "verified" && placed.length >= 2 && cornerKey(doc) === publishedCorners;
+  const unplaced = doc.controlPoints.filter((point) => !point.ground);
   const markers = doc.controlPoints.flatMap((point) => {
     const position = point.ground ?? (previewTransform ? applyGround(previewTransform, [point.plan])[0] : null);
     return position ? [{ id: point.id, position, label: point.label }] : [];
@@ -273,7 +297,9 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
           </Link>
           <h2 className="font-montserrat text-2xl font-bold text-dark-900">{doc.projectName}</h2>
           <p className="text-sm text-dark-600">
-            {cornersAreLive
+            {unplaced.length
+              ? `${unplaced.map((point) => point.label).join("; ")} ${unplaced.length === 1 ? "is" : "are"} not saved yet. Drag ${unplaced.length === 1 ? "that corner" : "those corners"} until each says Placed, then click Save and publish.`
+              : cornersAreLive
               ? "These corners are on the public satellite map."
               : previewTransform
                 ? "This satellite view is a preview. Save to publish these corners."

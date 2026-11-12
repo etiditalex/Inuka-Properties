@@ -26,6 +26,23 @@ function asDocument(value: unknown): PlotMapDocument | null {
   return refreshRubyHighwaySheet(document);
 }
 
+async function readRawDocument(slug: string): Promise<PlotMapDocument | null> {
+  const supabase = createServiceClient();
+  if (!supabase) return null;
+  const { data, error } = await supabase.from("plot_maps").select("document").eq("slug", slug).maybeSingle();
+  if (error || !data?.document) return null;
+  return data.document as PlotMapDocument;
+}
+
+function cornersWereStored(sent: PlotMapDocument, stored: PlotMapDocument): boolean {
+  return sent.controlPoints.every((point) => {
+    if (!point.ground) return true;
+    const saved = stored.controlPoints?.find((item) => item.id === point.id);
+    if (!saved?.ground) return false;
+    return Math.hypot(saved.ground[0] - point.ground[0], saved.ground[1] - point.ground[1]) < 0.000002;
+  });
+}
+
 async function readDatabaseDocument(slug: string): Promise<PlotMapDocument | null> {
   const supabase = createServiceClient();
   if (!supabase) return null;
@@ -147,36 +164,58 @@ export async function savePlotMap(
 
   const payload = { ...document, actorId };
   const rpc = await supabase.rpc("save_plot_map", { payload });
-  if (!rpc.error) return { document };
-
-  if (!isMissingSchema(rpc.error.message, rpc.error.code)) {
+  if (rpc.error && !isMissingSchema(rpc.error.message, rpc.error.code)) {
     return { error: rpc.error.message, status: 500 };
   }
 
-  const upsert = await supabase.from("plot_maps").upsert(
-    {
-      slug: document.slug,
-      property_id: document.propertyId,
-      project_name: document.projectName,
-      location: document.location,
-      survey_ref: document.surveyRef,
-      alignment_status: document.alignmentStatus,
-      crs: document.crs,
-      published: document.published,
-      document,
-      updated_at: document.updatedAt,
-    },
-    { onConflict: "slug" }
-  );
-  if (!upsert.error) return { document };
-  if (isMissingSchema(upsert.error.message, upsert.error.code)) {
+  if (rpc.error) {
+    const upsert = await supabase.from("plot_maps").upsert(
+      {
+        slug: document.slug,
+        property_id: document.propertyId,
+        project_name: document.projectName,
+        location: document.location,
+        survey_ref: document.surveyRef,
+        alignment_status: document.alignmentStatus,
+        crs: document.crs,
+        published: document.published,
+        document,
+        updated_at: document.updatedAt,
+      },
+      { onConflict: "slug" }
+    );
+    if (upsert.error && isMissingSchema(upsert.error.message, upsert.error.code)) {
+      return {
+        error: "Run supabase/migrations/plot_maps.sql in the Supabase SQL editor, then save again.",
+        migrationRequired: true,
+        status: 503,
+      };
+    }
+    if (upsert.error) return { error: upsert.error.message, status: 500 };
+  }
+
+  let stored = await readRawDocument(document.slug);
+  if (!stored || !cornersWereStored(document, stored)) {
+    const update = await supabase
+      .from("plot_maps")
+      .update({
+        document,
+        alignment_status: document.alignmentStatus,
+        crs: document.crs,
+        published: document.published,
+        updated_at: document.updatedAt,
+      })
+      .eq("slug", document.slug);
+    if (update.error) return { error: update.error.message, status: 500 };
+    stored = await readRawDocument(document.slug);
+  }
+  if (!stored || !cornersWereStored(document, stored)) {
     return {
-      error: "Run supabase/migrations/plot_maps.sql in the Supabase SQL editor, then save again.",
-      migrationRequired: true,
-      status: 503,
+      error: "The save did not keep the corners you placed. Save again.",
+      status: 500,
     };
   }
-  return { error: upsert.error.message, status: 500 };
+  return { document: stored };
 }
 
 export function blankPlotMap(input: { propertyId: number; projectName: string; location: string }): PlotMapDocument {

@@ -4,6 +4,7 @@ import { loadAdminPlotMap, savePlotMap } from "@/lib/maps/repository";
 import type { PlotMapDocument } from "@/lib/maps/types";
 
 export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 export async function GET(_request: Request, { params }: { params: { slug: string } }) {
   const auth = await requireAdmin();
