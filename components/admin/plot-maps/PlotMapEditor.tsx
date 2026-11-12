@@ -111,9 +111,14 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
   };
 
   const updatePlot = (plotNumber: string, patch: Partial<MapPlot>) => {
+    let changed = false;
     commit({
       ...doc,
-      plots: doc.plots.map((plot) => (plot.plotNumber === plotNumber ? { ...plot, ...patch } : plot)),
+      plots: doc.plots.map((plot) => {
+        if (changed || plot.plotNumber !== plotNumber) return plot;
+        changed = true;
+        return { ...plot, ...patch };
+      }),
     });
   };
 
@@ -472,16 +477,20 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
           {selected ? (
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               <label className="text-sm">
-                Number
-                <input
+                Plot
+                <select
                   value={selected.plotNumber}
-                  onChange={(event) => {
-                    const plotNumber = event.target.value;
-                    updatePlot(selected.plotNumber, { plotNumber });
-                    setSelectedId(plotNumber);
-                  }}
+                  onChange={(event) => setSelectedId(event.target.value)}
                   className="mt-1 w-full rounded-lg border border-dark-200 px-3 py-2"
-                />
+                >
+                  {[...doc.plots]
+                    .sort((a, b) => Number(a.plotNumber) - Number(b.plotNumber) || a.plotNumber.localeCompare(b.plotNumber))
+                    .map((plot) => (
+                      <option key={plot.plotNumber} value={plot.plotNumber}>
+                        Plot {plot.plotNumber}
+                      </option>
+                    ))}
+                </select>
               </label>
               <label className="text-sm">
                 Status
