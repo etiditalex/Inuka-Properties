@@ -2,17 +2,35 @@ import { applyGround, fitControlPoints, residualMetres } from "@/lib/maps/georef
 import { findOverlaps } from "@/lib/maps/geometry";
 import type { PlotMapDocument, Position } from "@/lib/maps/types";
 
+/** Keep the first plot for each number. Extra copies of the same number cannot be saved. */
+export function uniquePlots<T extends { plotNumber: string }>(plots: T[]): T[] {
+  const seen = new Set<string>();
+  const unique: T[] = [];
+  plots.forEach((plot) => {
+    const number = String(plot.plotNumber ?? "").trim();
+    if (!number || seen.has(number)) return;
+    seen.add(number);
+    unique.push(number === plot.plotNumber ? plot : { ...plot, plotNumber: number });
+  });
+  return unique;
+}
+
 export function validatePlotMap(document: PlotMapDocument): string[] {
   const errors: string[] = [];
   if (!document.slug.trim()) errors.push("The map needs a name.");
   if (!document.propertyId) errors.push("Choose the land listing this map belongs to.");
   if (!document.projectName.trim()) errors.push("The project needs a name.");
-  const seen = new Set<string>();
+  const counts = new Map<string, number>();
   document.plots.forEach((plot) => {
-    const number = plot.plotNumber.trim();
-    if (!number) errors.push("Every plot needs a number.");
-    if (seen.has(number)) errors.push(`Plot ${number} is used more than once.`);
-    seen.add(number);
+    const number = String(plot.plotNumber ?? "").trim();
+    if (!number) {
+      errors.push("Every plot needs a number.");
+      return;
+    }
+    counts.set(number, (counts.get(number) ?? 0) + 1);
+  });
+  counts.forEach((count, number) => {
+    if (count > 1) errors.push(`Plot ${number} is used more than once.`);
   });
   errors.push(
     ...findOverlaps(
@@ -49,7 +67,7 @@ export function projectSheet(document: PlotMapDocument): PlotMapDocument | null 
     ...document,
     crs: "EPSG:4326",
     transform: fit,
-    plots: document.plots.map((plot) => {
+    plots: uniquePlots(document.plots).map((plot) => {
       const source = sheetRing(plot.planRing, plot.ring, document.crs);
       if (!source) return plot;
       return { ...plot, planRing: source, ring: applyGround(fit, source) };

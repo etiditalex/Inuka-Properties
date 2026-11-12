@@ -1,5 +1,5 @@
 import { createServiceClient } from "@/lib/supabase/service";
-import { bakeAlignment, validatePlotMap } from "@/lib/maps/publish";
+import { bakeAlignment, uniquePlots, validatePlotMap } from "@/lib/maps/publish";
 import { refreshRubyHighwaySheet } from "@/lib/maps/rubyHighwayLayout";
 import { getPlotMapSeed, getPlotMapSeedByProperty, listPlotMapSeeds, slugifyProjectName } from "@/lib/maps/registry";
 import type { PlotMapDocument, PlotMapSummary } from "@/lib/maps/types";
@@ -117,7 +117,7 @@ export async function savePlotMap(
   actorId: string,
   confirmAlignment: boolean
 ): Promise<{ document: PlotMapDocument } | { error: string; migrationRequired?: boolean; status: number }> {
-  let document = incoming;
+  let document = { ...incoming, plots: uniquePlots(incoming.plots) };
   const placedCorners = document.controlPoints.filter((point) => point.ground).length;
   const updatePublicAlignment = confirmAlignment || (document.published && placedCorners >= 2);
   if (updatePublicAlignment) {

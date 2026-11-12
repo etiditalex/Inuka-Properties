@@ -9,7 +9,7 @@ import { formatKes, PLOT_STYLE, statusLabel } from "@/lib/maps/colors";
 import { findOverlaps, ringArea } from "@/lib/maps/geometry";
 import { applyGround, residualMetres, toEnu } from "@/lib/maps/georef";
 import { parseGeoJson, parseKml } from "@/lib/maps/parseImport";
-import { projectSheet } from "@/lib/maps/publish";
+import { projectSheet, uniquePlots } from "@/lib/maps/publish";
 import type { GroundFit, MapPlot, PlotMapDocument, PlotStatus, Position } from "@/lib/maps/types";
 
 type AlignmentPreview =
@@ -32,7 +32,7 @@ function areaOf(ring: Position[], geographic: boolean): number {
 }
 
 export default function PlotMapEditor({ initial }: { initial: PlotMapDocument }) {
-  const [doc, setDoc] = useState(initial);
+  const [doc, setDoc] = useState(() => ({ ...initial, plots: uniquePlots(initial.plots) }));
   const [past, setPast] = useState<PlotMapDocument[]>([]);
   const [future, setFuture] = useState<PlotMapDocument[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(doc.plots[0]?.plotNumber ?? null);
@@ -220,10 +220,11 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
     setSaving(true);
     setError("");
     setNotice("");
-    let payload = doc;
+    let payload = { ...doc, plots: uniquePlots(doc.plots) };
     if (preview && "projected" in preview) {
       payload = {
         ...preview.projected,
+        plots: uniquePlots(preview.projected.plots),
         published: doc.published,
         alignmentStatus: doc.alignmentStatus,
         notes: doc.notes,
