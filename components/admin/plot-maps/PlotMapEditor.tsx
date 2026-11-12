@@ -20,6 +20,12 @@ const PlotMapCanvas = dynamic(() => import("@/components/maps/PlotMapCanvas"), {
 
 const STATUSES: PlotStatus[] = ["available", "reserved", "sold", "on_hold"];
 
+function cornerKey(document: PlotMapDocument): string {
+  return document.controlPoints
+    .map((point) => `${point.id}:${point.ground ? `${point.ground[0]},${point.ground[1]}` : ""}`)
+    .join("|");
+}
+
 function areaOf(ring: Position[], geographic: boolean): number {
   const metres = geographic ? ring.map((point) => toEnu(point, ring[0])) : ring;
   return Math.round(ringArea(metres) * 10) / 10;
@@ -38,6 +44,9 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
   const [overlaps, setOverlaps] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [confirmAlignment, setConfirmAlignment] = useState(false);
+  const [publishedCorners, setPublishedCorners] = useState(() =>
+    initial.alignmentStatus === "verified" ? cornerKey(initial) : ""
+  );
   const planRef = useRef<PlotMapHandle>(null);
   const satelliteRef = useRef<PlotMapHandle>(null);
 
@@ -148,7 +157,6 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
       controlPoints: doc.controlPoints.map((point) => (point.id === placingId ? { ...point, ground: position } : point)),
     });
     setPlacingId(null);
-    setConfirmAlignment(false);
   };
 
   const importFile = async (file: File) => {
@@ -202,6 +210,7 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
       return;
     }
     setDoc(body.document);
+    if (body.document.alignmentStatus === "verified") setPublishedCorners(cornerKey(body.document));
     setPast([]);
     setFuture([]);
     setNotice(
@@ -211,6 +220,7 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
     );
   };
 
+  const cornersAreLive = doc.alignmentStatus === "verified" && placed.length >= 2 && cornerKey(doc) === publishedCorners;
   const markers = doc.controlPoints.flatMap((point) =>
     point.ground ? [{ id: point.id, position: point.ground, label: point.label }] : []
   );
@@ -224,11 +234,13 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
           </Link>
           <h2 className="font-montserrat text-2xl font-bold text-dark-900">{doc.projectName}</h2>
           <p className="text-sm text-dark-600">
-            {doc.alignmentStatus === "verified"
-              ? "Ground corners are confirmed."
-              : doc.alignmentStatus === "draft"
-                ? "Draft alignment. It is not on the public satellite map."
-                : "Ground position is not set."}
+            {cornersAreLive
+              ? "These corners are on the public satellite map."
+              : previewTransform
+                ? "This satellite view is a preview. Save to publish these corners."
+                : doc.alignmentStatus === "draft"
+                  ? "Draft alignment. It is not on the public satellite map."
+                  : "Ground position is not set."}
             {doc.surveyRef ? ` ${doc.surveyRef}.` : ""}
           </p>
         </div>
@@ -243,7 +255,7 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
             Check overlaps
           </button>
           <button type="button" onClick={() => save(false)} disabled={saving} className="rounded-lg bg-dark-900 px-3 py-2 text-sm font-semibold text-white">
-            {saving ? "Saving…" : "Save"}
+            {saving ? "Saving…" : !cornersAreLive && doc.published && placed.length >= 2 ? "Save and publish" : "Save"}
           </button>
         </div>
       </div>
@@ -333,7 +345,7 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
         ) : null}
         <section className="overflow-hidden rounded-xl border border-dark-200">
           <div className="border-b border-dark-200 px-3 py-2 text-sm font-semibold text-dark-800">
-            {previewTransform ? "Satellite preview, not published" : "Satellite"}
+            {cornersAreLive ? "Published on the satellite map" : previewTransform ? "Satellite preview. Save to publish." : "Satellite"}
           </div>
           <div className="h-[480px]">
             <PlotMapCanvas

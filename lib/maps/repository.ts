@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { bakeAlignment, validatePlotMap } from "@/lib/maps/publish";
+import { refreshRubyHighwaySheet } from "@/lib/maps/rubyHighwayLayout";
 import { getPlotMapSeed, getPlotMapSeedByProperty, listPlotMapSeeds, slugifyProjectName } from "@/lib/maps/registry";
 import type { PlotMapDocument, PlotMapSummary } from "@/lib/maps/types";
 
@@ -22,7 +23,7 @@ function asDocument(value: unknown): PlotMapDocument | null {
   if (!value || typeof value !== "object") return null;
   const document = value as PlotMapDocument;
   if (!document.slug || !Array.isArray(document.plots)) return null;
-  return document;
+  return refreshRubyHighwaySheet(document);
 }
 
 async function readDatabaseDocument(slug: string): Promise<PlotMapDocument | null> {

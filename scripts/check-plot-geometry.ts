@@ -36,9 +36,18 @@ doc.plots.forEach((plot) => {
 
 const roads = doc.roads.filter((road) => road.widthSource === "scaled");
 const bofa = doc.roads.find((road) => road.widthSource === "printed");
-if (roads.length !== 5) mismatches.push(`expected 5 access roads, got ${roads.length}`);
+if (roads.length !== 3) mismatches.push(`expected 3 access roads, got ${roads.length}`);
 if (!bofa || bofa.widthM !== 15) mismatches.push("the 15 m Bofa Beach road is missing");
-if (Math.abs(ringArea(bofa?.ring ?? []) - 15 * (5 * (32.1 + 9.5) + 32.1)) > 1) mismatches.push("Bofa road area");
+if (Math.abs(ringArea(bofa?.ring ?? []) - 15 * (6 * 32.1 + 3 * 9.5)) > 1) mismatches.push("Bofa road area");
+const roadFront = ["9", "18", "27", "34", "45", "46"];
+roadFront.forEach((number) => {
+  const plot = doc.plots.find((item) => item.plotNumber === number);
+  if (!plot || plot.ring.length !== 5) mismatches.push(`plot ${number} should front Bofa Beach`);
+});
+const farEnd = doc.plots.find((plot) => plot.plotNumber === "54");
+const plot46 = doc.plots.find((plot) => plot.plotNumber === "46");
+if (!farEnd || farEnd.ring.some((point) => point[1] < 100)) mismatches.push("plot 54 is not at the far end");
+if (!plot46 || plot46.ring.every((point) => point[1] > 20)) mismatches.push("plot 46 is not on the Bofa road");
 
 const [a, b, c, d] = doc.controlPoints;
 const groundA: [number, number] = [39.87, -3.57];
