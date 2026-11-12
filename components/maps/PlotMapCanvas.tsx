@@ -17,6 +17,14 @@ import { closeRing, nearestOtherVertex, openRing } from "@/lib/maps/geometry";
 import { displayToMetres, metresToDisplay } from "@/lib/maps/georef";
 import type { MapCrs, MapPlot, MapRoad, PlotStatus, Position } from "@/lib/maps/types";
 
+function plotProperties(plot: MapPlot) {
+  return {
+    plotNumber: plot.plotNumber,
+    status: plot.status,
+    areaLabel: `${plot.areaM2.toFixed(2)} m²`,
+  };
+}
+
 export type PlotMapMarker = { id: string; position: Position; label: string };
 
 export type PlotMapHandle = {
@@ -51,31 +59,6 @@ type PlotMapCanvasProps = {
 
 function project(position: Position, crs: MapCrs): [number, number] {
   return crs === "EPSG:4326" ? position : metresToDisplay(position[0], position[1]);
-}
-
-/** Short diagonal marks at the boundary corners, so the ground inside each plot stays visible. */
-function cornerTicks(ring: Position[], crs: MapCrs) {
-  const open = openRing(ring);
-  if (open.length < 3) return [];
-  const metres = 6;
-  return open.flatMap((point) => {
-    const east = crs === "EPSG:4326" ? metres / (111320 * Math.cos((point[1] * Math.PI) / 180)) : metres;
-    const north = crs === "EPSG:4326" ? metres / 110540 : metres;
-    const here = project(point, crs);
-    const diagonal = (x: number, y: number): [number, number] => project([point[0] + x, point[1] + y], crs);
-    return [
-      {
-        type: "Feature" as const,
-        properties: {},
-        geometry: { type: "LineString" as const, coordinates: [diagonal(-east, -north), here, diagonal(east, north)] },
-      },
-      {
-        type: "Feature" as const,
-        properties: {},
-        geometry: { type: "LineString" as const, coordinates: [diagonal(-east, north), here, diagonal(east, -north)] },
-      },
-    ];
-  });
 }
 
 function unproject(lng: number, lat: number, crs: MapCrs): Position {
@@ -164,7 +147,7 @@ const PlotMapCanvas = forwardRef<PlotMapHandle, PlotMapCanvasProps>(function Plo
       features: plots.map((plot) => ({
         type: "Feature",
         id: plot.plotNumber,
-        properties: { plotNumber: plot.plotNumber, status: plot.status },
+        properties: plotProperties(plot),
         geometry: asPolygon(plot.ring, current.crs),
       })),
     });
@@ -173,16 +156,10 @@ const PlotMapCanvas = forwardRef<PlotMapHandle, PlotMapCanvasProps>(function Plo
       type: "FeatureCollection",
       features: current.roads.map((road) => ({
         type: "Feature",
-        properties: { name: road.name },
+        properties: { name: road.name, widthSource: road.widthSource },
         geometry: asPolygon(road.ring, current.crs),
       })),
     });
-    const tickSource = map.getSource("corner-ticks") as GeoJSONSource | undefined;
-    tickSource?.setData(
-      current.satellite && current.boundary
-        ? { type: "FeatureCollection", features: cornerTicks(current.boundary, current.crs) }
-        : emptyCollection()
-    );
     const boundarySource = map.getSource("boundary") as GeoJSONSource | undefined;
     boundarySource?.setData(
       current.boundary
@@ -306,7 +283,6 @@ const PlotMapCanvas = forwardRef<PlotMapHandle, PlotMapCanvasProps>(function Plo
       map.addSource("vertices", { type: "geojson", data: emptyCollection() });
       map.addSource("markers", { type: "geojson", data: emptyCollection() });
       map.addSource("draft", { type: "geojson", data: emptyCollection() });
-      map.addSource("corner-ticks", { type: "geojson", data: emptyCollection() });
       map.addLayer({
         id: "roads-fill",
         type: "fill",
@@ -355,9 +331,21 @@ const PlotMapCanvas = forwardRef<PlotMapHandle, PlotMapCanvasProps>(function Plo
         },
       });
       map.addLayer({
+        id: "plots-casing",
+        type: "line",
+        source: "plots",
+        layout: { "line-join": "miter", "line-cap": "butt" },
+        paint: {
+          "line-color": "#ffffff",
+          "line-width": current.satellite ? 3.4 : 0,
+          "line-opacity": current.satellite ? 0.95 : 0,
+        },
+      });
+      map.addLayer({
         id: "plots-line",
         type: "line",
         source: "plots",
+        layout: { "line-join": "miter", "line-cap": "butt" },
         paint: {
           "line-color": current.satellite
             ? [
@@ -382,10 +370,10 @@ const PlotMapCanvas = forwardRef<PlotMapHandle, PlotMapCanvasProps>(function Plo
           "line-width": [
             "case",
             ["boolean", ["feature-state", "selected"], false],
-            3.2,
+            2.2,
             ["boolean", ["feature-state", "hover"], false],
-            2.4,
-            1.5,
+            1.8,
+            1.25,
           ],
         },
       });
@@ -395,15 +383,9 @@ const PlotMapCanvas = forwardRef<PlotMapHandle, PlotMapCanvasProps>(function Plo
         source: "boundary",
         paint: {
           "line-color": "#111827",
-          "line-width": current.satellite ? 2.4 : 2,
-          "line-dasharray": current.satellite ? [1.2, 0.8] : [2, 1.2],
+          "line-width": current.satellite ? 0 : 1.5,
+          "line-dasharray": [2, 1.2],
         },
-      });
-      map.addLayer({
-        id: "corner-ticks",
-        type: "line",
-        source: "corner-ticks",
-        paint: { "line-color": "#111827", "line-width": 2 },
       });
       map.addLayer({
         id: "draft-line",
@@ -418,10 +400,40 @@ const PlotMapCanvas = forwardRef<PlotMapHandle, PlotMapCanvasProps>(function Plo
         layout: {
           "text-field": ["get", "plotNumber"],
           "text-font": ["Open Sans Bold"],
-          "text-size": ["interpolate", ["linear"], ["zoom"], 14, 0, 16, 11, 19, 15],
+          "text-size": ["interpolate", ["linear"], ["zoom"], 15, 11, 17, 15, 19, 20],
           "text-allow-overlap": true,
+          "text-ignore-placement": true,
         },
-        paint: { "text-color": "#ffffff", "text-halo-color": "#1a1a1a", "text-halo-width": 1.15 },
+        paint: { "text-color": "#111827", "text-halo-color": "#ffffff", "text-halo-width": 1.6 },
+      });
+      map.addLayer({
+        id: "area-labels",
+        type: "symbol",
+        source: "plots",
+        minzoom: 17.4,
+        layout: {
+          "text-field": ["get", "areaLabel"],
+          "text-font": ["Open Sans Bold"],
+          "text-size": ["interpolate", ["linear"], ["zoom"], 17.4, 8, 19, 12],
+          "text-offset": [0, 1.05],
+          "text-allow-overlap": true,
+          "text-ignore-placement": true,
+        },
+        paint: { "text-color": "#1f2937", "text-halo-color": "#ffffff", "text-halo-width": 1.4 },
+      });
+      map.addLayer({
+        id: "road-labels",
+        type: "symbol",
+        source: "roads",
+        minzoom: 16,
+        filter: ["==", ["get", "widthSource"], "printed"],
+        layout: {
+          "text-field": ["get", "name"],
+          "text-font": ["Open Sans Bold"],
+          "text-size": 12,
+          "text-letter-spacing": 0.04,
+        },
+        paint: { "text-color": "#3f3a34", "text-halo-color": "#ffffff", "text-halo-width": 1.5 },
       });
       map.addLayer({
         id: "vertices",
@@ -607,7 +619,7 @@ function syncDuringDrag(
       .map((plot) => ({
         type: "Feature" as const,
         id: plot.plotNumber,
-        properties: { plotNumber: plot.plotNumber, status: plot.status },
+        properties: plotProperties(plot),
         geometry: asPolygon(plot.plotNumber === plotNumber ? ring : plot.ring, crs),
       })),
   });

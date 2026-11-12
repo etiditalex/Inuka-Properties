@@ -1,4 +1,4 @@
-import { ensureCounterClockwise, ringArea } from "@/lib/maps/geometry";
+import { ensureCounterClockwise } from "@/lib/maps/geometry";
 import { projectSheet } from "@/lib/maps/publish";
 import type { ControlPoint, MapPlot, MapRoad, PlotMapDocument, Position } from "@/lib/maps/types";
 
@@ -79,6 +79,13 @@ function roadFrontRing(x: number): Position[] {
   ]);
 }
 
+/** Area from the printed sides. The corner cut is a 3 m by 3 m right angle. */
+function printedArea(roadFront: boolean): number {
+  const rectangle = FRONT_M * DEPTH_M;
+  const area = roadFront ? rectangle - (CORNER_CUT_M * CORNER_CUT_M) / 2 : rectangle;
+  return Math.round(area * 100) / 100;
+}
+
 function buildPlots(): MapPlot[] {
   const plots: MapPlot[] = [];
   COLUMNS_FROM_FAR.forEach((numbers, column) => {
@@ -87,10 +94,11 @@ function buildPlots(): MapPlot[] {
       const rowFromRoad = ROWS - 1 - indexFromFar;
       const roadFront = rowFromRoad === 0;
       const ring = roadFront ? roadFrontRing(x) : standardRing(x, rowFromRoad * FRONT_M);
+      const areaM2 = printedArea(roadFront);
       plots.push({
         plotNumber,
         status: "available",
-        areaM2: Math.round(ringArea(ring) * 10) / 10,
+        areaM2,
         frontageM: roadFront ? null : FRONT_M,
         depthM: roadFront ? null : DEPTH_M,
         priceKes: PRICE_KES,
@@ -99,8 +107,8 @@ function buildPlots(): MapPlot[] {
         ring,
         planRing: ring,
         dimensionNote: roadFront
-          ? "Fronts the road to Bofa Beach. The sheet prints 11.2 m and 29.1 m on that corner, 3 m shorter than the 14.2 m by 32.1 m plots."
-          : "Printed sides 14.2 m by 32.1 m. The legend states about 0.0453 ha.",
+          ? `Fronts the road to Bofa Beach. The sheet prints 14.2 m by 32.1 m, with that corner cut to 11.2 m and 29.1 m. Area ${areaM2.toFixed(2)} m².`
+          : `Printed sides 14.2 m by 32.1 m. Area ${areaM2.toFixed(2)} m². The legend rounds this to about 0.0453 ha.`,
       });
     });
   });

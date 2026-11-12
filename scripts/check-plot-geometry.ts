@@ -18,11 +18,12 @@ const clipped = doc.plots.filter((plot) => plot.frontageM == null);
 if (standard.length !== 48) mismatches.push(`expected 48 standard plots, got ${standard.length}`);
 if (clipped.length !== 6) mismatches.push(`expected 6 road-front plots, got ${clipped.length}`);
 standard.forEach((plot) => {
-  if (Math.abs(plot.areaM2 - 14.2 * 32.1) > 0.2) mismatches.push(`plot ${plot.plotNumber} area ${plot.areaM2}`);
+  if (plot.areaM2 !== 455.82) mismatches.push(`plot ${plot.plotNumber} area ${plot.areaM2}`);
+  if (Math.abs(ringArea(plot.ring) - 455.82) > 0.05) mismatches.push(`plot ${plot.plotNumber} ring does not match 14.2 m by 32.1 m`);
 });
 clipped.forEach((plot) => {
-  const cut = 14.2 * 32.1 - 4.5;
-  if (Math.abs(plot.areaM2 - cut) > 0.2) mismatches.push(`plot ${plot.plotNumber} clipped area ${plot.areaM2}`);
+  if (plot.areaM2 !== 451.32) mismatches.push(`plot ${plot.plotNumber} clipped area ${plot.areaM2}`);
+  if (Math.abs(ringArea(plot.ring) - 451.32) > 0.05) mismatches.push(`plot ${plot.plotNumber} ring does not match the 11.2 m and 29.1 m corner`);
   if (plot.ring.length !== 5) mismatches.push(`plot ${plot.plotNumber} is not the clipped corner`);
 });
 
