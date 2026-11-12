@@ -1,4 +1,5 @@
 import { ensureCounterClockwise, ringArea } from "@/lib/maps/geometry";
+import { projectSheet } from "@/lib/maps/publish";
 import type { ControlPoint, MapPlot, MapRoad, PlotMapDocument, Position } from "@/lib/maps/types";
 
 /**
@@ -182,13 +183,21 @@ function buildControlPoints(): ControlPoint[] {
   ];
 }
 
+function savedGround(grounds: Map<string, Position>, id: string): Position | null {
+  const direct = grounds.get(id);
+  if (direct) return direct;
+  if (id === "p54-far") return grounds.get("p46-far") ?? null;
+  if (id === "p46-road") return grounds.get("p54-road") ?? null;
+  return null;
+}
+
 /** Keep saved prices, statuses, and clicked corners while replacing the sheet geometry. */
 export function refreshRubyHighwaySheet(stored: PlotMapDocument): PlotMapDocument {
   if (stored.slug !== "ruby-highway") return stored;
   const sheet = rubyHighwayDocument();
   const previous = new Map(stored.plots.map((plot) => [plot.plotNumber, plot]));
   const grounds = new Map(stored.controlPoints.filter((point) => point.ground).map((point) => [point.id, point.ground!]));
-  return {
+  const merged: PlotMapDocument = {
     ...sheet,
     published: stored.published,
     alignmentStatus: stored.alignmentStatus,
@@ -207,13 +216,23 @@ export function refreshRubyHighwaySheet(stored: PlotMapDocument): PlotMapDocumen
     }),
     controlPoints: sheet.controlPoints.map((point) => ({
       ...point,
-      ground:
-        grounds.get(point.id) ??
-        (point.id === "p54-far" ? grounds.get("p46-far") : null) ??
-        (point.id === "p46-road" ? grounds.get("p54-road") : null) ??
-        null,
+      ground: savedGround(grounds, point.id),
     })),
   };
+  if (merged.controlPoints.filter((point) => point.ground).length < 2) return merged;
+  try {
+    const projected = projectSheet(merged);
+    if (!projected) return merged;
+    return {
+      ...projected,
+      published: stored.published,
+      alignmentStatus: stored.alignmentStatus,
+      updatedAt: stored.updatedAt,
+      cameraHint: stored.cameraHint ?? sheet.cameraHint,
+    };
+  } catch {
+    return merged;
+  }
 }
 
 export function rubyHighwayDocument(): PlotMapDocument {

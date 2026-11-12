@@ -196,7 +196,14 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
     setError("");
     setNotice("");
     let payload = doc;
-    if (previewTransform) payload = { ...doc, transform: previewTransform };
+    if (preview && "projected" in preview) {
+      payload = {
+        ...preview.projected,
+        published: doc.published,
+        alignmentStatus: doc.alignmentStatus,
+        notes: doc.notes,
+      };
+    }
     if (publishAlignment) payload = { ...payload, alignmentStatus: "verified" };
     const response = await fetch(`/api/admin/plot-maps/${doc.slug}`, {
       method: "PUT",

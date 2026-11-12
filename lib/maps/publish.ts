@@ -27,7 +27,19 @@ function sheetRing(plan: Position[] | null, ring: Position[], crs: PlotMapDocume
   return plan ?? (crs === "local-metres" ? ring : null);
 }
 
-/** Stretch the sheet so every placed corner lands on the satellite point. */
+/** True when the stored polygons already meet every clicked corner. */
+export function placedCornersMatch(document: PlotMapDocument, limitMetres = 1): boolean {
+  if (document.crs !== "EPSG:4326" || !document.transform) return false;
+  const placed = document.controlPoints.filter((point) => point.ground);
+  if (placed.length < 2) return false;
+  return placed.every((point) => residualMetres(document.transform!, point.plan, point.ground!) <= limitMetres);
+}
+
+/**
+ * Stretch the sheet so every placed corner lands on the satellite point.
+ * Two corners keep one scale. Four corners fill the quadrilateral, so the
+ * plotted block runs to each click instead of stopping short of it.
+ */
 export function projectSheet(document: PlotMapDocument): PlotMapDocument | null {
   const placed = document.controlPoints.filter((point) => point.ground);
   if (placed.length < 2) return null;

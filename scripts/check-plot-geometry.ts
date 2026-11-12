@@ -1,5 +1,6 @@
 import { findOverlaps, ringArea, ringSelfIntersects } from "../lib/maps/geometry";
 import { applyGround, fitControlPoints, residualMetres, similarityFromControl } from "../lib/maps/georef";
+import { projectSheet } from "../lib/maps/publish";
 import { rubyHighwayDocument } from "../lib/maps/rubyHighwayLayout";
 
 const doc = rubyHighwayDocument();
@@ -70,6 +71,19 @@ const fitted = fitControlPoints(doc.controlPoints.map((point, index) => ({ plan:
 doc.controlPoints.forEach((point, index) => {
   if (residualMetres(fitted, point.plan, grounds[index]) > 0.05) mismatches.push(`${point.id} missed its placed point`);
 });
+const projected = projectSheet({
+  ...doc,
+  controlPoints: doc.controlPoints.map((point, index) => ({ ...point, ground: grounds[index] })),
+});
+if (!projected?.transform) mismatches.push("the sheet did not project onto the four corners");
+doc.controlPoints.forEach((point, index) => {
+  if (!projected?.transform || residualMetres(projected.transform, point.plan, grounds[index]) > 0.05) {
+    mismatches.push(`${point.id} is off the public coverage`);
+  }
+});
+const plot1 = projected?.plots.find((plot) => plot.plotNumber === "1");
+const plot1Corner = plot1?.ring && residualMetres(projected!.transform!, [0, 9 * 14.2], grounds[1]);
+if (plot1Corner === undefined || plot1Corner > 0.05) mismatches.push("plot 1 does not reach its corner");
 if (!d) mismatches.push("fourth corner missing");
 
 if (mismatches.length) {

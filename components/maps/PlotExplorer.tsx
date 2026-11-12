@@ -5,7 +5,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { formatKes, PLOT_STYLE, statusLabel } from "@/lib/maps/colors";
 import type { PlotMapHandle } from "@/components/maps/PlotMapCanvas";
-import { projectSheet } from "@/lib/maps/publish";
+import { placedCornersMatch, projectSheet } from "@/lib/maps/publish";
 import type { MapPlot, PlotMapDocument, PlotStatus } from "@/lib/maps/types";
 import { whatsAppUrl } from "@/lib/whatsapp";
 
@@ -54,15 +54,17 @@ export default function PlotExplorer({ initial, variant = "page" }: PlotExplorer
   }, [document.plots]);
 
   const selected = document.plots.find((plot) => plot.plotNumber === selectedId) ?? null;
+  const cornersAlreadyDrawn = placedCornersMatch(document);
   const fitted = useMemo(() => {
-    if (placedCorners < 2) return null;
+    if (cornersAlreadyDrawn || placedCorners < 2) return null;
     try {
       return projectSheet(document);
     } catch {
       return null;
     }
-  }, [document, placedCorners]);
-  const georeferenced = Boolean(fitted) || (document.alignmentStatus === "verified" && document.crs === "EPSG:4326");
+  }, [document, placedCorners, cornersAlreadyDrawn]);
+  const georeferenced =
+    cornersAlreadyDrawn || Boolean(fitted) || (document.alignmentStatus === "verified" && document.crs === "EPSG:4326");
   const planPlots = georeferenced
     ? (fitted?.plots ?? document.plots)
     : document.plots.flatMap((plot) => {
