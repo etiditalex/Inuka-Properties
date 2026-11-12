@@ -89,6 +89,51 @@ export type CameraHint = {
   label: string;
 };
 
+/** Normalized photograph coordinate. x grows right, y grows down, each from 0 to 1. */
+export type ImagePoint = [number, number];
+
+/** A matched pair: one click on the satellite map and one click on one photograph. */
+export type DroneControlPoint = {
+  id: string;
+  label: string;
+  /** [lng, lat] on the satellite map. */
+  ground: Position | null;
+  /** Position on this photograph. */
+  image: ImagePoint | null;
+};
+
+/**
+ * Approximate plane-to-photo registration.
+ * It is not a survey and it is not the satellite alignment.
+ */
+export type DroneImageFit = {
+  kind: "homography";
+  originLng: number;
+  originLat: number;
+  /** Maps east/north metres to normalized image coordinates. The last matrix entry is fixed at 1. */
+  h: number[];
+  /** Root-mean-square miss, in photograph pixels. */
+  rmsPx: number;
+};
+
+/** A hand-corrected outline for one plot on one photograph. */
+export type DronePlotCorrection = {
+  plotNumber: string;
+  ring: ImagePoint[];
+};
+
+/** One oblique aerial photograph and the calibration that belongs only to it. */
+export type DroneImage = {
+  id: string;
+  name: string;
+  url: string;
+  widthPx: number;
+  heightPx: number;
+  controlPoints: DroneControlPoint[];
+  fit: DroneImageFit | null;
+  corrections: DronePlotCorrection[];
+};
+
 export type PlotMapDocument = {
   slug: string;
   propertyId: number;
@@ -112,6 +157,11 @@ export type PlotMapDocument = {
   planBoundary: Position[] | null;
   controlPoints: ControlPoint[];
   transform: GroundFit | null;
+  /**
+   * Oblique aerial photographs for this project.
+   * Plot price and status stay on `plots`. Each photograph keeps its own calibration.
+   */
+  droneImages: DroneImage[];
   updatedAt: string | null;
 };
 

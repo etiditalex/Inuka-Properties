@@ -1,3 +1,4 @@
+import { applyDroneFit, fitDroneRegistration } from "../lib/maps/droneRegistration";
 import { findOverlaps, ringArea, ringSelfIntersects } from "../lib/maps/geometry";
 import { applyGround, fitControlPoints, residualMetres, similarityFromControl } from "../lib/maps/georef";
 import { projectSheet } from "../lib/maps/publish";
@@ -86,6 +87,22 @@ const plot1 = projected?.plots.find((plot) => plot.plotNumber === "1");
 const plot1Corner = plot1?.ring && residualMetres(projected!.transform!, [0, 9 * 14.2], grounds[1]);
 if (plot1Corner === undefined || plot1Corner > 0.05) mismatches.push("plot 1 does not reach its corner");
 if (!d) mismatches.push("fourth corner missing");
+
+const photo = doc.droneImages[0];
+if (!photo || !photo.url.includes("Ruby_highway_gardens")) mismatches.push("drone photograph missing");
+const droneFit = fitDroneRegistration(
+  [
+    { ground: [39.874, -3.566], image: [0.1, 0.2] },
+    { ground: [39.876, -3.566], image: [0.8, 0.2] },
+    { ground: [39.876, -3.568], image: [0.8, 0.8] },
+    { ground: [39.874, -3.568], image: [0.1, 0.8] },
+  ],
+  1000,
+  1000
+);
+const returned = applyDroneFit(droneFit, [[39.874, -3.566]]);
+if (Math.hypot(returned[0][0] - 0.1, returned[0][1] - 0.2) > 0.02) mismatches.push("drone registration does not return a control point");
+if (droneFit.rmsPx > 25) mismatches.push("drone registration error is too large");
 
 if (mismatches.length) {
   console.error(mismatches.join("\n"));

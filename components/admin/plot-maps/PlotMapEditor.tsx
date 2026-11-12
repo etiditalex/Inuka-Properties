@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { adminPath } from "@/lib/admin/path";
+import DroneCalibration from "@/components/admin/plot-maps/DroneCalibration";
 import type { PlotMapHandle } from "@/components/maps/PlotMapCanvas";
 import { formatKes, PLOT_STYLE, statusLabel } from "@/lib/maps/colors";
 import { findOverlaps, ringArea } from "@/lib/maps/geometry";
@@ -32,11 +33,16 @@ function areaOf(ring: Position[], geographic: boolean): number {
 }
 
 export default function PlotMapEditor({ initial }: { initial: PlotMapDocument }) {
-  const [doc, setDoc] = useState(() => ({ ...initial, plots: uniquePlots(initial.plots) }));
+  const [doc, setDoc] = useState(() => ({
+    ...initial,
+    plots: uniquePlots(initial.plots),
+    droneImages: initial.droneImages ?? [],
+  }));
   const [past, setPast] = useState<PlotMapDocument[]>([]);
   const [future, setFuture] = useState<PlotMapDocument[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(doc.plots[0]?.plotNumber ?? null);
   const [placingId, setPlacingId] = useState<string | null>(null);
+  const [dronePick, setDronePick] = useState<{ imageId: string; pointId: string } | null>(null);
   const [draw, setDraw] = useState(false);
   const [draftCount, setDraftCount] = useState(0);
   const [notice, setNotice] = useState("");
@@ -163,6 +169,30 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
     setDraw(false);
   };
 
+  const satelliteClick = (position: Position) => {
+    if (dronePick) {
+      commit(
+        remember({
+          ...doc,
+          droneImages: (doc.droneImages ?? []).map((image) =>
+            image.id !== dronePick.imageId
+              ? image
+              : {
+                  ...image,
+                  fit: null,
+                  controlPoints: image.controlPoints.map((point) =>
+                    point.id === dronePick.pointId ? { ...point, ground: position } : point
+                  ),
+                }
+          ),
+        })
+      );
+      setDronePick(null);
+      return;
+    }
+    placeCorner(position);
+  };
+
   const placeCorner = (position: Position) => {
     if (!placingId) return;
     commit(
@@ -238,7 +268,11 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
     setError("");
     setNotice("");
     const current = latestDoc.current;
-    let payload: PlotMapDocument = { ...current, plots: uniquePlots(current.plots) };
+    let payload: PlotMapDocument = {
+      ...current,
+      plots: uniquePlots(current.plots),
+      droneImages: current.droneImages ?? [],
+    };
     if (preview && "projected" in preview) {
       payload = {
         ...preview.projected,
@@ -247,6 +281,7 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
         published: current.published,
         alignmentStatus: current.alignmentStatus,
         notes: current.notes,
+        droneImages: current.droneImages ?? [],
       };
     }
     if (publishAlignment) payload = { ...payload, alignmentStatus: "verified" };
@@ -430,8 +465,8 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
               draw={draw && !hasSheet}
               onDraftChange={(ring) => setDraftCount(ring.length)}
               onDrawComplete={(ring) => addPlot(ring, true)}
-              clickMode={placingId ? "place" : "select"}
-              onMapClick={placeCorner}
+              clickMode={placingId || dronePick ? "place" : "select"}
+              onMapClick={satelliteClick}
               onMarkerDrag={moveCorner}
               onMarkerDragEnd={finishCorner}
               markers={markers}
@@ -439,8 +474,23 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
             />
           </div>
           {doc.cameraHint ? <p className="px-3 py-2 text-xs text-dark-500">{doc.cameraHint.label}</p> : null}
+          {dronePick ? (
+            <p className="px-3 py-2 text-sm text-primary-700">Click the satellite image to mark this correspondence point.</p>
+          ) : null}
         </section>
       </div>
+      <DroneCalibration
+        images={doc.droneImages ?? []}
+        plots={doc.plots}
+        crs={doc.crs}
+        pickingGroundId={dronePick?.pointId ?? null}
+        onChange={(droneImages) => commit({ ...doc, droneImages })}
+        onPickGround={(imageId, pointId) => {
+          setDronePick({ imageId, pointId });
+          setPlacingId(null);
+          setDraw(false);
+        }}
+      />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <section className="rounded-xl border border-dark-200 p-4">
@@ -459,6 +509,7 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
                   type="button"
                   onClick={() => {
                     setPlacingId(point.id);
+                    setDronePick(null);
                     setDraw(false);
                   }}
                   className={`rounded-md px-2 py-1 ${placingId === point.id ? "bg-primary-700 text-white" : "border border-dark-200"}`}

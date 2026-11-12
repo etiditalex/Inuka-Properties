@@ -5,6 +5,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { formatKes, PLOT_STYLE, statusLabel } from "@/lib/maps/colors";
 import type { PlotMapHandle } from "@/components/maps/PlotMapCanvas";
+import DroneView from "@/components/maps/DroneView";
 import { placedCornersMatch, projectSheet } from "@/lib/maps/publish";
 import type { MapPlot, PlotMapDocument, PlotStatus } from "@/lib/maps/types";
 import { whatsAppUrl } from "@/lib/whatsapp";
@@ -24,6 +25,10 @@ export default function PlotExplorer({ initial, variant = "page" }: PlotExplorer
   const [query, setQuery] = useState("");
   const [message, setMessage] = useState("");
   const [hidden, setHidden] = useState<PlotStatus[]>([]);
+  const [mapView, setMapView] = useState<"satellite" | "drone">("satellite");
+  const [droneImageId, setDroneImageId] = useState(initial.droneImages?.[0]?.id ?? "");
+  const [showBoundaries, setShowBoundaries] = useState(true);
+  const [showNumbers, setShowNumbers] = useState(true);
   const mapRef = useRef<PlotMapHandle>(null);
   const placedCorners = document.controlPoints.filter((point) => point.ground).length;
 
@@ -80,6 +85,8 @@ export default function PlotExplorer({ initial, variant = "page" }: PlotExplorer
   const planBoundary = georeferenced
     ? (fitted?.boundary ?? document.boundary)
     : (document.planBoundary ?? (document.crs === "local-metres" ? document.boundary : null));
+  const droneImages = document.droneImages ?? [];
+  const droneImage = droneImages.find((image) => image.id === droneImageId) ?? droneImages[0] ?? null;
   const cornerMarkers = georeferenced
     ? document.controlPoints.flatMap((point) =>
         point.ground ? [{ id: point.id, position: point.ground, label: point.label }] : []
@@ -163,8 +170,85 @@ export default function PlotExplorer({ initial, variant = "page" }: PlotExplorer
   );
 
   const map = (
-    <div className={variant === "page" ? "relative min-h-0 flex-1" : "relative h-[70vh] min-h-[520px]"}>
-      {waitingForSurvey ? (
+    <div className={variant === "page" ? "flex min-h-0 flex-1 flex-col" : "flex h-[70vh] min-h-[520px] flex-col"}>
+      <div className="flex flex-wrap items-center gap-2 border-b border-dark-200 bg-white px-3 py-2">
+        <div className="flex overflow-hidden rounded-full border border-dark-200 bg-white shadow">
+          <button
+            type="button"
+            onClick={() => setMapView("satellite")}
+            className={`px-3 py-1 text-xs font-semibold ${mapView === "satellite" ? "bg-primary-700 text-white" : "text-dark-700"}`}
+          >
+            Satellite Map
+          </button>
+          <button
+            type="button"
+            onClick={() => setMapView("drone")}
+            className={`px-3 py-1 text-xs font-semibold ${mapView === "drone" ? "bg-primary-700 text-white" : "text-dark-700"}`}
+          >
+            Drone View
+          </button>
+        </div>
+        {mapView === "drone" && droneImages.length > 1 ? (
+          <select
+            value={droneImage?.id ?? ""}
+            onChange={(event) => setDroneImageId(event.target.value)}
+            className="rounded-full border border-dark-200 bg-white px-3 py-1 text-xs font-semibold shadow"
+            aria-label="Drone photograph"
+          >
+            {droneImages.map((image) => (
+              <option key={image.id} value={image.id}>
+                {image.name}
+              </option>
+            ))}
+          </select>
+        ) : null}
+        {mapView === "drone" ? (
+          <>
+            <button
+              type="button"
+              onClick={() => setShowBoundaries((value) => !value)}
+              className="rounded-full border border-dark-200 bg-white px-3 py-1 text-xs font-semibold text-dark-700 shadow"
+            >
+              {showBoundaries ? "Hide boundaries" : "Show boundaries"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowNumbers((value) => !value)}
+              className="rounded-full border border-dark-200 bg-white px-3 py-1 text-xs font-semibold text-dark-700 shadow"
+            >
+              {showNumbers ? "Hide numbers" : "Show numbers"}
+            </button>
+          </>
+        ) : null}
+        {mapView === "drone" ? (
+          <span className="text-xs text-dark-500">
+            {droneImage?.fit || droneImage?.corrections.length
+              ? "Approximate photo registration. This is not a survey."
+              : "Outlines appear after this photograph is calibrated."}
+          </span>
+        ) : null}
+      </div>
+      <div className="relative min-h-0 flex-1">
+      {mapView === "drone" ? (
+        droneImage ? (
+          <>
+            <DroneView
+              image={droneImage}
+              plots={document.plots}
+              crs={document.crs}
+              selected={selectedId}
+              hiddenStatuses={hidden}
+              showBoundaries={showBoundaries}
+              showNumbers={showNumbers}
+              onSelect={setSelectedId}
+            />
+          </>
+        ) : (
+          <div className="flex h-full items-center justify-center bg-dark-50 p-8 text-center text-sm text-dark-700">
+            No drone photograph has been added for this project yet.
+          </div>
+        )
+      ) : waitingForSurvey ? (
         <div className="flex h-full items-center justify-center bg-dark-50 p-8 text-center text-sm text-dark-700">
           This project is waiting for a confirmed survey alignment before plots are shown on the map.
         </div>
@@ -183,8 +267,11 @@ export default function PlotExplorer({ initial, variant = "page" }: PlotExplorer
           cooperativeGestures={variant === "embedded"}
         />
       )}
-      <div className="absolute bottom-8 left-3 z-10 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-dark-700 shadow">
-        {georeferenced ? "Satellite" : "Plan view"}
+      {mapView === "satellite" ? (
+        <div className="absolute bottom-8 left-3 z-10 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-dark-700 shadow">
+          {georeferenced ? "Satellite" : "Plan view"}
+        </div>
+      ) : null}
       </div>
     </div>
   );
@@ -192,7 +279,7 @@ export default function PlotExplorer({ initial, variant = "page" }: PlotExplorer
   if (variant === "page") {
     return (
       <div className="flex h-full min-h-0 flex-col lg:flex-row">
-        <div className="max-h-[42vh] shrink-0 overflow-auto border-b border-dark-200 lg:max-h-none lg:w-96 lg:border-b-0 lg:border-r">{details}</div>
+        <div className={`shrink-0 overflow-auto border-b border-dark-200 lg:max-h-none lg:w-96 lg:border-b-0 lg:border-r ${mapView === "drone" ? "max-h-[26vh]" : "max-h-[42vh]"}`}>{details}</div>
         {map}
       </div>
     );

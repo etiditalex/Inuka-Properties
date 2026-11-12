@@ -242,6 +242,7 @@ export function blankPlotMap(input: { propertyId: number; projectName: string; l
     planBoundary: null,
     controlPoints: [],
     transform: null,
+    droneImages: [],
     updatedAt: null,
   };
 }

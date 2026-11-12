@@ -1,6 +1,17 @@
 import { ensureCounterClockwise } from "@/lib/maps/geometry";
 import { placedCornersMatch, projectSheet } from "@/lib/maps/publish";
-import type { ControlPoint, MapPlot, MapRoad, PlotMapDocument, Position } from "@/lib/maps/types";
+import type { ControlPoint, DroneImage, MapPlot, MapRoad, PlotMapDocument, Position } from "@/lib/maps/types";
+
+const RUBY_DRONE_IMAGE: DroneImage = {
+  id: "ruby-highway-oblique-1",
+  name: "Ruby Highway Gardens",
+  url: "https://res.cloudinary.com/dyfnobo9r/image/upload/v1794482793/Ruby_highway_gardens_zmyhbn.jpg",
+  widthPx: 0,
+  heightPx: 0,
+  controlPoints: [],
+  fit: null,
+  corrections: [],
+};
 
 /**
  * Ruby Highway Gardens, L.R. 4237/77/6, read from the survey sheet.
@@ -200,11 +211,16 @@ function savedGround(grounds: Map<string, Position>, id: string): Position | nul
 }
 
 /** Keep the saved satellite polygons when those corners already meet the clicks. */
+function keepDroneImages(stored: PlotMapDocument, sheet: PlotMapDocument): DroneImage[] {
+  return Array.isArray(stored.droneImages) ? stored.droneImages : sheet.droneImages;
+}
+
 function withSavedDrawing(stored: PlotMapDocument): PlotMapDocument {
   const sheet = rubyHighwayDocument();
   const savedByNumber = new Map(stored.plots.map((plot) => [plot.plotNumber, plot]));
   return {
     ...stored,
+    droneImages: keepDroneImages(stored, sheet),
     plots: sheet.plots.map((plot) => {
       const saved = savedByNumber.get(plot.plotNumber);
       if (!saved) return plot;
@@ -223,7 +239,7 @@ function withSavedDrawing(stored: PlotMapDocument): PlotMapDocument {
 
 /** Keep saved prices, statuses, and clicked corners while replacing the sheet geometry. */
 export function refreshRubyHighwaySheet(stored: PlotMapDocument): PlotMapDocument {
-  if (stored.slug !== "ruby-highway") return stored;
+  if (stored.slug !== "ruby-highway") return { ...stored, droneImages: stored.droneImages ?? [] };
   if (placedCornersMatch(stored)) return withSavedDrawing(stored);
   const sheet = rubyHighwayDocument();
   const previous = new Map(stored.plots.map((plot) => [plot.plotNumber, plot]));
@@ -234,6 +250,7 @@ export function refreshRubyHighwaySheet(stored: PlotMapDocument): PlotMapDocumen
     alignmentStatus: stored.alignmentStatus,
     updatedAt: stored.updatedAt,
     cameraHint: stored.cameraHint ?? sheet.cameraHint,
+    droneImages: keepDroneImages(stored, sheet),
     plots: sheet.plots.map((plot) => {
       const saved = previous.get(plot.plotNumber);
       if (!saved) return plot;
@@ -260,6 +277,7 @@ export function refreshRubyHighwaySheet(stored: PlotMapDocument): PlotMapDocumen
       alignmentStatus: stored.alignmentStatus,
       updatedAt: stored.updatedAt,
       cameraHint: stored.cameraHint ?? sheet.cameraHint,
+      droneImages: keepDroneImages(stored, sheet),
     };
   } catch {
     return merged;
@@ -296,6 +314,7 @@ export function rubyHighwayDocument(): PlotMapDocument {
     planBoundary: buildBoundary(),
     controlPoints: buildControlPoints(),
     transform: null,
+    droneImages: [RUBY_DRONE_IMAGE],
     updatedAt: null,
   };
 }
