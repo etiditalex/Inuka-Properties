@@ -53,6 +53,31 @@ function project(position: Position, crs: MapCrs): [number, number] {
   return crs === "EPSG:4326" ? position : metresToDisplay(position[0], position[1]);
 }
 
+/** Short diagonal marks at the boundary corners, so the ground inside each plot stays visible. */
+function cornerTicks(ring: Position[], crs: MapCrs) {
+  const open = openRing(ring);
+  if (open.length < 3) return [];
+  const metres = 6;
+  return open.flatMap((point) => {
+    const east = crs === "EPSG:4326" ? metres / (111320 * Math.cos((point[1] * Math.PI) / 180)) : metres;
+    const north = crs === "EPSG:4326" ? metres / 110540 : metres;
+    const here = project(point, crs);
+    const diagonal = (x: number, y: number): [number, number] => project([point[0] + x, point[1] + y], crs);
+    return [
+      {
+        type: "Feature" as const,
+        properties: {},
+        geometry: { type: "LineString" as const, coordinates: [diagonal(-east, -north), here, diagonal(east, north)] },
+      },
+      {
+        type: "Feature" as const,
+        properties: {},
+        geometry: { type: "LineString" as const, coordinates: [diagonal(-east, north), here, diagonal(east, -north)] },
+      },
+    ];
+  });
+}
+
 function unproject(lng: number, lat: number, crs: MapCrs): Position {
   return crs === "EPSG:4326" ? [lng, lat] : displayToMetres(lng, lat);
 }
@@ -152,6 +177,12 @@ const PlotMapCanvas = forwardRef<PlotMapHandle, PlotMapCanvasProps>(function Plo
         geometry: asPolygon(road.ring, current.crs),
       })),
     });
+    const tickSource = map.getSource("corner-ticks") as GeoJSONSource | undefined;
+    tickSource?.setData(
+      current.satellite && current.boundary
+        ? { type: "FeatureCollection", features: cornerTicks(current.boundary, current.crs) }
+        : emptyCollection()
+    );
     const boundarySource = map.getSource("boundary") as GeoJSONSource | undefined;
     boundarySource?.setData(
       current.boundary
@@ -275,11 +306,12 @@ const PlotMapCanvas = forwardRef<PlotMapHandle, PlotMapCanvasProps>(function Plo
       map.addSource("vertices", { type: "geojson", data: emptyCollection() });
       map.addSource("markers", { type: "geojson", data: emptyCollection() });
       map.addSource("draft", { type: "geojson", data: emptyCollection() });
+      map.addSource("corner-ticks", { type: "geojson", data: emptyCollection() });
       map.addLayer({
         id: "roads-fill",
         type: "fill",
         source: "roads",
-        paint: { "fill-color": "#f7f1e4", "fill-opacity": current.satellite ? 0.3 : 0.94 },
+        paint: { "fill-color": "#f7f1e4", "fill-opacity": current.satellite ? 0 : 0.94 },
       });
       map.addLayer({
         id: "roads-line",
@@ -305,19 +337,21 @@ const PlotMapCanvas = forwardRef<PlotMapHandle, PlotMapCanvasProps>(function Plo
             PLOT_STYLE.on_hold.fill,
             PLOT_STYLE.available.fill,
           ],
-          "fill-opacity": [
-            "match",
-            ["get", "status"],
-            "available",
-            PLOT_STYLE.available.opacity,
-            "reserved",
-            PLOT_STYLE.reserved.opacity,
-            "sold",
-            PLOT_STYLE.sold.opacity,
-            "on_hold",
-            PLOT_STYLE.on_hold.opacity,
-            0.65,
-          ],
+          "fill-opacity": current.satellite
+            ? ["case", ["boolean", ["feature-state", "selected"], false], 0.18, ["boolean", ["feature-state", "hover"], false], 0.08, 0]
+            : [
+                "match",
+                ["get", "status"],
+                "available",
+                PLOT_STYLE.available.opacity,
+                "reserved",
+                PLOT_STYLE.reserved.opacity,
+                "sold",
+                PLOT_STYLE.sold.opacity,
+                "on_hold",
+                PLOT_STYLE.on_hold.opacity,
+                0.65,
+              ],
         },
       });
       map.addLayer({
@@ -325,7 +359,26 @@ const PlotMapCanvas = forwardRef<PlotMapHandle, PlotMapCanvasProps>(function Plo
         type: "line",
         source: "plots",
         paint: {
-          "line-color": ["case", ["boolean", ["feature-state", "selected"], false], SELECTED_LINE, PLOT_LINE],
+          "line-color": current.satellite
+            ? [
+                "case",
+                ["boolean", ["feature-state", "selected"], false],
+                SELECTED_LINE,
+                [
+                  "match",
+                  ["get", "status"],
+                  "available",
+                  PLOT_STYLE.available.fill,
+                  "reserved",
+                  PLOT_STYLE.reserved.fill,
+                  "sold",
+                  PLOT_STYLE.sold.fill,
+                  "on_hold",
+                  PLOT_STYLE.on_hold.fill,
+                  PLOT_LINE,
+                ],
+              ]
+            : ["case", ["boolean", ["feature-state", "selected"], false], SELECTED_LINE, PLOT_LINE],
           "line-width": [
             "case",
             ["boolean", ["feature-state", "selected"], false],
@@ -340,7 +393,17 @@ const PlotMapCanvas = forwardRef<PlotMapHandle, PlotMapCanvasProps>(function Plo
         id: "boundary-line",
         type: "line",
         source: "boundary",
-        paint: { "line-color": "#111827", "line-width": 2, "line-dasharray": [2, 1.2] },
+        paint: {
+          "line-color": "#111827",
+          "line-width": current.satellite ? 2.4 : 2,
+          "line-dasharray": current.satellite ? [1.2, 0.8] : [2, 1.2],
+        },
+      });
+      map.addLayer({
+        id: "corner-ticks",
+        type: "line",
+        source: "corner-ticks",
+        paint: { "line-color": "#111827", "line-width": 2 },
       });
       map.addLayer({
         id: "draft-line",
