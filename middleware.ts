@@ -18,8 +18,6 @@ function withNoIndex(response: NextResponse): NextResponse {
 
 /** Canonical host + HTTPS for production SEO + hidden admin path + Supabase auth. */
 export async function middleware(request: NextRequest) {
-  if (request.nextUrl.pathname === "/sw.js") return NextResponse.next();
-
   if (request.nextUrl.pathname.endsWith(".")) {
     const url = request.nextUrl.clone();
     url.pathname = request.nextUrl.pathname.replace(/\.+$/, "");
@@ -53,9 +51,7 @@ export async function middleware(request: NextRequest) {
 
   const isLoginApi =
     pathname === "/api/admin/login" || pathname === "/api/admin/login/verify";
-  const isProtectedApi =
-    (pathname.startsWith("/api/admin/") && !isLoginApi) ||
-    pathname === "/api/notifications/publish";
+  const isProtectedApi = pathname.startsWith("/api/admin/") && !isLoginApi;
 
   if (isProtectedApi) {
     if (!isSupabaseServerConfigured()) {
