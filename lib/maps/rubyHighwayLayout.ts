@@ -1,4 +1,5 @@
 import { ensureCounterClockwise } from "@/lib/maps/geometry";
+import { applyGround } from "@/lib/maps/georef";
 import { placedCornersMatch, projectSheet } from "@/lib/maps/publish";
 import type { ControlPoint, DroneImage, MapPlot, MapRoad, PlotMapDocument, Position } from "@/lib/maps/types";
 
@@ -28,8 +29,7 @@ const RUBY_DRONE_IMAGE: DroneImage = {
  * and 29.1 m, the standard rectangle with a 3 m by 3 m corner taken off.
  *
  * Numbering, from the far end down to the Bofa road:
- * 1–9, 10–18, 19–27, then 28, 29, 30, 39–34, then 33, 32, 31, 40–45,
- * then 54 down to 46.
+ * 1–9, 10–18, 19–27, 28–36, 37–45, then 46–54.
  */
 
 const FRONT_M = 14.2;
@@ -45,9 +45,9 @@ const COLUMNS_FROM_FAR = [
   ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
   ["10", "11", "12", "13", "14", "15", "16", "17", "18"],
   ["19", "20", "21", "22", "23", "24", "25", "26", "27"],
-  ["28", "29", "30", "39", "38", "37", "36", "35", "34"],
-  ["33", "32", "31", "40", "41", "42", "43", "44", "45"],
-  ["54", "53", "52", "51", "50", "49", "48", "47", "46"],
+  ["28", "29", "30", "31", "32", "33", "34", "35", "36"],
+  ["37", "38", "39", "40", "41", "42", "43", "44", "45"],
+  ["46", "47", "48", "49", "50", "51", "52", "53", "54"],
 ];
 
 /** Columns that share a rear line. A road follows every group except the last. */
@@ -189,13 +189,13 @@ function buildControlPoints(): ControlPoint[] {
     },
     {
       id: "p54-far",
-      label: "Plot 54, far corner away from the highway",
+      label: "Plot 46, far corner away from the highway",
       plan: [BLOCK_WIDTH, BLOCK_HEIGHT],
       ground: null,
     },
     {
       id: "p46-road",
-      label: "Plot 46, road to Bofa Beach",
+      label: "Plot 54, road to Bofa Beach",
       plan: [BLOCK_WIDTH, 0],
       ground: null,
     },
@@ -218,20 +218,26 @@ function keepDroneImages(stored: PlotMapDocument, sheet: PlotMapDocument): Drone
 function withSavedDrawing(stored: PlotMapDocument): PlotMapDocument {
   const sheet = rubyHighwayDocument();
   const savedByNumber = new Map(stored.plots.map((plot) => [plot.plotNumber, plot]));
+  const labels = new Map(sheet.controlPoints.map((point) => [point.id, point.label]));
   return {
     ...stored,
     droneImages: keepDroneImages(stored, sheet),
+    notes: sheet.notes,
+    controlPoints: stored.controlPoints.map((point) => ({
+      ...point,
+      label: labels.get(point.id) ?? point.label,
+    })),
     plots: sheet.plots.map((plot) => {
       const saved = savedByNumber.get(plot.plotNumber);
-      if (!saved) return plot;
+      const planRing = plot.planRing ?? plot.ring;
       return {
         ...plot,
-        status: saved.status,
-        priceKes: saved.priceKes,
-        depositKes: saved.depositKes,
-        paymentPeriod: saved.paymentPeriod,
-        ring: saved.ring?.length ? saved.ring : plot.ring,
-        planRing: saved.planRing ?? plot.planRing,
+        status: saved?.status ?? plot.status,
+        priceKes: saved ? saved.priceKes : plot.priceKes,
+        depositKes: saved ? saved.depositKes : plot.depositKes,
+        paymentPeriod: saved ? saved.paymentPeriod : plot.paymentPeriod,
+        planRing,
+        ring: stored.transform ? applyGround(stored.transform, planRing) : planRing,
       };
     }),
   };
@@ -303,7 +309,7 @@ export function rubyHighwayDocument(): PlotMapDocument {
     },
     notes: [
       "54 plots. The legend says about 0.0453 ha each. A standard plot is printed 14.2 m by 32.1 m.",
-      "The highway column is plots 1 to 9. The next two columns are 10 to 18 and 19 to 27, back to back. Then 28, 29, 30 and 39 down to 34 sit back to back with 33, 32, 31 and 40 to 45. The last column runs from 54 down to 46.",
+      "The highway column is plots 1 to 9. The next columns are 10 to 18 and 19 to 27, back to back, then 28 to 36 and 37 to 45, back to back. The last column runs from 46 down to 54.",
       "The sheet shows three access roads, a 15 m road to Bofa Beach, and a 69.7 m Mombasa–Malindi highway reserve. The triangular reserve between the highway and the plots is not dimensioned, so it is not drawn.",
       "The access-road width is not printed.",
       "This drawing has no beacon coordinates. It is not placed on the satellite image.",

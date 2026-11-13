@@ -496,7 +496,7 @@ export default function PlotMapEditor({ initial }: { initial: PlotMapDocument })
         <section className="rounded-xl border border-dark-200 p-4">
           <h3 className="font-semibold text-dark-900">Ground corners</h3>
           <p className="mt-1 text-sm text-dark-600">
-            Drag the blue corners on the satellite image out to the edge of the land. The plots fill the area between those corners. Plot 54 and plot 46 are the right-hand edge.
+            Drag the blue corners on the satellite image out to the edge of the land. The plots fill the area between those corners. Plot 46 is the far right corner and plot 54 meets the road to Bofa Beach.
           </p>
           <ul className="mt-3 space-y-2">
             {doc.controlPoints.map((point) => (
