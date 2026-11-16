@@ -1,14 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { notFound } from "next/navigation";
-import { motion } from "framer-motion";
-import { MapPin, Bed, Square, Phone, Mail, ArrowLeft, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Phone, Mail, ChevronLeft, ChevronRight, X } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { PROPERTY_DETAILS } from "@/lib/properties/detailFallback";
 import type { PropertyDetail } from "@/lib/properties/mapProperty";
-import { isPosterListingImage, parseGalleryUrls, propertyImageProps } from "@/lib/images";
+import { parseGalleryUrls, propertyImageProps } from "@/lib/images";
 import { FACEBOOK_CAMPAIGN_PROPERTY_ID } from "@/lib/facebook/pixel";
 import { trackFacebookEvent } from "@/lib/facebook/trackClient";
 import PropertyDetailsForm from "@/components/property/PropertyDetailsForm";
@@ -17,8 +16,26 @@ import PropertyLocationMap from "@/components/PropertyLocationMap";
 import PropertyEngagementBar from "@/components/property/PropertyEngagementBar";
 import PropertyShareButtons from "@/components/property/PropertyShareButtons";
 import PropertyPaymentCalculator from "@/components/property/PropertyPaymentCalculator";
-import ExplorePlots from "@/components/maps/ExplorePlots";
+import PropertyDetailSidebar from "@/components/property/PropertyDetailSidebar";
+import PropertyDetailResources from "@/components/property/PropertyDetailResources";
+import { pricingNotes } from "@/components/property/pricingNotes";
 import { hydratePropertyEngagement } from "@/lib/properties/engagementClient";
+import { buildMapEmbedSrc } from "@/lib/maps";
+
+const ACTION_BUTTON =
+  "inline-flex min-h-[43px] w-full items-center justify-center gap-2 rounded-[5px] bg-primary-700 px-[29px] py-[13px] text-center font-montserrat text-sm font-normal uppercase tracking-[2px] text-white transition hover:bg-primary-800 sm:w-auto";
+
+function SectionHeading({ children }: { children: ReactNode }) {
+  return <h2 className="mb-3 font-montserrat text-base font-bold text-primary-700">{children}</h2>;
+}
+
+function SectionRule() {
+  return <hr className="my-2.5 border-0 border-t border-dotted border-[#bbbbbb]" />;
+}
+
+function filledEntries(record?: Record<string, string>) {
+  return Object.entries(record ?? {}).filter(([, value]) => typeof value === "string" && value.trim().length > 0);
+}
 
 export default function PropertyDetailView({
   propertyId,
@@ -107,77 +124,84 @@ export default function PropertyDetailView({
     notFound();
   }
 
-  const pageTitle = property.h1 ?? property.title;
   const imageAltBase =
-    property.imageAltPrefix ??
-    `${property.title} land for sale in ${property.location}`;
+    property.imageAltPrefix ?? `${property.title} land for sale in ${property.location}`;
   const galleryImages = parseGalleryUrls(property.gallery, property.image);
   const heroImage = galleryImages[0] ?? property.image;
+  const headline = property.h1?.trim();
+  const showHeadline = Boolean(headline && headline !== property.title.trim());
+  const pricing = filledEntries(property.pricing);
+  const paymentPlan = filledEntries(property.paymentPlan);
+  const quickInfo = filledEntries(property.quickInfo);
+  const features = (property.features ?? []).filter((feature) => feature.trim().length > 0);
+  const mapHref =
+    property.mapLink ||
+    (property.location ? `https://maps.google.com/?q=${encodeURIComponent(property.location)}` : null);
+  const mapEmbed = buildMapEmbedSrc(property.mapLink, property.location);
 
-  // Image Gallery Modal
   const ImageGalleryModal = () => {
     if (selectedImageIndex === null || !galleryImages.length) return null;
-    
+
     const currentImage = galleryImages[selectedImageIndex];
     const totalImages = galleryImages.length;
-    
+
     const nextImage = () => {
       setSelectedImageIndex((prev) => (prev !== null && prev < totalImages - 1 ? prev + 1 : 0));
     };
-    
+
     const prevImage = () => {
       setSelectedImageIndex((prev) => (prev !== null && prev > 0 ? prev - 1 : totalImages - 1));
     };
-    
+
     return (
-      <div 
-        className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
         onClick={() => setSelectedImageIndex(null)}
       >
-        <div className="relative max-w-6xl w-full h-full flex items-center justify-center">
+        <div className="relative flex h-full w-full max-w-6xl items-center justify-center">
           <button
             onClick={(e) => {
               e.stopPropagation();
               setSelectedImageIndex(null);
             }}
-            className="absolute top-2 right-2 sm:top-4 sm:right-4 text-white hover:text-primary-400 transition z-10 bg-black/50 rounded-full p-2"
+            className="absolute right-2 top-2 z-10 rounded-full bg-black/50 p-2 text-white transition hover:text-primary-400 sm:right-4 sm:top-4"
           >
-            <X size={24} className="sm:w-8 sm:h-8" />
+            <X size={24} className="sm:h-8 sm:w-8" />
           </button>
-          
+
           <button
             onClick={(e) => {
               e.stopPropagation();
               prevImage();
             }}
-            className="absolute left-2 sm:left-4 text-white hover:text-primary-400 transition z-10 bg-black/50 rounded-full p-2"
+            className="absolute left-2 z-10 rounded-full bg-black/50 p-2 text-white transition hover:text-primary-400 sm:left-4"
           >
-            <ChevronLeft size={32} className="sm:w-10 sm:h-10" />
+            <ChevronLeft size={32} className="sm:h-10 sm:w-10" />
           </button>
-          
-          <div className="relative w-full h-full max-h-[90vh] flex items-center justify-center">
+
+          <div className="relative flex h-full max-h-[90vh] w-full items-center justify-center">
             <Image
               src={currentImage}
               alt={`${imageAltBase} — photo ${selectedImageIndex + 1}`}
               width={1200}
               height={800}
-              className="object-contain max-w-full max-h-full"
+              className="max-h-full max-w-full object-contain"
               quality={90}
               unoptimized={propertyImageProps(currentImage).unoptimized}
             />
           </div>
-          
+
           <button
             onClick={(e) => {
               e.stopPropagation();
               nextImage();
             }}
-            className="absolute right-2 sm:right-4 text-white hover:text-primary-400 transition z-10 bg-black/50 rounded-full p-2"
+            className="absolute right-2 z-10 rounded-full bg-black/50 p-2 text-white transition hover:text-primary-400 sm:right-4"
           >
-            <ChevronRight size={32} className="sm:w-10 sm:h-10" />
+            <ChevronRight size={32} className="sm:h-10 sm:w-10" />
           </button>
-          
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm font-montserrat bg-black/50 px-4 py-2 rounded-lg">
+
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-lg bg-black/50 px-4 py-2 font-montserrat text-sm text-white">
             Image {selectedImageIndex + 1} of {totalImages}
           </div>
         </div>
@@ -186,170 +210,257 @@ export default function PropertyDetailView({
   };
 
   return (
-    <div className="pt-24 pb-20">
+    <div className="bg-white pb-16 pt-[96px] md:pt-[161px]">
       <ImageGalleryModal />
-      <section className="container mx-auto px-4 py-8">
-        <Link
-          href="/for-sale"
-          className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 mb-6"
-        >
-          <ArrowLeft size={20} />
-          Back to Properties
-        </Link>
 
-        {property.status === "sold" && (
-          <div
-            className="mb-6 rounded-xl border border-dark-700 bg-dark-900 px-5 py-4 text-white shadow-lg"
-            role="status"
-          >
-            <p className="font-montserrat text-base font-bold">{property.title} is sold out</p>
-            <p className="mt-2 text-sm font-montserrat text-white/90 leading-relaxed">
-              Plots in this phase are no longer available. See our{" "}
-              <Link href="/for-sale" className="font-semibold underline underline-offset-2 hover:text-primary-300">
-                current listings
-              </Link>{" "}
-              or contact us for similar projects in Mariakani and Kilifi County.
-            </p>
-          </div>
-        )}
-
-        <div className="grid lg:grid-cols-2 gap-8">
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="space-y-4"
-          >
-            {/* Main Image */}
-            <div 
-              className={`relative rounded-xl overflow-hidden cursor-pointer ${
-                isPosterListingImage(property)
-                  ? "flex h-[280px] items-center justify-center bg-neutral-100 sm:h-[340px] md:h-[400px]"
-                  : "h-[300px] sm:h-[400px] md:h-[500px]"
-              }`}
-              onClick={() => galleryImages.length ? setSelectedImageIndex(0) : null}
-            >
-              {heroImage ? (
-                <Image
-                  src={heroImage}
-                  alt={imageAltBase}
-                  fill
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                  className={
-                    isPosterListingImage(property)
-                      ? "object-contain object-center p-3 sm:p-4"
-                      : "object-cover"
-                  }
-                  unoptimized={propertyImageProps(heroImage).unoptimized}
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-dark-100 text-dark-400">
-                  No image
-                </div>
-              )}
-              {galleryImages.length > 1 && (
-                <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-lg text-sm font-montserrat">
-                  {galleryImages.length} Images - Click to view gallery
-                </div>
-              )}
-            </div>
-            
-            {galleryImages.length > 1 && (
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                {galleryImages.map((img: string, index: number) => (
-                  <div
-                    key={`${img}-${index}`}
-                    className={`relative h-16 sm:h-20 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition border-2 ${
-                      index === 0 ? 'border-primary-500' : 'border-transparent hover:border-primary-500'
-                    }`}
-                    onClick={() => setSelectedImageIndex(index)}
-                  >
-                    <Image
-                      src={img}
-                      alt={`${imageAltBase} — thumbnail ${index + 1}`}
-                      fill
-                      className="object-cover"
-                      unoptimized={propertyImageProps(img).unoptimized}
-                    />
-                  </div>
-                ))}
-              </div>
+      <div className="bg-primary-700 px-[30px] text-white xl:px-0">
+        <div className="mx-auto flex min-h-[80px] w-full max-w-[1180px] flex-wrap items-center justify-between gap-x-6 gap-y-2 py-4 xl:max-w-[1280px] xl:px-4 2xl:max-w-[1536px]">
+          <div className="flex min-w-0 flex-wrap items-center gap-3">
+            <h1 className="break-words font-montserrat text-xl font-bold leading-7 text-white">{property.title}</h1>
+            {property.status === "sold" && (
+              <span className="rounded-[5px] bg-white/15 px-2.5 py-1 font-montserrat text-xs font-semibold uppercase tracking-[1px]">
+                Sold out
+              </span>
             )}
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-white rounded-xl shadow-lg p-4 sm:p-6 md:p-8"
+            {property.status === "ongoing" && (
+              <span className="rounded-[5px] bg-white/15 px-2.5 py-1 font-montserrat text-xs font-semibold uppercase tracking-[1px]">
+                Ongoing
+              </span>
+            )}
+          </div>
+          <Link
+            href="/for-sale"
+            className="shrink-0 font-montserrat text-sm text-white underline-offset-2 hover:underline"
           >
-            <div className="mb-6 min-w-0">
-              <PropertyShareButtons
-                propertyId={property.id}
-                title={property.title}
-                location={property.location}
+            Back to Properties
+          </Link>
+        </div>
+      </div>
+
+      <div className="px-[30px] py-5 xl:px-0">
+        <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-10 min-[801px]:flex-row min-[801px]:items-start xl:max-w-[1280px] xl:px-4 2xl:max-w-[1536px]">
+        <article className="w-full min-w-0 min-[801px]:w-[calc(100%-28%-40px)] min-[801px]:shrink-0">
+          {heroImage ? (
+            <button
+              type="button"
+              onClick={() => (galleryImages.length ? setSelectedImageIndex(0) : null)}
+              className="mb-4 block w-full overflow-hidden border-0 bg-transparent p-0 text-left xl:h-[400px]"
+            >
+              {/* Full ratio on phone and tablet. Desktop keeps the column width and a shorter frame; the click opens the full image. */}
+              <img
+                src={heroImage}
+                alt={imageAltBase}
+                className="block h-auto w-full max-w-full object-center xl:h-full xl:object-cover"
               />
-              <h1 className="text-2xl sm:text-3xl font-bold text-dark-900 mb-4 break-words [overflow-wrap:anywhere]">
-                {pageTitle}
-              </h1>
-              <div className="flex items-start gap-2 text-dark-600 mb-4 min-w-0">
-                <MapPin size={20} className="mr-0 shrink-0 mt-1 text-primary-600" />
-                <span className="break-words [overflow-wrap:anywhere]">{property.location}</span>
-              </div>
-              <div className="mb-4">
-                <PropertyEngagementBar propertyId={property.id} />
-              </div>
-              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary-700 mb-6 break-words [overflow-wrap:anywhere]">
-                {property.status === "sold" ? (
-                  <>
-                    <span className="block text-dark-700">Sold out</span>
-                    <span className="mt-2 block text-lg font-semibold text-dark-500 line-through sm:text-xl md:text-2xl">
-                      {property.price}
-                    </span>
-                  </>
-                ) : (
-                  property.price
-                )}
-              </div>
-            </div>
+            </button>
+          ) : (
+            <p className="mb-4 font-montserrat text-base text-dark-500">No image</p>
+          )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              <div className="flex items-center gap-2">
-                <Square size={20} className="text-primary-600" />
-                <span className="text-dark-600">{property.size}</span>
-              </div>
-              {property.bedrooms && (
-                <div className="flex items-center gap-2">
-                  <Bed size={20} className="text-primary-600" />
-                  <span className="text-dark-600">{property.bedrooms} Bedrooms</span>
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-4 mb-6">
-              {(property.mapLink || property.location) && (
-                <a
-                  href={property.mapLink || `https://maps.google.com/?q=${encodeURIComponent(property.location)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block w-full bg-dark-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-dark-800 transition text-center"
+          {galleryImages.length > 1 && (
+            <div className="mb-5 grid grid-cols-3 gap-2 sm:grid-cols-4">
+              {galleryImages.map((img, index) => (
+                <button
+                  key={`${img}-${index}`}
+                  type="button"
+                  onClick={() => setSelectedImageIndex(index)}
+                  className={`relative h-16 overflow-hidden border-2 bg-neutral-50 sm:h-20 ${
+                    index === 0 ? "border-primary-700" : "border-transparent hover:border-primary-700"
+                  }`}
                 >
-                  View Map Location
-                </a>
+                  <Image
+                    src={img}
+                    alt={`${imageAltBase} — thumbnail ${index + 1}`}
+                    fill
+                    className="object-cover"
+                    unoptimized={propertyImageProps(img).unoptimized}
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+
+          {property.status === "sold" && (
+            <div className="mb-5 border border-dotted border-[#bbbbbb] px-1 py-3" role="status">
+              <p className="font-montserrat text-base font-bold text-black">{property.title} is sold out</p>
+              <p className="mt-2 font-montserrat text-base leading-6 text-black">
+                Plots in this phase are no longer available. See our{" "}
+                <Link href="/for-sale" className="font-semibold text-primary-700 underline underline-offset-2">
+                  current listings
+                </Link>{" "}
+                or contact us for similar projects in Mariakani and Kilifi County.
+              </p>
+            </div>
+          )}
+
+          <PropertyShareButtons propertyId={property.id} title={property.title} location={property.location} />
+          <div className="mb-5">
+            <PropertyEngagementBar propertyId={property.id} />
+          </div>
+
+          {(showHeadline || property.description) && (
+            <section>
+              <SectionHeading>About this property</SectionHeading>
+              {showHeadline && (
+                <p className="mb-5 font-montserrat text-base font-bold leading-6 text-primary-700">{headline}</p>
               )}
-              <a
-                href="tel:+254711082084"
-                onClick={() => trackContact("phone_call")}
-                className="block w-full bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition text-center flex items-center justify-center gap-2"
-              >
-                <Phone size={20} />
+              {property.description && (
+                <p className="mb-5 whitespace-pre-line break-words font-montserrat text-base leading-6 text-black">
+                  {property.description}
+                </p>
+              )}
+            </section>
+          )}
+
+          {(property.location || property.size || property.bedrooms) && (
+            <>
+              <SectionRule />
+              <section className="my-5">
+                <SectionHeading>Location and accessibility</SectionHeading>
+                <ul className="list-disc space-y-1 pl-5 font-montserrat text-base leading-6 text-black">
+                  {property.location && <li>{property.location}</li>}
+                  {property.size && (
+                    <li>
+                      <span className="font-bold">Plot size</span> – {property.size}
+                    </li>
+                  )}
+                  {property.bedrooms ? (
+                    <li>
+                      <span className="font-bold">Bedrooms</span> – {property.bedrooms}
+                    </li>
+                  ) : null}
+                </ul>
+              </section>
+            </>
+          )}
+
+          {features.length > 0 && (
+            <>
+              <SectionRule />
+              <section className="my-5">
+                <SectionHeading>Project Features</SectionHeading>
+                <ul className="list-disc space-y-1 pl-5 font-montserrat text-base leading-6 text-black">
+                  {features.map((feature, index) => (
+                    <li key={`${feature}-${index}`}>{feature}</li>
+                  ))}
+                </ul>
+              </section>
+            </>
+          )}
+
+          {quickInfo.length > 0 && (
+            <>
+              <SectionRule />
+              <section className="my-5">
+                <SectionHeading>Quick Information</SectionHeading>
+                <ul className="list-disc space-y-1 pl-5 font-montserrat text-base leading-6 text-black">
+                  {quickInfo.map(([label, value]) => (
+                    <li key={label} className="break-words">
+                      <span className="font-bold">{label}:</span>{" "}
+                      {value.startsWith("http") ? (
+                        <a href={value} target="_blank" rel="noopener noreferrer" className="text-primary-800 underline">
+                          {value}
+                        </a>
+                      ) : (
+                        value
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </>
+          )}
+
+          {(property.price || pricing.length > 0) && (
+            <>
+              <SectionRule />
+              <section className="my-5">
+                <SectionHeading>Available Sizes & Pricing</SectionHeading>
+                {property.price && (
+                  <p className="mb-5 font-montserrat text-base leading-6 text-black">
+                    {property.status === "sold" ? (
+                      <>
+                        <span className="font-bold">Sold out</span>
+                        <span className="mt-1 block line-through">{property.price}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="font-bold">Listed price</span> – {property.price}
+                      </>
+                    )}
+                  </p>
+                )}
+                {pricing.length > 0 && (
+                  <ul className="list-disc space-y-2 pl-5 font-montserrat text-base leading-6 text-black">
+                    {pricing.map(([size, price]) => {
+                      const notes = pricingNotes(property.id, size);
+                      return (
+                        <li key={size}>
+                          <span className="font-bold">{size}</span> – {price}
+                          {notes.length > 0 && (
+                            <ul className="mt-1 list-disc pl-5">
+                              {notes.map((note) => (
+                                <li key={note}>{note}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </section>
+            </>
+          )}
+
+          {paymentPlan.length > 0 && (
+            <>
+              <SectionRule />
+              <section className="my-5">
+                <SectionHeading>Flexible Payment Terms</SectionHeading>
+                <ul className="list-disc space-y-1 pl-5 font-montserrat text-base leading-6 text-black">
+                  {paymentPlan.map(([label, value]) => (
+                    <li key={label}>
+                      <span className="font-bold">{label}</span> – {value}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </>
+          )}
+
+          <PropertyPaymentCalculator
+            price={property.price}
+            pricing={property.pricing}
+            paymentPlan={property.paymentPlan}
+            details={[property.description, ...(property.features ?? [])].filter(Boolean).join("\n")}
+          />
+
+          <SectionRule />
+          <PropertyDetailResources
+            propertyId={property.id}
+            propertyTitle={property.title}
+            mapHref={mapHref}
+            afterButtons={
+              mapEmbed ? (
+                <div className="my-5">
+                  <SectionHeading>Property location</SectionHeading>
+                  <PropertyLocationMap mapLink={property.mapLink} location={property.location} title={property.title} />
+                </div>
+              ) : null
+            }
+          />
+
+          <SectionRule />
+          <section className="my-5">
+            <SectionHeading>Enquire</SectionHeading>
+            <div className="mb-6 flex flex-wrap gap-3">
+              <a href="tel:+254711082084" onClick={() => trackContact("phone_call")} className={ACTION_BUTTON}>
+                <Phone size={16} aria-hidden="true" />
                 Call Now
               </a>
-              <a
-                href="mailto:info@inukaproperties.co.ke"
-                onClick={() => trackContact("email")}
-                className="block w-full bg-white text-primary-700 px-6 py-3 rounded-lg font-semibold hover:bg-primary-50 transition text-center border-2 border-primary-600 flex items-center justify-center gap-2"
-              >
-                <Mail size={20} />
+              <a href="mailto:info@inukaproperties.co.ke" onClick={() => trackContact("email")} className={ACTION_BUTTON}>
+                <Mail size={16} aria-hidden="true" />
                 Email Us
               </a>
               <BookSiteVisitButton
@@ -357,257 +468,35 @@ export default function PropertyDetailView({
                 propertyTitle={property.title}
                 source={trackCampaignEvent ? "facebook_ad" : "property_page"}
                 onNavigate={trackSiteVisit}
-                className="block w-full bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition text-center"
+                className={ACTION_BUTTON}
               />
+              <a
+                href="tel:+254711082084"
+                onClick={() => trackContact("phone_call_sidebar")}
+                className={ACTION_BUTTON}
+              >
+                0711 082084
+              </a>
+              <a
+                href="mailto:info@inukaproperties.co.ke"
+                onClick={() => trackContact("email_sidebar")}
+                className={ACTION_BUTTON}
+              >
+                info@inukaproperties.co.ke
+              </a>
             </div>
-          </motion.div>
-        </div>
-
-        <div className="mt-12 grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <ExplorePlots propertyId={property.id} />
-            {(property.mapLink || property.location) && (
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-dark-900 mb-4 font-montserrat">Property location</h2>
-                <PropertyLocationMap
-                  mapLink={property.mapLink}
-                  location={property.location}
-                  title={property.title}
-                />
-              </div>
-            )}
-            <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-              <h2 className="text-2xl font-bold text-dark-900 mb-4">About this property</h2>
-              <p className="text-dark-700 leading-relaxed whitespace-pre-line break-words [overflow-wrap:anywhere]">
-                {property.description}
-              </p>
-              <div className="mt-8 border-t border-dark-100 pt-8">
-                <PropertyDetailsForm
-                  propertyId={property.id}
-                  propertyTitle={property.title}
-                  source={trackCampaignEvent ? "facebook_ad" : "property_page"}
-                  trackLead={trackCampaignEvent}
-                />
-              </div>
-            </div>
-
-            <PropertyPaymentCalculator
-              price={property.price}
-              pricing={property.pricing}
-              paymentPlan={property.paymentPlan}
-              details={[property.description, ...(property.features ?? [])].filter(Boolean).join("\n")}
+            <PropertyDetailsForm
+              propertyId={property.id}
+              propertyTitle={property.title}
+              source={trackCampaignEvent ? "facebook_ad" : "property_page"}
+              trackLead={trackCampaignEvent}
             />
+          </section>
+        </article>
 
-            {property.pricing && (
-              <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-                <h2 className="text-2xl font-bold text-dark-900 mb-4">Available Sizes & Pricing</h2>
-                <div className="grid md:grid-cols-2 gap-4">
-                  {Object.entries(property.pricing).map(([size, price]) => (
-                    <div key={size} className="border-2 border-primary-200 rounded-lg p-4 hover:border-primary-400 transition">
-                      <div className="text-lg font-semibold text-dark-900 mb-2">{size} Plot</div>
-                      <div className="text-2xl font-bold text-primary-600">{price as string}</div>
-                      {size === "1/8 Acre" && property.id === 2 && (
-                        <div className="mt-2 text-sm text-dark-600">
-                          <div>• Prime Location</div>
-                          <div>• Coastal Ambiance</div>
-                          <div>• Highway Access</div>
-                        </div>
-                      )}
-                      {size === "1/4 Acre" && property.id === 2 && (
-                        <div className="mt-2 text-sm text-dark-600">
-                          <div>• Best Value</div>
-                          <div>• Larger Development</div>
-                          <div>• Investment Potential</div>
-                          <div>• Thriving Community</div>
-                        </div>
-                      )}
-                      {size === "1/8 Acre" && property.id === 4 && (
-                        <div className="mt-2 text-sm text-dark-600">
-                          <div>• Flexible Payments</div>
-                          <div>• Highway Proximity</div>
-                          <div>• Ready for Development</div>
-                          <div>• Utilities Available</div>
-                        </div>
-                      )}
-                      {size === "1/8 Acre" && property.id === 9 && (
-                        <div className="mt-2 text-sm text-dark-600">
-                          <div>• All-Inclusive</div>
-                          <div>• Beach Proximity</div>
-                          <div>• Highway Access</div>
-                          <div>• Serviced Plots</div>
-                        </div>
-                      )}
-                      {size === "1/8 Acre" && property.id === 5 && (
-                        <div className="mt-2 text-sm text-dark-600">
-                          <div>• Highway Access</div>
-                          <div>• University Proximity</div>
-                          <div>• Serviced Plots</div>
-                        </div>
-                      )}
-                      {size === "1/4 Acre" && property.id === 5 && (
-                        <div className="mt-2 text-sm text-dark-600">
-                          <div>• Best Value</div>
-                          <div>• Larger Development</div>
-                          <div>• Commercial Potential</div>
-                          <div>• Premium Location</div>
-                        </div>
-                      )}
-                      {size === "1/8 Acre" && property.id === 6 && (
-                        <div className="mt-2 text-sm text-dark-600">
-                          <div>• Prime Location</div>
-                          <div>• Airport Proximity</div>
-                          <div>• Coastal Bliss</div>
-                          <div>• High Growth Potential</div>
-                        </div>
-                      )}
-                      {size === "1/8 Acre" && property.id === 7 && (
-                        <div className="mt-2 text-sm text-dark-600">
-                          <div>• Strategic Location</div>
-                          <div>• Perfect for Holiday Homes</div>
-                          <div>• Airport Proximity</div>
-                          <div>• Fast-Growing Area</div>
-                        </div>
-                      )}
-                      {size === "1/8 Acre" && property.id === 8 && (
-                        <div className="mt-2 text-sm text-dark-600">
-                          <div>• Tarmacked Road Access</div>
-                          <div>• Water & Electricity</div>
-                          <div>• Well Demarcated</div>
-                          <div>• Perimeter Fence</div>
-                        </div>
-                      )}
-                      {size === "50x100 (1/8 Acre)" && property.id === 10 && (
-                        <div className="mt-2 text-sm text-dark-600">
-                          <div>• Prime Location - 500m from Bypasses</div>
-                          <div>• Affordable Pricing</div>
-                          <div>• Zero Interest Payment Plan</div>
-                          <div>• High Growth Potential</div>
-                        </div>
-                      )}
-                      {size === "1/8 Acre" && property.id === 11 && (
-                        <div className="mt-2 text-sm text-dark-600">
-                          <div>• Prime Location - 1km off Bypass</div>
-                          <div>• Water & Electricity on-site</div>
-                          <div>• Ready to Build</div>
-                          <div>• Perfect for Home or Investment</div>
-                        </div>
-                      )}
-                      {size === "1/8 Acre" && property.id === 14 && (
-                        <div className="mt-2 text-sm text-dark-600">
-                          <div>• 600m from Mariakani–Mavueni Bypass</div>
-                          <div>• Water & electricity on site</div>
-                          <div>• Deposit KES 150,000</div>
-                          <div>• Balance within 12 months</div>
-                        </div>
-                      )}
-                      {size === "1/8 Acre" && property.id === 13 && (
-                        <div className="mt-2 text-sm text-dark-600">
-                          <div>• All-inclusive — no hidden charges</div>
-                          <div>• Deposit KES 150,000</div>
-                          <div>• Balance within 12 months</div>
-                          <div>• 10-year anniversary offer</div>
-                        </div>
-                      )}
-                      {size === "1/4 Acre" && property.id === 13 && (
-                        <div className="mt-2 text-sm text-dark-600">
-                          <div>• All-inclusive — no hidden charges</div>
-                          <div>• Deposit KES 250,000</div>
-                          <div>• Balance within 12 months</div>
-                          <div>• More space for home or farm</div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {property.paymentPlan && (
-              <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-                <h2 className="text-2xl font-bold text-dark-900 mb-4">Flexible Payment Terms</h2>
-                <div className="bg-primary-50 border-2 border-primary-200 rounded-lg p-6">
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <div className="text-sm font-semibold text-primary-700 mb-1">Deposit:</div>
-                      <div className="text-2xl font-bold text-primary-600">
-                        {property.paymentPlan.Deposit}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-sm font-semibold text-primary-700 mb-1">Balance:</div>
-                      <div className="text-2xl font-bold text-primary-600">
-                        {property.paymentPlan.Balance ?? property.paymentPlan["Remaining Balance"]}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-sm font-semibold text-primary-700 mb-1">Installments:</div>
-                      <div className="text-xl font-bold text-dark-900">
-                        {property.paymentPlan.Installments ?? property.paymentPlan["Monthly Installments"]}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-sm font-semibold text-primary-700 mb-1">Monthly Payment:</div>
-                      <div className="text-xl font-bold text-dark-900">{property.paymentPlan["Monthly Payment"]}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {property.quickInfo && (
-              <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-                <h2 className="text-2xl font-bold text-dark-900 mb-4">Quick Information</h2>
-                <div className="grid md:grid-cols-2 gap-4">
-                  {Object.entries(property.quickInfo).map(([label, value]) => (
-                    <div key={label} className="border-l-4 border-primary-600 pl-4">
-                      <div className="text-sm font-semibold text-primary-600 mb-1">{label}:</div>
-                      <div className="text-dark-700">{value as string}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="bg-white rounded-xl shadow-lg p-8">
-              <h2 className="text-2xl font-bold text-dark-900 mb-4">Project Features</h2>
-              <ul className="grid md:grid-cols-2 gap-3">
-                {(property.features ?? []).map((feature: string, index: number) => (
-                  <li key={index} className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-primary-600 rounded-full"></div>
-                    <span className="text-dark-700">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          <div>
-            <div className="bg-white rounded-xl shadow-lg p-8 sticky top-24">
-              <h3 className="text-xl font-bold text-dark-900 mb-4">Interested?</h3>
-              <p className="text-dark-600 mb-6">
-                Contact us today to schedule a viewing or get more information about this property.
-              </p>
-              <div className="space-y-3">
-                <a
-                  href="tel:+254711082084"
-                  onClick={() => trackContact("phone_call_sidebar")}
-                  className="block text-center bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition"
-                >
-                  0711 082084
-                </a>
-                <a
-                  href="mailto:info@inukaproperties.co.ke"
-                  onClick={() => trackContact("email_sidebar")}
-                  className="block text-center bg-white text-primary-700 px-6 py-3 rounded-lg font-semibold hover:bg-primary-50 transition border-2 border-primary-600"
-                >
-                  info@inukaproperties.co.ke
-                </a>
-              </div>
-            </div>
-          </div>
+        <PropertyDetailSidebar currentId={property.id} />
         </div>
-      </section>
+      </div>
     </div>
   );
 }
-

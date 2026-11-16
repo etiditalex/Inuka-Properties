@@ -6,7 +6,6 @@ import type { PlotMapDocument } from "@/lib/maps/types";
 
 const PlotExplorer = dynamic(() => import("@/components/maps/PlotExplorer"), {
   ssr: false,
-  loading: () => <div className="h-40 animate-pulse rounded-xl bg-dark-100" />,
 });
 
 export default function ExplorePlots({ propertyId }: { propertyId: number }) {
@@ -31,7 +30,7 @@ export default function ExplorePlots({ propertyId }: { propertyId: number }) {
 
   return (
     <section className="mb-8">
-      <h2 className="mb-4 font-montserrat text-2xl font-bold text-dark-900">Explore Available Plots</h2>
+      <h2 className="mb-3 font-montserrat text-base font-bold text-primary-700">Explore Available Plots</h2>
       <PlotExplorer initial={document} variant="embedded" />
     </section>
   );

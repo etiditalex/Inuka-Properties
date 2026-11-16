@@ -100,9 +100,9 @@ export default function PropertyPaymentCalculator({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-      <h2 className="text-2xl font-bold text-dark-900 mb-2 font-montserrat">Payment calculator</h2>
-      <p className="text-dark-600 mb-6">
+    <div className="my-5">
+      <h2 className="mb-2 font-montserrat text-base font-bold text-primary-700">Payment calculator</h2>
+      <p className="mb-5 font-montserrat text-base leading-6 text-black">
         Estimate a zero-interest installment for this property. Adjust the deposit and the number of months.
       </p>
 
@@ -149,20 +149,17 @@ export default function PropertyPaymentCalculator({
         </label>
       </div>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-3">
-        <div className="rounded-lg bg-primary-50 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-primary-700">Price</p>
-          <p className="mt-1 text-xl font-bold text-primary-700">{formatKes(selected.amount)}</p>
-        </div>
-        <div className="rounded-lg bg-dark-50 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-dark-500">Balance</p>
-          <p className="mt-1 text-xl font-bold text-dark-900">{formatKes(balance)}</p>
-        </div>
-        <div className="rounded-lg bg-dark-50 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-dark-500">Monthly</p>
-          <p className="mt-1 text-xl font-bold text-dark-900">{formatKes(monthly)}</p>
-        </div>
-      </div>
+      <ul className="mt-5 list-disc space-y-1 pl-5 font-montserrat text-base leading-6 text-black">
+        <li>
+          <span className="font-bold">Price</span> – {formatKes(selected.amount)}
+        </li>
+        <li>
+          <span className="font-bold">Balance</span> – {formatKes(balance)}
+        </li>
+        <li>
+          <span className="font-bold">Monthly</span> – {formatKes(monthly)}
+        </li>
+      </ul>
       <p className="mt-4 text-xs text-dark-500">
         This is an estimate for planning. Confirm the final deposit and installment with Inuka Afrika Properties.
       </p>
