@@ -162,7 +162,7 @@ export default function PropertyListingCard({
                 : "border-dark-200 bg-white text-dark-900 hover:bg-dark-50"
             }`}
           >
-            {isSold ? "Project details" : "View Details"}
+            {isSold ? `Sold project: ${property.title}` : `View ${property.title}`}
           </Link>
         </div>
       </div>

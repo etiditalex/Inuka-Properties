@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef, type FormEvent } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, MapPin, Home, Building2, Waves, Sprout, TrendingUp, ChevronLeft, ChevronRight, ChevronDown, DollarSign, Heart, FileText, CheckCircle2, Check, Phone, MessageCircle } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowRight, MapPin, Home, Building2, Waves, Sprout, TrendingUp, ChevronDown, DollarSign, Heart, FileText, CheckCircle2, Check, Phone, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -39,76 +39,6 @@ import {
   getNewestListingId,
 } from "@/lib/properties/sortProperties";
 import { FEATURED_SITELINK_PAGES } from "@/lib/featuredProjects";
-
-function PropertyCarousel({ properties }: { properties: Property[] }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const newestListingId = getNewestListingId(properties);
-
-  const nextSlide = () => {
-    setCurrentIndex((prev) => (prev + 1) % properties.length);
-  };
-
-  const prevSlide = () => {
-    setCurrentIndex((prev) => (prev - 1 + properties.length) % properties.length);
-  };
-
-  return (
-    <div className="lg:hidden">
-      <div className="relative">
-        <div className="relative overflow-visible rounded-xl">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentIndex}
-              initial={{ opacity: 0, x: 300 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -300 }}
-              transition={{ duration: 0.3 }}
-            >
-              <PropertyListingCard
-                property={properties[currentIndex]}
-                imageHeightClass="h-[220px] sm:h-[260px]"
-                imageSizes="100vw"
-                badge={
-                  properties[currentIndex].id === newestListingId ? "New" : undefined
-                }
-              />
-            </motion.div>
-          </AnimatePresence>
-        </div>
-        <button
-          type="button"
-          onClick={prevSlide}
-          className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-white transition z-10"
-          aria-label="Previous property"
-        >
-          <ChevronLeft size={24} className="text-dark-900" />
-        </button>
-        <button
-          type="button"
-          onClick={nextSlide}
-          className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-white transition z-10"
-          aria-label="Next property"
-        >
-          <ChevronRight size={24} className="text-dark-900" />
-        </button>
-      </div>
-
-      {/* Dots Indicator */}
-      <div className="flex justify-center gap-2 mt-4">
-        {properties.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => setCurrentIndex(index)}
-            className={`w-2 h-2 rounded-full transition ${
-              index === currentIndex ? "bg-primary-600 w-6" : "bg-dark-300"
-            }`}
-            aria-label={`Go to slide ${index + 1}`}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
 
 const COASTAL_AREAS = COASTAL_LOCATIONS.map((location) => location.name);
 
@@ -189,7 +119,7 @@ function CoastalPlotFinder() {
                   href={`/locations/${location.slug}`}
                   className="font-montserrat text-sm text-primary-700 underline-offset-2 hover:underline"
                 >
-                  {location.name}
+                  {`Plots in ${location.name}`}
                 </Link>
               </li>
             ))}
@@ -265,8 +195,7 @@ function PropertyCardsSection() {
               Newest projects first — land and plots across Mombasa, Kilifi, and Kwale.
             </p>
           </div>
-          {/* Desktop Grid - 4 columns */}
-          <div className="hidden lg:grid lg:grid-cols-4 gap-6">
+          <div className="flex snap-x gap-4 overflow-x-auto pb-2 lg:grid lg:grid-cols-4 lg:overflow-visible">
             {homeFeaturedProperties.map((property, index) => (
               <motion.div
                 key={property.id}
@@ -274,17 +203,17 @@ function PropertyCardsSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
+                className="w-[85%] shrink-0 snap-center lg:w-auto"
               >
                 <PropertyListingCard
                   property={property}
+                  imageHeightClass="h-[220px] sm:h-[240px]"
+                  imageSizes="(max-width: 1024px) 85vw, 25vw"
                   badge={property.id === newestListingId ? "New" : undefined}
                 />
               </motion.div>
             ))}
           </div>
-
-          {/* Mobile Carousel */}
-          <PropertyCarousel properties={homeFeaturedProperties} />
         </div>
       </section>
     </>
@@ -722,7 +651,7 @@ export default function HomePage() {
                 Coastal Gate To <span className="text-primary-300">Real Estate</span>
               </h1>
               <p className="text-lg md:text-xl text-white/90 mb-8 leading-relaxed drop-shadow-md max-w-4xl mx-auto font-montserrat">
-                We Connect Investors to Coastal Property Market through Trust, Innovation, and Personalized Service & Partnership, Delivering Prime Land & Long-term Value Across the Continent.
+                Coastal Gate opens the coastal real estate market to investors through trust, innovation, and a personal partnership, with prime land and long-term value.
               </p>
               <div className="flex justify-center">
                 <Link

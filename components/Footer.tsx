@@ -42,7 +42,7 @@ const Footer = () => {
                     href={`/locations/${location.slug}`}
                     className="text-xs text-dark-300 hover:text-primary-400 transition"
                   >
-                    {location.name}
+                    {location.name} land
                   </Link>
                 </li>
               ))}
@@ -53,7 +53,7 @@ const Footer = () => {
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-dark-400 hover:text-primary-400 transition"
-                aria-label="Facebook"
+                aria-label="Inuka on Facebook"
               >
                 <Facebook size={20} />
               </a>
@@ -62,7 +62,7 @@ const Footer = () => {
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-dark-400 hover:text-primary-400 transition"
-                aria-label="X (formerly Twitter)"
+                aria-label="Inuka on X"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                   <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
@@ -73,7 +73,7 @@ const Footer = () => {
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-dark-400 hover:text-primary-400 transition"
-                aria-label="Instagram"
+                aria-label="Inuka on Instagram"
               >
                 <Instagram size={20} />
               </a>
@@ -82,7 +82,7 @@ const Footer = () => {
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-dark-400 hover:text-primary-400 transition"
-                aria-label="LinkedIn"
+                aria-label="Inuka on LinkedIn"
               >
                 <Linkedin size={20} />
               </a>
@@ -91,7 +91,7 @@ const Footer = () => {
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-dark-400 hover:text-primary-400 transition"
-                aria-label="TikTok"
+                aria-label="Inuka on TikTok"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                   <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
@@ -102,7 +102,7 @@ const Footer = () => {
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-dark-400 hover:text-primary-400 transition"
-                aria-label="Threads"
+                aria-label="Inuka on Threads"
               >
                 <MessageCircle size={20} />
               </a>
@@ -111,7 +111,7 @@ const Footer = () => {
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-dark-400 hover:text-primary-400 transition"
-                aria-label="Google Business"
+                aria-label="Inuka on Google Business"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -129,47 +129,47 @@ const Footer = () => {
             <ul className="space-y-2">
               <li>
                 <Link href="/" className="text-dark-300 hover:text-primary-400 transition text-sm">
-                  Home
+                  Homepage
                 </Link>
               </li>
               <li>
                 <Link href="/for-sale" className="text-dark-300 hover:text-primary-400 transition text-sm">
-                  Properties For Sale
+                  Land for sale
                 </Link>
               </li>
               <li>
                 <Link href="/about-us" className="text-dark-300 hover:text-primary-400 transition text-sm">
-                  About Us
+                  About the company
                 </Link>
               </li>
               <li>
                 <Link href="/iapl-insider" className="text-dark-300 hover:text-primary-400 transition text-sm">
-                  IAPL Insider
+                  Insider journal
                 </Link>
               </li>
               <li>
                 <Link href="/testimonials" className="text-dark-300 hover:text-primary-400 transition text-sm">
-                  Testimonials
+                  Client stories
                 </Link>
               </li>
               <li>
                 <Link href="/iapl-insider/blogs" className="text-dark-300 hover:text-primary-400 transition text-sm">
-                  Blogs
+                  Property guides
                 </Link>
               </li>
               <li>
                 <Link href="/iapl-insider/news" className="text-dark-300 hover:text-primary-400 transition text-sm">
-                  News
+                  Coast news
                 </Link>
               </li>
               <li>
                 <Link href="/services" className="text-dark-300 hover:text-primary-400 transition text-sm">
-                  Services
+                  Real estate services
                 </Link>
               </li>
               <li>
                 <Link href="/locations" className="text-dark-300 hover:text-primary-400 transition text-sm">
-                  Coastal Areas
+                  Area guides
                 </Link>
               </li>
             </ul>
@@ -181,37 +181,37 @@ const Footer = () => {
             <ul className="space-y-2 text-sm text-dark-300">
               <li>
                 <Link href="/services/residential-properties" className="hover:text-primary-400 transition">
-                  Residential Properties
+                  Residential land
                 </Link>
               </li>
               <li>
                 <Link href="/services/commercial-properties" className="hover:text-primary-400 transition">
-                  Commercial Properties
+                  Commercial land
                 </Link>
               </li>
               <li>
                 <Link href="/services/beach-properties" className="hover:text-primary-400 transition">
-                  Beach Properties
+                  Beach land
                 </Link>
               </li>
               <li>
                 <Link href="/services/farm-land" className="hover:text-primary-400 transition">
-                  Farm Land
+                  Farm plots
                 </Link>
               </li>
               <li>
                 <Link href="/services/affordable-housing" className="hover:text-primary-400 transition">
-                  Affordable Housing
+                  Affordable plot options
                 </Link>
               </li>
               <li>
                 <Link href="/services/property-management" className="hover:text-primary-400 transition">
-                  Property Management
+                  Management services
                 </Link>
               </li>
               <li>
                 <Link href="/services/title-issuance" className="hover:text-primary-400 transition">
-                  Title Issuance
+                  Title deed processing
                 </Link>
               </li>
             </ul>
@@ -232,13 +232,13 @@ const Footer = () => {
               <li className="flex items-center gap-3">
                 <Phone size={20} className="text-primary-400 flex-shrink-0" />
                 <a href="tel:+254711082084" className="text-dark-300 hover:text-primary-400 transition">
-                  0711 082084
+                  Call 0711 082084
                 </a>
               </li>
               <li className="flex items-center gap-3">
                 <Mail size={20} className="text-primary-400 flex-shrink-0" />
                 <a href="mailto:info@inukaproperties.co.ke" className="text-dark-300 hover:text-primary-400 transition">
-                  info@inukaproperties.co.ke
+                  Email info@inukaproperties.co.ke
                 </a>
               </li>
             </ul>
