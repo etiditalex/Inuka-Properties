@@ -1,7 +1,10 @@
 -- Plot maps: one subdivision per land listing.
 -- Run this in the Supabase SQL editor.
 
-create extension if not exists postgis;
+-- Keep PostGIS out of public. Installing it there exposes spatial_ref_sys
+-- through the Data API, and the postgres role cannot enable RLS on that table.
+create schema if not exists extensions;
+create extension if not exists postgis with schema extensions;
 
 create table if not exists plot_maps (
   id uuid primary key default gen_random_uuid(),
@@ -113,7 +116,7 @@ create or replace function save_plot_map(payload jsonb)
 returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 declare
   mid uuid;
@@ -277,7 +280,7 @@ create or replace function reserve_plot_parcel(p_map uuid, p_number text, p_acto
 returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 declare
   rec plot_parcels%rowtype;
