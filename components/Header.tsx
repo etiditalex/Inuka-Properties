@@ -10,6 +10,7 @@ import { useBookSiteVisit } from "@/components/BookSiteVisitContext";
 import { getPropertySeo, getPropertyIdFromPathname } from "@/lib/propertySeo";
 import { isFeaturedProjectPath } from "@/lib/featuredProjects";
 import { COASTAL_LOCATIONS } from "@/lib/coastalSeo";
+import { cloudinarySized } from "@/lib/images";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -34,7 +35,7 @@ const Header = () => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -252,11 +253,14 @@ const Header = () => {
           <Link href="/" className="flex items-center">
             <div className="relative w-16 h-16 md:w-20 md:h-20">
               <Image
-                src="https://res.cloudinary.com/dyfnobo9r/image/upload/v1767347012/Iinuka_properties_logo_xq372f.jpg"
+                src={cloudinarySized(
+                  "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767347012/Iinuka_properties_logo_xq372f.jpg",
+                  160
+                )}
                 alt="Inuka Afrika Properties Logo"
                 fill
+                sizes="80px"
                 className="object-contain"
-                priority
               />
             </div>
           </Link>

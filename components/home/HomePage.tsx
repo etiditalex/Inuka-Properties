@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, type FormEvent } from "react";
+import { useState, useEffect, useRef, type FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, MapPin, Home, Building2, Waves, Sprout, TrendingUp, ChevronLeft, ChevronRight, ChevronDown, DollarSign, Heart, FileText, CheckCircle2, Check, Phone, MessageCircle } from "lucide-react";
 import Link from "next/link";
@@ -11,11 +11,13 @@ import { whatsAppUrl } from "@/lib/whatsapp";
 import StructuredData from "@/components/StructuredData";
 import PropertyListingCard from "@/components/PropertyListingCard";
 import { hydratePropertyEngagement } from "@/lib/properties/engagementClient";
-import { cloudinarySized } from "@/lib/images";
+import { cloudinarySized, HOME_HERO_DESKTOP, HOME_HERO_MOBILE } from "@/lib/images";
 import { COASTAL_LOCATIONS } from "@/lib/coastalSeo";
 import CoastalPlayStrip from "@/components/play/CoastalPlayStrip";
 
-const GoogleReviewsSection = dynamic(() => import("@/components/GoogleReviewsSection"));
+const GoogleReviewsSection = dynamic(() => import("@/components/GoogleReviewsSection"), {
+  ssr: false,
+});
 
 interface Property {
   id: number;
@@ -234,14 +236,24 @@ function PropertyCardsSection() {
   );
 
   useEffect(() => {
-    fetch("/api/content/properties", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.engagement) hydratePropertyEngagement(data.engagement);
-        if (!data.properties?.length) return;
-        setHomeFeaturedProperties(getHomepageProperties(data.properties));
-      })
-      .catch(() => {});
+    const load = () => {
+      fetch("/api/content/properties")
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.engagement) hydratePropertyEngagement(data.engagement);
+          if (!data.properties?.length) return;
+          setHomeFeaturedProperties(getHomepageProperties(data.properties));
+        })
+        .catch(() => {});
+    };
+
+    if ("requestIdleCallback" in window) {
+      const id = window.requestIdleCallback(load, { timeout: 2500 });
+      return () => window.cancelIdleCallback(id);
+    }
+
+    const id = window.setTimeout(load, 1500);
+    return () => window.clearTimeout(id);
   }, []);
 
   const newestListingId = getNewestListingId(homeFeaturedProperties);
@@ -450,7 +462,7 @@ function CounterSection() {
         <Image
           src={cloudinarySized(
             "https://res.cloudinary.com/dyfnobo9r/image/upload/v1757597070/Bofa_Platinum_Estate_6_ptpthd.jpg",
-            1400
+            960
           )}
           alt="Bofa plots for sale with Inuka Properties, Kilifi County"
           fill
@@ -551,6 +563,34 @@ function CounterItem({
       </motion.div>
       <div className="text-white/90 font-medium mt-2 font-montserrat">{label}</div>
     </motion.div>
+  );
+}
+
+function DeferredGoogleReviews() {
+  const slotRef = useRef<HTMLDivElement>(null);
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    const slot = slotRef.current;
+    if (!slot) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        setShow(true);
+        observer.disconnect();
+      },
+      { rootMargin: "400px" }
+    );
+
+    observer.observe(slot);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={slotRef} className={show ? undefined : "min-h-24"}>
+      {show ? <GoogleReviewsSection /> : null}
+    </div>
   );
 }
 
@@ -659,31 +699,27 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="relative min-h-[90vh] flex items-center overflow-hidden">
         {/* Background Image */}
-        <div className="absolute inset-0 w-full h-full">
-          <Image
-            src={cloudinarySized(
-              "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767596630/kilifi_investment_swq82s.jpg",
-              1600
-            )}
-            alt="Inuka Properties — land and plots for sale on the Kenya coast"
-            fill
-            sizes="100vw"
-            className="object-cover"
-            priority
-            quality={65}
-          />
+        <div className="absolute inset-0 h-full w-full">
+          <picture>
+            <source media="(max-width: 767px)" srcSet={HOME_HERO_MOBILE} />
+            <source media="(min-width: 768px)" srcSet={HOME_HERO_DESKTOP} />
+            <img
+              src={HOME_HERO_DESKTOP}
+              alt="Inuka Properties — land and plots for sale on the Kenya coast"
+              width={1400}
+              height={788}
+              fetchPriority="high"
+              decoding="async"
+              className="h-full w-full object-cover"
+            />
+          </picture>
         </div>
         {/* Dark Overlay for Text Readability */}
         <div className="absolute inset-0 bg-gradient-to-r from-dark-900/80 via-dark-900/70 to-dark-900/60"></div>
         
         <div className="container mx-auto px-4 py-20 relative z-10">
           <div className="max-w-5xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="text-center"
-            >
+            <div className="text-center">
               <h1 className="text-[2.125rem] sm:text-[2.5rem] md:text-[3.35rem] lg:text-[4.15rem] font-bold text-white mb-6 font-montserrat drop-shadow-lg leading-tight text-balance">
                 Coastal Gate To <span className="text-primary-300">Real Estate</span>
               </h1>
@@ -699,7 +735,7 @@ export default function HomePage() {
                   <ArrowRight size={20} />
                 </Link>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>
@@ -739,8 +775,7 @@ export default function HomePage() {
       {/* Partners Carousel Section */}
       <PartnersCarouselSection />
 
-      {/* Google Reviews Section */}
-      <GoogleReviewsSection />
+      <DeferredGoogleReviews />
 
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-primary-600 to-primary-800 text-white">

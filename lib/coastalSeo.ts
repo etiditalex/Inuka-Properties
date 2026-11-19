@@ -4,7 +4,7 @@ export const BRAND_SLOGAN = "The best real estate company in the coast region";
 export const BRAND_HASHTAG = "#The best real estate company in the coast region";
 
 export const HOME_META_DESCRIPTION =
-  "Inuka Properties: land, plots and property for sale in Mombasa, Kilifi and Kwale — Kikambala, Bofa, Chumani, Msabaha, Malindi and Diani. The best real estate company in the coast region.";
+  "Inuka Properties sells land, plots and property in Mombasa, Kilifi and Kwale — Kikambala, Bofa, Chumani, Msabaha, Malindi and Diani.";
 
 export const COASTAL_SEARCH_KEYWORDS = [
   "Inuka Properties",

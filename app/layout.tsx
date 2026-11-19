@@ -20,7 +20,7 @@ const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
   display: "swap",
-  preload: true,
+  preload: false,
 });
 
 const playfair = Playfair_Display({
@@ -34,7 +34,7 @@ const montserrat = Montserrat({
   subsets: ["latin"],
   variable: "--font-montserrat",
   display: "swap",
-  preload: true,
+  preload: false,
 });
 
 const dancingScript = Dancing_Script({
@@ -128,9 +128,9 @@ export default function RootLayout({
             {/* Google tag (gtag.js) */}
             <Script
               src="https://www.googletagmanager.com/gtag/js?id=G-GHFER2PFLE"
-              strategy="afterInteractive"
+              strategy="lazyOnload"
             />
-            <Script id="google-analytics" strategy="afterInteractive">
+            <Script id="google-analytics" strategy="lazyOnload">
               {`
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){dataLayer.push(arguments);}

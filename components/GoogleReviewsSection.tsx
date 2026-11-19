@@ -53,8 +53,7 @@ export default function GoogleReviewsSection() {
       else setLoading(true);
 
       const response = await fetch(
-        `/api/google-reviews?t=${Date.now()}${isRefresh ? "&refresh=1" : ""}`,
-        { cache: "no-store" }
+        isRefresh ? "/api/google-reviews?refresh=1" : "/api/google-reviews"
       );
       const data = (await response.json()) as GoogleReviewsData & {
         error?: string;
