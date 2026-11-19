@@ -652,18 +652,25 @@ export default function HomePage() {
       <DeferredGoogleReviews />
 
       <section className="bg-white py-16" aria-labelledby="home-faq-heading">
-        <div className="container mx-auto max-w-3xl px-4">
+        <div className="w-full px-4 md:px-8 lg:px-12 xl:px-16">
           <h2 id="home-faq-heading" className="font-montserrat text-3xl font-bold text-dark-900">
             Questions buyers ask
           </h2>
-          <dl className="mt-8 space-y-6">
+          <div className="mt-8 border-t border-dark-200">
             {homepageFaqs.map((item) => (
-              <div key={item.question}>
-                <dt className="font-montserrat text-lg font-semibold text-dark-900">{item.question}</dt>
-                <dd className="mt-2 font-montserrat leading-relaxed text-dark-700">{item.answer}</dd>
-              </div>
+              <details key={item.question} className="group border-b border-dark-200">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 font-montserrat text-lg font-semibold text-dark-900 [&::-webkit-details-marker]:hidden">
+                  {item.question}
+                  <ChevronDown
+                    size={20}
+                    className="shrink-0 text-dark-500 transition-transform group-open:rotate-180"
+                    aria-hidden
+                  />
+                </summary>
+                <p className="pb-5 font-montserrat leading-relaxed text-dark-700">{item.answer}</p>
+              </details>
             ))}
-          </dl>
+          </div>
         </div>
       </section>
 
