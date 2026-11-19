@@ -28,10 +28,10 @@ export function parseGalleryUrls(
 /** Smaller Cloudinary delivery URL. Leaves already-transformed URLs unchanged. */
 export function cloudinarySized(src: string, width: number, quality = "auto"): string {
   if (!src.includes("res.cloudinary.com/") || !src.includes("/image/upload/")) return src;
-  if (src.includes("/image/upload/f_auto") || src.includes("/image/upload/q_auto")) return src;
+  if (/\/image\/upload\/f_/.test(src)) return src;
   return src.replace(
     "/image/upload/",
-    `/image/upload/f_auto,q_${quality},w_${width},c_limit/`
+    `/image/upload/f_webp,q_${quality},w_${width},c_limit/`
   );
 }
 
@@ -39,8 +39,8 @@ const HOME_HERO_SOURCE =
   "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767596630/kilifi_investment_swq82s.jpg";
 
 /** Direct Cloudinary URLs so the hero skips the Next image optimizer hop. */
-export const HOME_HERO_MOBILE = cloudinarySized(HOME_HERO_SOURCE, 828, "60");
-export const HOME_HERO_DESKTOP = cloudinarySized(HOME_HERO_SOURCE, 1400, "65");
+export const HOME_HERO_MOBILE = cloudinarySized(HOME_HERO_SOURCE, 640, "50");
+export const HOME_HERO_DESKTOP = cloudinarySized(HOME_HERO_SOURCE, 1280, "60");
 
 export function isSupabaseStorageUrl(src: string): boolean {
   return src.includes(".supabase.co/storage/");

@@ -424,12 +424,13 @@ function PartnersCarouselSection() {
               >
                 <div className="w-48 h-32 md:w-64 md:h-40 bg-white rounded-lg shadow-md p-4 flex items-center justify-center hover:shadow-xl transition-all hover:scale-105">
                   <Image
-                    src={cloudinarySized(partner.logo, 480)}
+                    src={cloudinarySized(partner.logo, 320, "60")}
                     alt={`${partner.name} — partner of Inuka Properties`}
                     width={240}
                     height={140}
-                    sizes="240px"
+                    sizes="192px"
                     loading="lazy"
+                    unoptimized
                     className="object-contain max-w-full max-h-full"
                   />
                 </div>
@@ -457,13 +458,15 @@ function CounterSection() {
         <Image
           src={cloudinarySized(
             "https://res.cloudinary.com/dyfnobo9r/image/upload/v1757597070/Bofa_Platinum_Estate_6_ptpthd.jpg",
-            960
+            800,
+            "45"
           )}
           alt="Bofa plots for sale with Inuka Properties, Kilifi County"
           fill
           sizes="100vw"
+          unoptimized
+          loading="lazy"
           className="object-cover"
-          quality={60}
         />
       </div>
       {/* Dark Overlay */}
@@ -699,7 +702,7 @@ export default function HomePage() {
             <source media="(max-width: 767px)" srcSet={HOME_HERO_MOBILE} />
             <source media="(min-width: 768px)" srcSet={HOME_HERO_DESKTOP} />
             <img
-              src={HOME_HERO_DESKTOP}
+              src={HOME_HERO_MOBILE}
               alt="Inuka Properties — land and plots for sale on the Kenya coast"
               width={1400}
               height={788}

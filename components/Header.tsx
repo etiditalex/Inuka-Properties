@@ -255,11 +255,13 @@ const Header = () => {
               <Image
                 src={cloudinarySized(
                   "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767347012/Iinuka_properties_logo_xq372f.jpg",
-                  160
+                  160,
+                  "70"
                 )}
                 alt="Inuka Afrika Properties Logo"
                 fill
                 sizes="80px"
+                unoptimized
                 className="object-contain"
               />
             </div>

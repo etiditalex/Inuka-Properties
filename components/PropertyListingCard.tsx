@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { MapPin, Bed, Bath, Square, Home } from "lucide-react";
-import { isPosterListingImage, listingImageFitClass, propertyImageProps } from "@/lib/images";
+import { cloudinarySized, isPosterListingImage, listingImageFitClass, propertyImageProps } from "@/lib/images";
 import { propertyDetailPath } from "@/lib/propertySeo";
 import PropertyLikeButton from "@/components/property/PropertyLikeButton";
 import PropertyStarRating from "@/components/property/PropertyStarRating";
@@ -48,6 +48,10 @@ export default function PropertyListingCard({
   const typeLabel = formatTypeLabel(property.type);
   const isSold = property.status === "sold";
   const imageProps = property.image ? propertyImageProps(property.image) : null;
+  const imageSrc =
+    imageProps && imageProps.src.includes("res.cloudinary.com/")
+      ? cloudinarySized(imageProps.src, 640, "50")
+      : imageProps?.src;
   const posterFit = isPosterListingImage(property);
 
   return (
@@ -57,10 +61,10 @@ export default function PropertyListingCard({
       <div className={`relative w-full shrink-0 overflow-hidden rounded-t-xl ${imageHeightClass} ${posterFit ? "bg-neutral-100" : ""}`}>
         {imageProps ? (
           <Image
-            src={imageProps.src}
+            src={imageSrc || imageProps.src}
             alt={property.title}
             fill
-            unoptimized={imageProps.unoptimized}
+            unoptimized={imageProps.unoptimized || imageSrc !== imageProps.src}
             className={`${listingImageFitClass(property)} ${posterFit ? "p-3" : ""} ${isSold ? "opacity-80 saturate-[0.65]" : ""}`}
             sizes={imageSizes}
           />

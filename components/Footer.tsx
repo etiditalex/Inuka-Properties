@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Phone, Mail, MapPin, Facebook, Instagram, Linkedin, MessageCircle } from "lucide-react";
 import Image from "next/image";
 import { BRAND_HASHTAG, COASTAL_LOCATIONS } from "@/lib/coastalSeo";
+import { cloudinarySized } from "@/lib/images";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -16,9 +17,15 @@ const Footer = () => {
             <div className="mb-4">
               <div className="relative w-16 h-16">
                 <Image
-                  src="https://res.cloudinary.com/dyfnobo9r/image/upload/v1767347012/Iinuka_properties_logo_xq372f.jpg"
+                  src={cloudinarySized(
+                    "https://res.cloudinary.com/dyfnobo9r/image/upload/v1767347012/Iinuka_properties_logo_xq372f.jpg",
+                    128,
+                    "70"
+                  )}
                   alt="Inuka Afrika Properties Logo"
                   fill
+                  sizes="64px"
+                  unoptimized
                   className="object-contain"
                 />
               </div>
