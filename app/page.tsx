@@ -4,10 +4,14 @@ import HomePage from "@/components/home/HomePage";
 import { HOME_HERO_DESKTOP, HOME_HERO_MOBILE } from "@/lib/images";
 import { plotFinderSchema } from "@/lib/seo";
 import { HOME_META_DESCRIPTION } from "@/lib/coastalSeo";
+import { SITE_ORIGIN } from "@/lib/site";
 
 const description = HOME_META_DESCRIPTION;
 
 export const metadata: Metadata = {
+  alternates: {
+    canonical: SITE_ORIGIN,
+  },
   description,
   openGraph: {
     description,

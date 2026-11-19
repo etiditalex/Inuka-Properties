@@ -126,7 +126,14 @@ function GetPropertyDetailsForm() {
 
 export default function GetPropertyDetailsPage() {
   return (
-    <Suspense fallback={<div className="pt-32 text-center text-dark-500">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="px-4 pb-20 pt-32 text-center">
+          <h1 className="font-montserrat text-3xl font-bold text-dark-900 md:text-4xl">Get Property Details</h1>
+          <p className="mt-3 text-dark-500">Loading the project form…</p>
+        </div>
+      }
+    >
       <GetPropertyDetailsForm />
     </Suspense>
   );

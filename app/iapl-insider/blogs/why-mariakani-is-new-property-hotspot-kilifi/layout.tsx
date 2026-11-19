@@ -10,8 +10,7 @@ const CANONICAL =
 
 const fallbackMetadata: Metadata = {
   metadataBase: new URL("https://www.inukaproperties.co.ke"),
-  title:
-    "Why Mariakani is the New Property Hotspot in Kilifi | Inuka Afrika Properties",
+  title: { absolute: "Mariakani property hotspot | Inuka" },
   description:
     "Discover why Mariakani is Kilifi County's fastest-growing property investment destination — affordable land, highway access, infrastructure growth, and Tulivu Haven plots from Inuka Afrika Properties.",
   keywords: [

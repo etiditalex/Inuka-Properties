@@ -111,7 +111,7 @@ export default function AdminFacebookAdsPage() {
             </div>
             <p className="text-sm text-dark-600">
               Pixel ID <code className="rounded bg-white px-1.5 py-0.5 text-primary-800">{FACEBOOK_PIXEL_ID}</code> is
-              installed on{" "}
+              installed on the public site. Campaign events for{" "}
               <a
                 href={landingUrl}
                 target="_blank"
@@ -119,8 +119,8 @@ export default function AdminFacebookAdsPage() {
                 className="font-medium text-primary-700 hover:underline"
               >
                 {property?.title ?? "Tulivu Haven"}
-              </a>
-              . Events are sent to Meta and mirrored here for your dashboard.
+              </a>{" "}
+              are sent to Meta and mirrored here for your dashboard.
             </p>
             <div className="mt-4 flex flex-wrap items-center gap-3">
               <a

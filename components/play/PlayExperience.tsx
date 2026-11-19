@@ -131,9 +131,10 @@ export default function PlayExperience() {
 
   if (!play) {
     return (
-      <p className="px-4 pb-20 pt-28 text-center font-montserrat text-dark-600">
-        {loadError || "Loading today's games…"}
-      </p>
+      <div className="px-4 pb-20 pt-28 text-center font-montserrat">
+        <h1 className="text-3xl font-bold text-dark-900 md:text-4xl">Take a break and play</h1>
+        <p className="mt-3 text-dark-600">{loadError || "Loading today's games…"}</p>
+      </div>
     );
   }
 
@@ -143,7 +144,7 @@ export default function PlayExperience() {
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-700 font-montserrat">
           Coastal Break · {play.dayLabel}
         </p>
-        <h1 className="mt-2 text-3xl font-bold text-dark-900 font-montserrat md:text-4xl">Take a break and play.</h1>
+        <h1 className="mt-2 text-3xl font-bold text-dark-900 font-montserrat md:text-4xl">Take a break and play</h1>
         <p className="mt-3 max-w-2xl text-dark-600 font-montserrat">
           New games every day. Clear any plot to unlock the {play.offer.title} offer.
         </p>

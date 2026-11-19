@@ -5,6 +5,7 @@ import "./globals.css";
 import ConditionalLayout from "@/components/ConditionalLayout";
 import AdminAwareWidgets from "@/components/AdminAwareWidgets";
 import ContactAutoCapture from "@/components/ContactAutoCapture";
+import SiteMetaPixel from "@/components/SiteMetaPixel";
 import { BookSiteVisitProvider } from "@/components/BookSiteVisitContext";
 import JsonLd from "@/components/JsonLd";
 import {
@@ -73,9 +74,6 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  alternates: {
-    canonical: SITE_ORIGIN,
-  },
   category: "Real Estate",
 };
 
@@ -118,6 +116,7 @@ export default function RootLayout({
                 gtag('config', 'G-GHFER2PFLE');
               `}
             </Script>
+            <SiteMetaPixel />
             <BookSiteVisitProvider>
               <ConditionalLayout>{children}</ConditionalLayout>
               <ContactAutoCapture />

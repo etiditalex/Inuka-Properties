@@ -30,6 +30,27 @@ export function absoluteUrl(path = ""): string {
   return `${SITE_ORIGIN}${normalized}`;
 }
 
+const TITLE_LIMIT = 60;
+const BRAND_FULL = " | Inuka Properties";
+const BRAND_SHORT = " | Inuka";
+
+function trimTo(value: string, max: number): string {
+  const clean = value.replace(/\s+/g, " ").trim();
+  if (clean.length <= max) return clean;
+  const cut = clean.slice(0, max);
+  const word = cut.replace(/\s+\S*$/, "").trim();
+  return word.length > 20 ? word : cut.trim();
+}
+
+/** Keep the title tag within the length site audits flag as too long. */
+export function composeTitle(title: string, exactTitle = false): string {
+  const clean = title.replace(/\s+/g, " ").trim();
+  const alreadyBranded = exactTitle || /inuka/i.test(clean);
+  if (alreadyBranded) return trimTo(clean, TITLE_LIMIT);
+  if ((clean + BRAND_FULL).length <= TITLE_LIMIT) return clean + BRAND_FULL;
+  return `${trimTo(clean, TITLE_LIMIT - BRAND_SHORT.length)}${BRAND_SHORT}`;
+}
+
 type PageMetadataOptions = {
   title: string;
   description: string;
@@ -56,10 +77,7 @@ export function buildPageMetadata({
   geo,
 }: PageMetadataOptions): Metadata {
   const url = absoluteUrl(path);
-  const fullTitle =
-    exactTitle || /inuka/i.test(title)
-      ? title
-      : `${title} | Inuka Properties`;
+  const fullTitle = composeTitle(title, exactTitle);
 
   return {
     title: { absolute: fullTitle },
@@ -211,7 +229,7 @@ export const organizationSchema = {
     "https://www.linkedin.com/company/inuka-afrika-properties-limited",
     "https://x.com/Inukaproperties",
     "https://www.tiktok.com/@inukaafrikaproperties",
-    "https://www.threads.com/@inukaafrikaproperties",
+    "https://www.threads.net/@inukaafrikaproperties",
     GOOGLE_MAPS_PLACE_URL,
     OFFICE_MAPS_SEARCH_URL,
   ],
@@ -255,25 +273,6 @@ export const organizationSchema = {
     "Affordable housing Kenya coast",
     BRAND_SLOGAN,
   ],
-  hasOfferCatalog: {
-    "@type": "OfferCatalog",
-    name: "Featured land and plots for sale",
-    itemListElement: FEATURED_SITELINK_PAGES.map((page, index) => ({
-      "@type": "Offer",
-      position: index + 1,
-      url: absoluteUrl(page.href),
-      itemOffered: {
-        "@type": "RealEstateListing",
-        name: page.name,
-        description: page.description,
-        url: absoluteUrl(page.href),
-        areaServed: {
-          "@type": "Place",
-          name: page.location,
-        },
-      },
-    })),
-  },
 };
 
 export const websiteSchema = {
@@ -338,28 +337,11 @@ export const plotFinderSchema = {
       "@type": "AggregateOffer",
       lowPrice: 395000,
       priceCurrency: "KES",
+      offerCount: FEATURED_SITELINK_PAGES.length,
       availability: "https://schema.org/InStock",
       url: absoluteUrl("/for-sale"),
       seller: { "@id": `${SITE_ORIGIN}/#organization` },
     },
-    potentialAction: [
-      {
-        "@type": "SearchAction",
-        target: {
-          "@type": "EntryPoint",
-          urlTemplate: `${SITE_ORIGIN}/for-sale?area={search_term_string}`,
-        },
-        "query-input": "required name=search_term_string",
-      },
-      {
-        "@type": "CommunicateAction",
-        name: "Talk to an Expert",
-        target: {
-          "@type": "EntryPoint",
-          urlTemplate: "tel:+254711082084",
-        },
-      },
-    ],
   },
 };
 
@@ -372,32 +354,31 @@ export const siteNavigationSchema = {
   numberOfItems: FEATURED_SITELINK_PAGES.length + 4,
   itemListElement: [
     ...FEATURED_SITELINK_PAGES.map((page, index) => ({
-      "@type": "SiteNavigationElement",
+      "@type": "ListItem",
       position: index + 1,
       name: page.name,
       url: absoluteUrl(page.href),
-      description: page.description,
     })),
     {
-      "@type": "SiteNavigationElement",
+      "@type": "ListItem",
       position: FEATURED_SITELINK_PAGES.length + 1,
       name: "Properties for Sale",
       url: absoluteUrl("/for-sale"),
     },
     {
-      "@type": "SiteNavigationElement",
+      "@type": "ListItem",
       position: FEATURED_SITELINK_PAGES.length + 2,
       name: "About Us",
       url: absoluteUrl("/about-us"),
     },
     {
-      "@type": "SiteNavigationElement",
+      "@type": "ListItem",
       position: FEATURED_SITELINK_PAGES.length + 3,
       name: "Services",
       url: absoluteUrl("/services"),
     },
     {
-      "@type": "SiteNavigationElement",
+      "@type": "ListItem",
       position: FEATURED_SITELINK_PAGES.length + 4,
       name: "Testimonials",
       url: absoluteUrl("/testimonials"),
@@ -477,7 +458,6 @@ export function buildRealEstateListingSchema(options: {
   additionalProperty?: { name: string; value: string }[];
   highPrice?: number;
 }): Record<string, unknown> {
-  const images = Array.isArray(options.image) ? options.image : [options.image];
   const parsed = Number(String(options.price).replace(/[^\d]/g, ""));
   const numericPrice =
     options.priceAmount ?? (parsed > 0 ? parsed : undefined);
@@ -488,25 +468,26 @@ export function buildRealEstateListingSchema(options: {
           lowPrice: numericPrice,
           highPrice: options.highPrice,
           priceCurrency: "KES",
+          offerCount: 2,
         }
       : {
           "@type": "Offer",
           price: numericPrice,
           priceCurrency: "KES",
         }
-    : {
-        "@type": "Offer",
-        price: options.price,
-        priceCurrency: "KES",
-      };
+    : null;
+
+  const images = (Array.isArray(options.image) ? options.image : [options.image]).filter(
+    (image) => typeof image === "string" && image.startsWith("http")
+  );
 
   return {
     "@context": "https://schema.org",
-    "@type": ["RealEstateListing", "Product"],
+    "@type": "RealEstateListing",
     name: options.name,
     ...(options.alternateName ? { alternateName: options.alternateName } : {}),
     description: options.description,
-    image: images,
+    ...(images.length ? { image: images } : {}),
     url: absoluteUrl(options.path),
     datePosted: options.datePosted ?? new Date().toISOString().split("T")[0],
     brand: {
@@ -523,19 +504,22 @@ export function buildRealEstateListingSchema(options: {
           })),
         }
       : {}),
-    offers: {
-      ...offerPrice,
-      availability:
-        options.availability === "SoldOut"
-          ? "https://schema.org/SoldOut"
-          : "https://schema.org/InStock",
-      businessFunction: "http://purl.org/goodrelations/v1#Sell",
-      seller: {
-        "@type": "RealEstateAgent",
-        name: SITE_NAME,
-        url: SITE_ORIGIN,
-      },
-    },
+    ...(offerPrice
+      ? {
+          offers: {
+            ...offerPrice,
+            availability:
+              options.availability === "SoldOut"
+                ? "https://schema.org/SoldOut"
+                : "https://schema.org/InStock",
+            seller: {
+              "@type": "RealEstateAgent",
+              name: SITE_NAME,
+              url: SITE_ORIGIN,
+            },
+          },
+        }
+      : {}),
     ...(options.geo
       ? {
           geo: {
@@ -603,10 +587,6 @@ export function buildPropertyWebPageSchema(options: {
           },
         }
       : {}),
-    speakable: {
-      "@type": "SpeakableSpecification",
-      cssSelector: ["h1", "title", "meta[name='description']"],
-    },
   };
 }
 

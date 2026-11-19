@@ -4,7 +4,7 @@ import { COASTAL_LOCATIONS } from "@/lib/coastalSeo";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Land & Plots in Mombasa, Kilifi and Kwale",
+  title: "Plots in Mombasa, Kilifi and Kwale",
   description:
     "Inuka Properties covers land, plots, and property searches in Mombasa, Kilifi, and Kwale, including Kikambala, Bofa, Chumani, Msabaha, Malindi, and Diani.",
   path: "/locations",

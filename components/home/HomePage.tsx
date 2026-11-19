@@ -38,7 +38,6 @@ import {
   getHomepageProperties,
   getNewestListingId,
 } from "@/lib/properties/sortProperties";
-import { FEATURED_SITELINK_PAGES } from "@/lib/featuredProjects";
 
 const COASTAL_AREAS = COASTAL_LOCATIONS.map((location) => location.name);
 
@@ -522,106 +521,54 @@ function DeferredGoogleReviews() {
 }
 
 export default function HomePage() {
-  // Structured Data for Homepage - Location-based SEO
-  const homepageStructuredData = {
-    "@context": "https://schema.org",
-    "@type": "RealEstateAgent",
-    "name": "Inuka Afrika Properties Limited",
-    "url": "https://www.inukaproperties.co.ke",
-    "description": "Inuka Properties sells land, plots, and property in Mombasa, Kilifi, and Kwale, including Kikambala, Bofa, Chumani, Msabaha, Malindi, and Diani.",
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "Links Road Opposite Kigothos Hotel",
-      "addressLocality": "Nyali",
-      "addressRegion": "Mombasa",
-      "postalCode": "80100",
-      "addressCountry": "KE"
+  const homepageFaqs = [
+    {
+      question: "Where are Inuka Afrika Properties located?",
+      answer:
+        "Inuka Properties helps buyers searching for land, plots, and property in Mombasa County, Kilifi County, and Kwale County, including Kikambala, Bofa, Chumani, Msabaha, Malindi, and Diani. Open plot projects are in Kilifi County. The head office is in Nyali, Mombasa, at Links Road opposite Kigothos Hotel.",
     },
-    "geo": {
-      "@type": "GeoCoordinates",
-      "latitude": "-4.048",
-      "longitude": "39.709"
+    {
+      question: "What types of properties does Inuka Afrika Properties offer?",
+      answer:
+        "Inuka Afrika Properties offers residential plots, commercial properties, beach properties, and affordable housing solutions in Kilifi County. We also provide property management, title issuance, and feasibility study services.",
     },
-    "areaServed": [
-      "Mombasa", "Kilifi", "Kwale", "Nyali", "Kikambala", "Bofa",
-      "Chumani", "Msabaha", "Malindi", "Diani", "Mariakani", "Tezo"
-    ],
-    "hasOfferCatalog": {
-      "@type": "OfferCatalog",
-      "name": "Featured land and plots for sale in Kilifi County",
-      "itemListElement": FEATURED_SITELINK_PAGES.map((page, index) => ({
-        "@type": "Offer",
-        "position": index + 1,
-        "url": `https://www.inukaproperties.co.ke${page.href}`,
-        "itemOffered": {
-          "@type": "RealEstateListing",
-          "name": page.name,
-          "description": page.description,
-          "url": `https://www.inukaproperties.co.ke${page.href}`
-        }
-      }))
-    }
-  };
+    {
+      question: "How long has Inuka Afrika Properties been in business?",
+      answer:
+        "Inuka Afrika Properties Limited was founded in 2016 and has been operating for over 10 years, serving clients across the coastal region of Kenya with excellence in real estate solutions.",
+    },
+    {
+      question: "What is the contact information for Inuka Afrika Properties?",
+      answer:
+        "You can contact Inuka Afrika Properties Limited at phone number 0711 082084 or email info@inukaproperties.co.ke. Our office is located at Links Road Opposite Kigothos Hotel, P.O. BOX 525-80100, Nyali, Mombasa, Kenya.",
+    },
+    {
+      question: "What are the featured property projects from Inuka Afrika Properties?",
+      answer:
+        "Featured selling projects include Miliki Tezo na Inuka in Tezo, Tulivu Haven in Mariakani, Bofa Phase 21 in Bofa, and Malindi Airport Gardens in Ganda Furunzi, Malindi.",
+    },
+    {
+      question: "Do you offer payment plans for properties?",
+      answer:
+        "Yes, Inuka Afrika Properties offers flexible payment plans for most properties. Payment terms typically include a deposit followed by monthly installments over 12 months, with some properties offering zero-interest payment plans.",
+    },
+  ];
 
-  // FAQ Structured Data for AI Overview
   const faqStructuredData = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "Where are Inuka Afrika Properties located?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Inuka Properties helps buyers searching for land, plots, and property in Mombasa County, Kilifi County, and Kwale County, including Kikambala, Bofa, Chumani, Msabaha, Malindi, and Diani. Open plot projects are in Kilifi County. The head office is in Nyali, Mombasa, at Links Road opposite Kigothos Hotel."
-        }
+    mainEntity: homepageFaqs.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
       },
-      {
-        "@type": "Question",
-        "name": "What types of properties does Inuka Afrika Properties offer?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Inuka Afrika Properties offers residential plots, commercial properties, beach properties, and affordable housing solutions in Kilifi County. We also provide property management, title issuance, and feasibility study services."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "How long has Inuka Afrika Properties been in business?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Inuka Afrika Properties Limited was founded in 2016 and has been operating for over 10 years, serving clients across the coastal region of Kenya with excellence in real estate solutions."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "What is the contact information for Inuka Afrika Properties?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "You can contact Inuka Afrika Properties Limited at phone number 0711 082084 or email info@inukaproperties.co.ke. Our office is located at Links Road Opposite Kigothos Hotel, P.O. BOX 525-80100, Nyali, Mombasa, Kenya."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "What are the featured property projects from Inuka Afrika Properties?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Featured selling projects include Miliki Tezo na Inuka in Tezo, Tulivu Haven in Mariakani, Bofa Phase 21 in Bofa, and Malindi Airport Gardens in Ganda Furunzi, Malindi."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Do you offer payment plans for properties?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Yes, Inuka Afrika Properties offers flexible payment plans for most properties. Payment terms typically include a deposit followed by monthly installments over 12 months, with some properties offering zero-interest payment plans."
-        }
-      }
-    ]
+    })),
   };
 
   return (
     <div className="pt-24">
-      <StructuredData data={homepageStructuredData} />
       <StructuredData data={faqStructuredData} />
       {/* Hero Section */}
       <section className="relative min-h-[90vh] flex items-center overflow-hidden">
@@ -703,6 +650,22 @@ export default function HomePage() {
       <PartnersCarouselSection />
 
       <DeferredGoogleReviews />
+
+      <section className="bg-white py-16" aria-labelledby="home-faq-heading">
+        <div className="container mx-auto max-w-3xl px-4">
+          <h2 id="home-faq-heading" className="font-montserrat text-3xl font-bold text-dark-900">
+            Questions buyers ask
+          </h2>
+          <dl className="mt-8 space-y-6">
+            {homepageFaqs.map((item) => (
+              <div key={item.question}>
+                <dt className="font-montserrat text-lg font-semibold text-dark-900">{item.question}</dt>
+                <dd className="mt-2 font-montserrat leading-relaxed text-dark-700">{item.answer}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </section>
 
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-primary-600 to-primary-800 text-white">

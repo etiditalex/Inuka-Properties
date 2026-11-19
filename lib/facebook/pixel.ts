@@ -1,4 +1,4 @@
-export const FACEBOOK_PIXEL_ID = "1404538128181596";
+export const FACEBOOK_PIXEL_ID = "3409535652587632";
 
 /** Tulivu Haven — primary Facebook ad landing property */
 export const FACEBOOK_CAMPAIGN_PROPERTY_ID = 14;

@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
+import { buildPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Video Gallery | Inuka Afrika Properties",
+export const metadata = buildPageMetadata({
+  title: "Project video gallery",
   description: "Watch our collection of videos showcasing Inuka Afrika Properties' projects, properties, and company highlights. Explore our real estate portfolio through engaging video content.",
+  path: "/testimonials/video-gallery",
   keywords: [
     "Inuka Afrika Properties videos",
     "property videos Kenya",
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
     "Mariakani property videos",
     "Mtwapa property videos",
   ],
-};
+});
 
 export default function VideoGalleryLayout({
   children,

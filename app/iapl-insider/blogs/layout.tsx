@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export const metadata = buildPageMetadata({
-  title: "Property & Land Investment Blog | Kilifi & Coastal Kenya",
+  title: "Coastal land investment blog",
   description:
     "Expert articles on land for sale in Kilifi County, coastal investment trends, title deeds, Tezo, Malindi, Kikambala, and affordable plots in Kenya.",
   path: "/iapl-insider/blogs",

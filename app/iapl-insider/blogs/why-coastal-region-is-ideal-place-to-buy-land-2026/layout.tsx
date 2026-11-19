@@ -3,7 +3,7 @@ import { withPublishedBlogMetadata } from "@/lib/blog/withPublishedBlogMetadata"
 
 const fallbackMetadata: Metadata = {
   metadataBase: new URL('https://www.inukaproperties.co.ke'),
-  title: "Why the Coastal region Is The Ideal Place To Buy Land In 2026 | Inuka Afrika Properties",
+  title: { absolute: "Why buy coastal land in 2026 | Inuka" },
   description: "Discover why the Coastal region is the perfect destination to buy land in 2026. Explore Mariakani, Mtwapa, Kikambala, Kilifi, Malindi, Watamu, and Diani. Learn about infrastructure growth, affordable housing initiatives, and tourism opportunities. Expert insights from Inuka Afrika Properties.",
   keywords: [
     "buy land in Coastal region",

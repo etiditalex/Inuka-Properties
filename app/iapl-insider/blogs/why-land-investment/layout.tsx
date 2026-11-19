@@ -3,7 +3,7 @@ import { withPublishedBlogMetadata } from "@/lib/blog/withPublishedBlogMetadata"
 
 const fallbackMetadata: Metadata = {
   metadataBase: new URL('https://www.inukaproperties.co.ke'),
-  title: "Why Land Investment: The Ultimate Guide to Building Wealth Through Real Estate | Inuka Afrika Properties",
+  title: { absolute: "Why land is a strong investment | Inuka" },
   description: "Discover why land investment is one of the smartest financial decisions you can make. Learn about land investment benefits, strategies, and opportunities in Kenya. Expert insights from Inuka Afrika Properties.",
   keywords: [
     "land investment",

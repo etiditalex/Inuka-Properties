@@ -253,6 +253,10 @@ export default function ProjectShowcasePage() {
             >
               {currentProject.location}
             </motion.div>
+            <p className="mt-4 max-w-2xl text-base text-white/90 md:text-lg">
+              {currentProject.size} {currentProject.type.toLowerCase()} land
+              {currentProject.features?.[0] ? ` — ${currentProject.features[0]}` : ""}.
+            </p>
 
             {/* Price */}
             <motion.div

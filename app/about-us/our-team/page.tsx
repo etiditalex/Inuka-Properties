@@ -112,7 +112,11 @@ export default function OurTeamPage() {
                 <ChevronRight size={16} className="text-dark-400" />
             <span className="text-dark-900 font-montserrat">OUR TEAM</span>
           </div>
-              </div>
+        </div>
+        <h1 className="mb-3 font-montserrat text-3xl font-bold text-dark-900 md:text-4xl">Our team</h1>
+        <p className="mb-8 max-w-3xl font-montserrat text-base leading-relaxed text-dark-700">
+          Sales, finance, and operations staff at the Nyali office handle site visits, installment plans, and title questions for plots in Mombasa, Kilifi, and Kwale.
+        </p>
 
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Left Sidebar - Navigation */}

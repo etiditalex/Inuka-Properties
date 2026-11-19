@@ -10,8 +10,7 @@ const CANONICAL =
 
 const fallbackMetadata: Metadata = {
   metadataBase: new URL("https://www.inukaproperties.co.ke"),
-  title:
-    "Why More Kenyans Are Investing in Land for Sale in Kilifi County | Inuka Afrika Properties",
+  title: { absolute: "Why Kenyans buy Kilifi land | Inuka" },
   description:
     "Discover why land for sale in Kilifi County is attracting Kenyan investors. Affordable plots, title deed security, Tezo, Msabaha, Matsangoni, and flexible installment plans from Inuka Afrika Properties Ltd.",
   keywords: [

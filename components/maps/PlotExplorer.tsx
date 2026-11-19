@@ -115,9 +115,13 @@ export default function PlotExplorer({ initial, variant = "page" }: PlotExplorer
   const details = (
     <div className="bg-white p-4">
       <p className="text-xs font-semibold uppercase tracking-wide text-primary-700">Explore available plots</p>
-      <h2 className="mt-1 font-montserrat text-xl font-bold text-dark-900">{document.projectName}</h2>
+      {variant === "page" ? (
+        <h1 className="mt-1 font-montserrat text-xl font-bold text-dark-900">{document.projectName}</h1>
+      ) : (
+        <h2 className="mt-1 font-montserrat text-xl font-bold text-dark-900">{document.projectName}</h2>
+      )}
       <p className="text-sm text-dark-600">
-        {document.plots.length} plots · {document.location}
+        {document.plots.length} plots · {document.location}. Select a plot to see its size, price, and whether it is still available.
       </p>
       <div className="mt-3 flex flex-wrap gap-2 text-xs">
         {STATUSES.map((status) => (

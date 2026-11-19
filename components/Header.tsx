@@ -169,7 +169,7 @@ const Header = () => {
               {/* Social Media Links */}
               <div className="flex items-center gap-2 ml-4 border-l border-primary-600 pl-4">
                 <a 
-                  href="https://www.facebook.com/share/17aKSxGY2a/" 
+                  href="https://www.facebook.com/InukaAfrikaProperties" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="hover:text-primary-200 transition"
@@ -189,7 +189,7 @@ const Header = () => {
                   </svg>
                 </a>
                 <a 
-                  href="https://www.instagram.com/inukaafrikaproperties?igsh=MXNtbHUxbTNuNzI2eQ==" 
+                  href="https://www.instagram.com/inukaafrikaproperties" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="hover:text-primary-200 transition"
@@ -198,7 +198,7 @@ const Header = () => {
                   <Instagram size={16} />
                 </a>
                 <a 
-                  href="https://www.linkedin.com/in/inuka-afrika-properties-limited-7aa210210?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" 
+                  href="https://www.linkedin.com/company/inuka-afrika-properties-limited" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="hover:text-primary-200 transition"
@@ -207,7 +207,7 @@ const Header = () => {
                   <Linkedin size={16} />
                 </a>
                 <a 
-                  href="https://www.tiktok.com/@inukaafrikaproperties?_r=1&_t=ZM-92vSSzw2Kmi" 
+                  href="https://www.tiktok.com/@inukaafrikaproperties" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="hover:text-primary-200 transition"
@@ -218,7 +218,7 @@ const Header = () => {
                   </svg>
                 </a>
                 <a 
-                  href="https://www.threads.com/@inukaafrikaproperties" 
+                  href="https://www.threads.net/@inukaafrikaproperties" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="hover:text-primary-200 transition"
@@ -227,7 +227,7 @@ const Header = () => {
                   <MessageCircle size={16} />
                 </a>
                 <a 
-                  href="https://share.google/ywP6oDAf6abQtplK9" 
+                  href="https://www.google.com/maps/place/?q=place_id:ChIJh7mWVCcTQBgRz0n0qhSMn1Q" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="hover:text-primary-200 transition"

@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const metadata = buildPageMetadata({
-  title: "IAPL Insider | Real Estate Insights & News",
+  title: "Coast property news and guides",
   description:
     "Market research, investment guides, and coastal Kenya property news from Inuka Afrika Properties — land for sale in Kilifi, Malindi, Mtwapa, and beyond.",
   path: "/iapl-insider",

@@ -116,6 +116,10 @@ export default function MarketResearchArchive() {
           <ChevronRight size={16} className="text-neutral-500" />
           <span>Market Research</span>
         </nav>
+        <h1 className="font-montserrat text-3xl font-bold text-neutral-900 md:text-4xl">Coastal market research</h1>
+        <p className="mt-3 max-w-2xl font-montserrat text-base leading-relaxed text-neutral-700">
+          Reports on land prices, infrastructure, and buyer demand along the Kenya coast, including Kilifi, Mombasa, and Kwale.
+        </p>
 
         {visibleReports.length === 0 ? (
           <p className="text-center text-neutral-600">

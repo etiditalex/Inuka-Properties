@@ -61,10 +61,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const location = live?.location || seo?.location || "Kilifi County";
   const county = seo?.county ?? "Kilifi County";
   const displayTitle = live?.title || seo?.title || "Property";
+  const place = (location.split(",")[0] || county).trim();
   const title =
     seo?.seoTitle && (!live || seo.title === live.title)
       ? seo.seoTitle
-      : `${displayTitle} | Land for Sale in ${location}, ${county}`;
+      : `${displayTitle} plots in ${place}`;
   const description =
     (seo?.metaDescription && (!live || seo.title === live.title)
       ? seo.metaDescription

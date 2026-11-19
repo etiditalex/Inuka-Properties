@@ -10,8 +10,7 @@ const CANONICAL =
 
 const fallbackMetadata: Metadata = {
   metadataBase: new URL("https://www.inukaproperties.co.ke"),
-  title:
-    "Land for Sale Near Kikambala | Coastal Plots Kilifi County | Inuka Afrika Properties",
+  title: { absolute: "Land for sale near Kikambala | Inuka" },
   description:
     "Land for sale near Kikambala, Kilifi County: prime coastal plots, verified titles, Mombasa–Malindi corridor access, and investment outlook. Expert guidance from Inuka Afrika Properties.",
   keywords: [

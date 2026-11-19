@@ -3,8 +3,7 @@ import { withPublishedBlogMetadata } from "@/lib/blog/withPublishedBlogMetadata"
 
 const fallbackMetadata: Metadata = {
   metadataBase: new URL("https://www.inukaproperties.co.ke"),
-  title:
-    "Why Investing in Tezo Is a Smart Move in 2026 | Inuka Afrika Properties",
+  title: { absolute: "Why Tezo land is selling in 2026 | Inuka" },
   description:
     "Discover why Tezo is emerging as a high-growth real estate hotspot in 2026 — from infrastructure and coastal demand to investor-friendly pricing. Spotlight on Inuka Afrika Properties’ new Tezo project.",
   keywords: [
